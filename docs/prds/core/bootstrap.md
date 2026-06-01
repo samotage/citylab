@@ -1,3 +1,9 @@
+---
+validation:
+  status: valid
+  validated_at: '2026-06-01T14:22:52+10:00'
+---
+
 # CityLab — Project Bootstrap
 
 ## Problem

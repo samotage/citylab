@@ -1,7 +1,5 @@
-# wth-otage
+# cityLAB
 
-**What the Hack Hackathon** — otageLabs entry.
+**otageLabs hackathon project** — CityLab.
 
-A demo project built fast with [Claude Code](https://claude.ai/claude-code). PRD-driven orchestration, fast-lane pipeline, no ceremony.
-
-Built for speed, not production.
+Built fast with [Claude Code](https://claude.ai/claude-code). PRD-driven orchestration, fast-lane pipeline, no ceremony.
