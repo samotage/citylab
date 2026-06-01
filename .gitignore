@@ -1,0 +1,30 @@
+# Orchestration (local tooling, not tracked)
+orch/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment
+.env
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# IDE
+.idea/
+.vscode/
