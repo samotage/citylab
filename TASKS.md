@@ -25,7 +25,7 @@
 
 - [x] **Task 10: Agent wiring** — Create `skill-injection-registry.yaml` with citylab-operator persona stub. Create `src/citylab/cli/commands.py` with `flask seed-admin` CLI command.
 
-- [ ] **Task 11: Database migrations** — Initialize Alembic (`flask db init`), generate initial migration from models, apply with `flask db upgrade`. Verify the migration files are correct.
+- [x] **Task 11: Database migrations** — Initialize Alembic (`flask db init`), generate initial migration from models, apply with `flask db upgrade`. Verify the migration files are correct.
 
 - [ ] **Task 12: Test infrastructure** — Create `tests/__init__.py`, `tests/conftest.py` (`_force_test_database`, `app`, `client`, `db_session` fixtures), `tests/test_health.py`, `tests/test_auth.py`, `tests/test_api_token.py`. Run `pytest tests/` and verify all pass.
 

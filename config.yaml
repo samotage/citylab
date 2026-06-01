@@ -13,7 +13,7 @@ database:
   host: localhost
   port: 5432
   name: citylab
-  user: postgres
+  user: samotage
   password: ""
 
 redis:
