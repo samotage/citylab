@@ -1,9 +1,0 @@
----
-- prd_path: docs/prds/ui/e5-s6-dashboard-restructure-prd.md
-  change_name: e5-s6-dashboard-restructure
-  status: completed
-  added_at: '2026-02-04T18:51:40+11:00'
-  priority: 1
-  started_at: '2026-02-04T18:54:26+11:00'
-  proposal_summary_path: openspec/changes/e5-s6-dashboard-restructure/proposal-summary.md
-  completed_at: '2026-02-04T19:14:57+11:00'

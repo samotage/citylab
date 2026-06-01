@@ -1,9 +1,0 @@
----
-- prd_path: docs/prds/agents/e6-s4-agent-lifecycle-prd.md
-  change_name: e6-s4-agent-lifecycle
-  status: completed
-  added_at: '2026-02-11T15:09:23+11:00'
-  priority: 1
-  started_at: '2026-02-11T15:11:07+11:00'
-  proposal_summary_path: openspec/changes/e6-s4-agent-lifecycle/proposal-summary.md
-  completed_at: '2026-02-11T16:00:36+11:00'

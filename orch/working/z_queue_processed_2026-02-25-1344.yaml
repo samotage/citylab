@@ -1,9 +1,0 @@
----
-- prd_path: docs/prds/onboarding/e1-s11-onboard-headspace-prd.md
-  change_name: e1-s11-onboard-headspace
-  status: completed
-  added_at: '2026-02-25T13:18:11+11:00'
-  priority: 1
-  started_at: '2026-02-25T13:21:22+11:00'
-  proposal_summary_path: openspec/changes/e1-s11-onboard-headspace/proposal-summary.md
-  completed_at: '2026-02-25T13:44:06+11:00'

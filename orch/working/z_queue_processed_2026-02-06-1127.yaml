@@ -1,9 +1,0 @@
----
-- prd_path: docs/prds/bridge/e5-s8-cli-tmux-bridge-prd.md
-  change_name: e5-s8-cli-tmux-bridge
-  status: completed
-  added_at: '2026-02-06T11:08:25+11:00'
-  priority: 1
-  started_at: '2026-02-06T11:09:34+11:00'
-  proposal_summary_path: openspec/changes/e5-s8-cli-tmux-bridge/proposal-summary.md
-  completed_at: '2026-02-06T11:27:31+11:00'

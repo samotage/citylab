@@ -1,9 +1,0 @@
----
-- prd_path: docs/prds/core/e5-s9-full-command-output-capture-prd.md
-  change_name: e5-s9-full-command-output-capture
-  status: completed
-  added_at: '2026-02-09T18:05:56+11:00'
-  priority: 1
-  started_at: '2026-02-09T18:10:15+11:00'
-  proposal_summary_path: openspec/changes/e5-s9-full-command-output-capture/proposal-summary.md
-  completed_at: '2026-02-09T18:28:19+11:00'

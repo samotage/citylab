@@ -1,9 +1,0 @@
----
-- prd_path: docs/prds/test/e7-s1-agent-driven-integration-testing-prd.md
-  change_name: e7-s1-agent-driven-integration-testing
-  status: completed
-  added_at: '2026-02-19T15:07:09+11:00'
-  priority: 1
-  started_at: '2026-02-19T15:12:24+11:00'
-  proposal_summary_path: openspec/changes/e7-s1-agent-driven-integration-testing/proposal-summary.md
-  completed_at: '2026-02-19T15:37:15+11:00'

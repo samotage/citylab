@@ -1,9 +1,0 @@
----
-- prd_path: docs/prds/core/e1-s2-database-setup-prd.md
-  change_name: e1-s2-database-setup
-  status: completed
-  added_at: '2026-01-29T09:21:00+11:00'
-  priority: 1
-  started_at: '2026-01-29T09:21:51+11:00'
-  proposal_summary_path: openspec/changes/e1-s2-database-setup/proposal-summary.md
-  completed_at: '2026-01-29T09:36:46+11:00'
