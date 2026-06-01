@@ -1,0 +1,20 @@
+# CityLab Skill Injection Registry
+# Maps personas to skills they receive when triggered via CityLab scheduler.
+
+personas:
+  - slug: citylab-operator
+    description: "Core CityLab operator persona — manages the platform itself"
+    skills: []
+    actions:
+      - name: health-check
+        description: "Check platform health and report status"
+      - name: sync-schedules
+        description: "Sync scheduled tasks with APScheduler"
+
+  # Add feature personas below as PRDs deliver them
+  # - slug: energy-monitor
+  #   description: "Monitors energy market prices"
+  #   skills: [market-scan]
+  #   actions:
+  #     - name: scan-prices
+  #       description: "Scan current energy market prices"

@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "citylab"
+version = "0.1.0"
+description = "CityLab — agent-operable Flask application for the What the Hack hackathon"
+requires-python = ">=3.11"
+dependencies = [
+    "Flask>=3.0",
+    "SQLAlchemy>=2.0",
+    "Flask-SQLAlchemy>=3.1",
+    "Flask-Migrate>=4.0",
+    "Flask-Login>=0.6",
+    "Flask-WTF>=1.2",
+    "psycopg2-binary>=2.9",
+    "APScheduler>=3.10,<4.0",
+    "PyYAML>=6.0",
+    "python-dotenv>=1.0",
+    "requests>=2.31",
+    "redis>=5.0",
+    "click>=8.1",
+    "gunicorn>=21.0",
+]
+
+[project.scripts]
+cli-citylab = "citylab.cli_wrapper:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "e2e: End-to-end tests (deselected by default)",
+    "agent_driven: Agent-driven tests (deselected by default)",
+]
+addopts = "-m 'not e2e and not agent_driven' -v --tb=short"

@@ -1,0 +1,31 @@
+# CityLab configuration
+
+server:
+  host: 127.0.0.1
+  port: 5099
+  debug: true
+
+logging:
+  level: INFO
+  format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+
+database:
+  host: localhost
+  port: 5432
+  name: citylab
+  user: samotage
+  password: ""
+
+redis:
+  url: redis://localhost:6379/0
+
+api:
+  token: dev-token-changeme
+
+headspace:
+  url: http://127.0.0.1:5001
+  api_token: ""
+
+session:
+  lifetime_days: 30
+  cookie_name: session_citylab
