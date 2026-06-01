@@ -15,6 +15,7 @@ PRD → Propose → Build → Test → Smoke → Ship → Merge
 
 | # | Phase | Worker | What it does |
 |---|-------|--------|-------------|
+| — | Rack Build | `05-rack-build` | Validate PRDs, check repo state, launch pipeline |
 | 1 | Propose | `30-proposal` | Read PRD, create branch, decompose tasks |
 | 2 | Build | `35-build` | Implement all tasks, commit at milestones |
 | 3 | Test | `50-test` | Run tests, fix failures (2 attempts max) |
