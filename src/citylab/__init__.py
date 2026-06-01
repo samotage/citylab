@@ -87,9 +87,13 @@ def create_app(testing: bool = False) -> Flask:
 
     # API v1
     from citylab.routes.api_v1 import create_api_v1_blueprint
+    from citylab.routes.api_v1.app import app_api_bp
+    from citylab.routes.api_v1.schedules import schedules_api_bp
 
     api_bp = create_api_v1_blueprint()
     csrf.exempt(api_bp)
+    csrf.exempt(app_api_bp)
+    csrf.exempt(schedules_api_bp)
     app.register_blueprint(api_bp)
 
     # --- CLI commands ---
