@@ -181,7 +181,9 @@ Parse `ship_result`. On success → proceed to merge.
 
 ### Merge
 
-After the ship worker pushes the branch, merge it to master:
+After the ship worker pushes the branch, merge it to master.
+
+**Branch switching here is authorised by the hackathon pipeline.** This overrides the default branch discipline guardrail (Section 12). The lead's job IS branch management for the merge step — do not hesitate on the checkout.
 
 ```bash
 git checkout master

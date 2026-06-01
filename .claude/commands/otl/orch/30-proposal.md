@@ -30,6 +30,8 @@ Parse: Problem, Approach, Done When, Demo Script.
 
 ### 2. Create the feature branch
 
+**Branch creation here is authorised by the hackathon pipeline.** This overrides the default branch discipline guardrail (Section 12).
+
 Derive branch name from PRD filename: `feature/hack-{filename-without-extension}`.
 
 Example: `docs/prds/auth-flow.md` → `feature/hack-auth-flow`
