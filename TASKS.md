@@ -11,7 +11,7 @@
 
 - [x] **Task 3: Extensions and database models** — Create `src/citylab/extensions.py` (SQLAlchemy 2.0 `DeclarativeBase`, naming convention, Flask-Migrate), `src/citylab/models/__init__.py`, `src/citylab/models/base.py` (BaseModel with id, created_at, updated_at), `src/citylab/models/user.py` (User: email, password_hash, is_active, Flask-Login mixin), `src/citylab/models/scheduled_task.py` (ScheduledTask: name, cron_expression, agent_persona, agent_action, is_active, last_run_at, next_run_at).
 
-- [ ] **Task 4: App factory** — Create `src/citylab/__init__.py` with `create_app()`: config loading, logging setup, database init, Flask-Login init, CSRF protection, blueprint registration, CLI command registration, admin seeding, scheduler init. Also create `run.py`, `gunicorn.conf.py`, `restart_server.sh`.
+- [x] **Task 4: App factory** — Create `src/citylab/__init__.py` with `create_app()`: config loading, logging setup, database init, Flask-Login init, CSRF protection, blueprint registration, CLI command registration, admin seeding, scheduler init. Also create `run.py`, `gunicorn.conf.py`, `restart_server.sh`.
 
 - [ ] **Task 5: Auth routes and templates** — Create `src/citylab/routes/__init__.py`, `src/citylab/routes/auth.py` (login/logout with Flask-Login, Flask-WTF forms), `templates/base.html` (dark mode Tailwind, sidebar layout, HTMX), `templates/auth/login.html`, `templates/errors/404.html`, `templates/errors/500.html`. Vendor `static/vendor/htmx.min.js`. Create `static/css/src/input.css` and compile `static/css/main.css`.
 
