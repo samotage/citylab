@@ -21,7 +21,7 @@
 
 - [x] **Task 8: Scheduler service** — Create `src/citylab/services/__init__.py`, `src/citylab/services/scheduler.py` (APScheduler BackgroundScheduler with SQLAlchemyJobStore, sync loop, `trigger_agent` job function), `src/citylab/services/headspace_client.py` (HTTP client for Headspace API dispatch).
 
-- [ ] **Task 9: CLI wrapper** — Create `src/citylab/cli_wrapper/__init__.py` (Click entry point with `main` group), `src/citylab/cli_wrapper/client.py` (HTTP client with Bearer token, error mapping), `src/citylab/cli_wrapper/config.py` (config discovery), commands: `app status`, `schedules list/create/delete`.
+- [x] **Task 9: CLI wrapper** — Create `src/citylab/cli_wrapper/__init__.py` (Click entry point with `main` group), `src/citylab/cli_wrapper/client.py` (HTTP client with Bearer token, error mapping), `src/citylab/cli_wrapper/config.py` (config discovery), commands: `app status`, `schedules list/create/delete`.
 
 - [ ] **Task 10: Agent wiring** — Create `skill-injection-registry.yaml` with citylab-operator persona stub. Create `src/citylab/cli/commands.py` with `flask seed-admin` CLI command.
 
