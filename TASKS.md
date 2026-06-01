@@ -7,7 +7,7 @@
 
 - [x] **Task 1: Project files and dependencies** — Create `pyproject.toml` (package metadata, entry points, pytest config), `requirements.txt`, `.gitignore`, `.env.example`, `package.json`, `tailwind.config.js`. These are zero-dependency foundational files everything else imports or references.
 
-- [ ] **Task 2: Config layer** — Create `src/citylab/config.py` (three-tier cascade: DEFAULTS, config.yaml, env vars; `build_database_uri()`; `ENV_MAPPINGS`), `config.yaml` at project root (server, logging, database, redis, api token, headspace config).
+- [x] **Task 2: Config layer** — Create `src/citylab/config.py` (three-tier cascade: DEFAULTS, config.yaml, env vars; `build_database_uri()`; `ENV_MAPPINGS`), `config.yaml` at project root (server, logging, database, redis, api token, headspace config).
 
 - [ ] **Task 3: Extensions and database models** — Create `src/citylab/extensions.py` (SQLAlchemy 2.0 `DeclarativeBase`, naming convention, Flask-Migrate), `src/citylab/models/__init__.py`, `src/citylab/models/base.py` (BaseModel with id, created_at, updated_at), `src/citylab/models/user.py` (User: email, password_hash, is_active, Flask-Login mixin), `src/citylab/models/scheduled_task.py` (ScheduledTask: name, cron_expression, agent_persona, agent_action, is_active, last_run_at, next_run_at).
 
