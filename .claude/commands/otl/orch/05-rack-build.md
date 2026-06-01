@@ -1,94 +1,163 @@
 ---
 name: '05: rack-build'
-description: 'Validate PRDs, then queue and launch the hackathon orchestration pipeline'
+description: 'Validate PRDs, clean the repo, and queue for orchestration build — the pre-build prep sequence'
 ---
 
-# Hackathon Rack Build
+# 05: Rack Build
 
-Prep-and-go entry point: validate PRDs have the required sections, then launch the orchestration pipeline.
+**Command name:** `05: rack-build`
 
-**Usage:**
-
-```
-/otl:orch:05-rack-build docs/prds/core/bootstrap.md
-/otl:orch:05-rack-build docs/prds/core/bootstrap.md,docs/prds/features/dashboard.md
-```
+**Purpose:** Bundle the repeating pre-orchestration prep into one command: identify PRDs, validate them, ensure a clean repo, and queue for build.
 
 ---
 
-## Steps
+## Step 1: Identify PRDs
 
-### 1. Parse PRD list
+**Try conversation context first.**
 
-Split the argument on commas. For each path, verify the file exists:
+Check the current conversation for PRDs that have been discussed, workshopped, or created in this session. Look for:
+- PRD file paths mentioned in prior messages
+- PRDs created or modified during this conversation
+- PRDs referenced from a recent `/otl:prds:10-workshop` run
+
+**If PRDs found in context**, present them:
+
+```
+PRDs identified from this session:
+
+1. docs/prds/{subsystem}/{prd-name}.md
+2. docs/prds/{subsystem}/{prd-name}.md
+
+Are these the PRDs to build? [y/n]
+```
+
+Wait for confirmation.
+
+**If the user says no, or no PRDs found in context**, fall back:
+
+```
+No PRDs in conversation context. Scanning the system...
+```
+
+Run the PRD list scan:
 
 ```bash
-test -f [prd_path] && echo "OK: [prd_path]" || echo "MISSING: [prd_path]"
+find docs/prds -mindepth 2 -name "*.md" -type f | grep -v "/done/" | sort
 ```
 
-If any PRD is missing, report which ones and STOP.
-
-### 2. Validate PRD format
-
-For each PRD, check that all four required sections exist:
+For each PRD found, read the file to extract a one-line summary and check validation status:
 
 ```bash
-grep -c "^## Problem\|^## Approach\|^## Done When\|^## Demo Script" [prd_path]
+ruby orch/prd_validator.rb status --prd-path [prd-path]
 ```
 
-Expected: 4 matches. If fewer:
+Present the list and ask the user to confirm which PRDs to build:
 
 ```
-⚠ [prd_path] is missing sections:
-  ✗ Problem (missing)
-  ✓ Approach
-  ✗ Done When (missing)
-  ✓ Demo Script
+Pending PRDs:
+
+1. [✓ Valid] docs/prds/core/my-feature-prd.md — "one-line summary"
+2. [⊗ Unvalidated] docs/prds/events/another-prd.md — "one-line summary"
+
+Which PRDs should be queued? (comma-separated numbers, or 'all')
 ```
 
-**Missing sections are a warning, not a blocker.** The bootstrap PRD and other complex PRDs may use different heading structures. Report what's missing but continue unless the file is empty or unreadable.
+Wait for selection.
 
-### 3. Check for already-completed PRDs
+---
 
-For each PRD, check if it's already in a `done/` directory:
+## Step 2: Validate All Selected PRDs
+
+For each selected PRD, run validation:
 
 ```bash
-echo "[prd_path]" | grep -q "/done/" && echo "DONE" || echo "ACTIVE"
+ruby orch/prd_validator.rb status --prd-path [prd-path]
 ```
 
-Remove any `done/` PRDs from the list with a warning. If no active PRDs remain, STOP.
+**If already `valid`:** skip re-validation, note it passed.
 
-### 4. Check repo state
+**If `unvalidated` or `invalid`:** run the full validation sequence as per `/otl:prds:30-validate` — perform all 7 checks (format compliance, gap detection, requirement focus, conflict detection, scope assessment, ambiguity check, orchestration readiness).
+
+Update frontmatter with results:
 
 ```bash
-git status --short
-git branch --show-current
+# On PASS
+ruby orch/prd_validator.rb update --prd-path [prd-path] --status valid
+
+# On FAIL
+ruby orch/prd_validator.rb update --prd-path [prd-path] --status invalid --errors "Error 1,Error 2"
 ```
 
-Report any uncommitted changes. The pipeline creates feature branches, so a dirty working tree should be committed or stashed first. If there are uncommitted changes, ask the operator: commit them, stash them, or abort.
-
-### 5. Display summary and launch
+**EXIT CONDITION:** If ANY PRD fails validation (FAIL or BLOCKED status), stop and report:
 
 ```
-═══════════════════════════════════════════
-  HACKATHON RACK BUILD
-═══════════════════════════════════════════
+VALIDATION FAILED — cannot proceed.
 
-PRDs to process:
-  1. docs/prds/core/bootstrap.md ✓
-  2. docs/prds/features/dashboard.md ✓
+Failed PRDs:
+- docs/prds/{subsystem}/{prd}.md — [reason]
 
-Repo: clean, on master
-Pipeline: 5-phase (Propose → Build → Test → Smoke → Ship)
-
-Launching orchestration...
-═══════════════════════════════════════════
+Remediation:
+  /otl:prds:10-workshop [prd-path]   (guided fix)
+  Edit manually, then re-run /otl:orch:05-rack-build
 ```
 
-### 6. Launch the pipeline
+Do NOT continue to Step 3. The command exits here.
 
-Invoke the orchestration lead with the validated PRD list:
+---
+
+## Step 3: Clean the Repo
+
+All PRDs validated. Now ensure the working tree is clean before queuing.
+
+Run `/otl:util:commit-push` — this stages all changes, generates a commit message from the diff, commits, and pushes. No approval checkpoint.
+
+**If commit-push reports "No changes to commit":** the repo is already clean. Continue.
+
+**If commit-push fails:** report the error and stop. Do not proceed with a dirty tree.
+
+---
+
+## Step 4: Queue for Build
+
+All PRDs validated, repo clean. Add to the orchestration queue.
+
+For each validated PRD path, run:
+
+```bash
+ruby orch/orchestrator.rb queue add --prd-path "[prd-path]"
+```
+
+If multiple PRDs:
+
+```bash
+ruby orch/orchestrator.rb queue add --paths "[comma-separated-paths]"
+```
+
+Then show queue status:
+
+```bash
+ruby orch/orchestrator.rb queue status
+```
+
+---
+
+## Step 5: Summary
 
 ```
-Skill("otl:orch:20-start-queue-process", args="[comma-separated-prd-paths]")
+Rack Build Complete
+───────────────────
+Validated: [N] PRDs (all passed)
+Committed: [commit hash] — [commit subject]
+Queued:    [N] PRDs added to orchestration queue
+
+Next: /otl:orch:20-start-queue-process
 ```
+
+---
+
+## Notes
+
+- This command wraps validate + commit-push + queue-add into one flow
+- It does NOT start the orchestration build itself — that remains a separate step (`/otl:orch:20-start-queue-process`)
+- The validation gate is strict: one failure stops the entire run
+- Already-valid PRDs are not re-validated (trust the frontmatter timestamp)
