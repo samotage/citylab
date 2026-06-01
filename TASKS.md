@@ -5,7 +5,7 @@
 
 ## Task List
 
-- [ ] **Task 1: Project files and dependencies** — Create `pyproject.toml` (package metadata, entry points, pytest config), `requirements.txt`, `.gitignore`, `.env.example`, `package.json`, `tailwind.config.js`. These are zero-dependency foundational files everything else imports or references.
+- [x] **Task 1: Project files and dependencies** — Create `pyproject.toml` (package metadata, entry points, pytest config), `requirements.txt`, `.gitignore`, `.env.example`, `package.json`, `tailwind.config.js`. These are zero-dependency foundational files everything else imports or references.
 
 - [ ] **Task 2: Config layer** — Create `src/citylab/config.py` (three-tier cascade: DEFAULTS, config.yaml, env vars; `build_database_uri()`; `ENV_MAPPINGS`), `config.yaml` at project root (server, logging, database, redis, api token, headspace config).
 

@@ -24,6 +24,10 @@ node_modules/
 # Logs
 *.log
 logs/
+log/
+
+# Working state
+orch/working/
 
 # IDE
 .idea/
