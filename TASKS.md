@@ -13,13 +13,13 @@
 
 - [x] **Task 4: App factory** — Create `src/citylab/__init__.py` with `create_app()`: config loading, logging setup, database init, Flask-Login init, CSRF protection, blueprint registration, CLI command registration, admin seeding, scheduler init. Also create `run.py`, `gunicorn.conf.py`, `restart_server.sh`.
 
-- [ ] **Task 5: Auth routes and templates** — Create `src/citylab/routes/__init__.py`, `src/citylab/routes/auth.py` (login/logout with Flask-Login, Flask-WTF forms), `templates/base.html` (dark mode Tailwind, sidebar layout, HTMX), `templates/auth/login.html`, `templates/errors/404.html`, `templates/errors/500.html`. Vendor `static/vendor/htmx.min.js`. Create `static/css/src/input.css` and compile `static/css/main.css`.
+- [x] **Task 5: Auth routes and templates** — Create `src/citylab/routes/__init__.py`, `src/citylab/routes/auth.py` (login/logout with Flask-Login, Flask-WTF forms), `templates/base.html` (dark mode Tailwind, sidebar layout, HTMX), `templates/auth/login.html`, `templates/errors/404.html`, `templates/errors/500.html`. Vendor `static/vendor/htmx.min.js`. Create `static/css/src/input.css` and compile `static/css/main.css`.
 
-- [ ] **Task 6: Main and health routes** — Create `src/citylab/routes/main.py` (index `/` with login_required, renders dashboard), `src/citylab/routes/health.py` (`GET /health` returning database/redis/scheduler status), `templates/index.html` (dashboard placeholder).
+- [x] **Task 6: Main and health routes** — Create `src/citylab/routes/main.py` (index `/` with login_required, renders dashboard), `src/citylab/routes/health.py` (`GET /health` returning database/redis/scheduler status), `templates/index.html` (dashboard placeholder).
 
-- [ ] **Task 7: API v1 blueprint** — Create `src/citylab/routes/api_v1/__init__.py` (API blueprint factory at `/api/v1`, CSRF exempt, JSON error handlers), `src/citylab/routes/api_v1/auth.py` (`@require_api_token` decorator), `src/citylab/routes/api_v1/app.py` (`GET /api/v1/app/status`), `src/citylab/routes/api_v1/schedules.py` (CRUD for scheduled tasks + sync endpoint).
+- [x] **Task 7: API v1 blueprint** — Create `src/citylab/routes/api_v1/__init__.py` (API blueprint factory at `/api/v1`, CSRF exempt, JSON error handlers), `src/citylab/routes/api_v1/auth.py` (`@require_api_token` decorator), `src/citylab/routes/api_v1/app.py` (`GET /api/v1/app/status`), `src/citylab/routes/api_v1/schedules.py` (CRUD for scheduled tasks + sync endpoint).
 
-- [ ] **Task 8: Scheduler service** — Create `src/citylab/services/__init__.py`, `src/citylab/services/scheduler.py` (APScheduler BackgroundScheduler with SQLAlchemyJobStore, sync loop, `trigger_agent` job function), `src/citylab/services/headspace_client.py` (HTTP client for Headspace API dispatch).
+- [x] **Task 8: Scheduler service** — Create `src/citylab/services/__init__.py`, `src/citylab/services/scheduler.py` (APScheduler BackgroundScheduler with SQLAlchemyJobStore, sync loop, `trigger_agent` job function), `src/citylab/services/headspace_client.py` (HTTP client for Headspace API dispatch).
 
 - [ ] **Task 9: CLI wrapper** — Create `src/citylab/cli_wrapper/__init__.py` (Click entry point with `main` group), `src/citylab/cli_wrapper/client.py` (HTTP client with Bearer token, error mapping), `src/citylab/cli_wrapper/config.py` (config discovery), commands: `app status`, `schedules list/create/delete`.
 

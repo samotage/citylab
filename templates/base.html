@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CityLab{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="{{ url_for('static', filename='vendor/htmx.min.js') }}" defer></script>
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex">
+    {% if current_user.is_authenticated %}
+    <!-- Sidebar -->
+    <nav class="w-64 bg-gray-800 border-r border-gray-700 min-h-screen flex flex-col">
+        <div class="p-4 border-b border-gray-700">
+            <h1 class="text-xl font-bold text-citylab-400">CityLab</h1>
+            <p class="text-xs text-gray-500 mt-1">Agent Operations Hub</p>
+        </div>
+        <div class="flex-1 p-4">
+            <ul class="space-y-2">
+                <li>
+                    <a href="{{ url_for('main.index') }}" class="block px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+                        Dashboard
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="p-4 border-t border-gray-700">
+            <div class="text-sm text-gray-400">{{ current_user.email }}</div>
+            <a href="{{ url_for('auth.logout') }}" class="text-xs text-gray-500 hover:text-gray-300">Logout</a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Main content -->
+    <main class="flex-1 {% if current_user.is_authenticated %}p-8{% else %}flex items-center justify-center{% endif %}">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                    {% for category, message in messages %}
+                        <div class="p-3 rounded-lg mb-2 {% if category == 'error' %}bg-red-900/50 text-red-300{% else %}bg-green-900/50 text-green-300{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

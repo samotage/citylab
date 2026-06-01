@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Login — CityLab{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-md">
+    <div class="bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-700">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-citylab-400">CityLab</h1>
+            <p class="text-gray-400 mt-2">Agent Operations Hub</p>
+        </div>
+
+        <form method="POST" class="space-y-6">
+            {{ form.hidden_tag() }}
+
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                {{ form.email(class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-citylab-500 focus:border-transparent", placeholder="admin@citylab.local") }}
+                {% for error in form.email.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                {{ form.password(class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-citylab-500 focus:border-transparent", placeholder="••••••••") }}
+                {% for error in form.password.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="w-full py-3 px-4 bg-citylab-600 hover:bg-citylab-700 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-citylab-500 focus:ring-offset-2 focus:ring-offset-gray-800">
+                Log In
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
