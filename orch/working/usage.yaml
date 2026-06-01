@@ -1,0 +1,9 @@
+---
+phases:
+  openspec_generation: 0
+  branch_setup: 0
+  implementation: 0
+  simplify: 1
+  testing: 0
+  pr_creation: 0
+  cleanup_merge: 0

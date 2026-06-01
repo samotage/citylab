@@ -1,0 +1,11 @@
+---
+prd_path: "/var/folders/m9/p7t_75qn7xj3ld1w7mv4xy480000gn/T/prepare-test-20260430-16207-18ztbvi/docs/prds/sample-feature-prd.md"
+change_name: sample-feature
+branch: feature/sample-feature
+phase: prepare
+checkpoint: none
+started_at: '2026-04-30T16:24:41+10:00'
+ralph_attempts: 0
+spec_compliance_attempts: 0
+errors: []
+warnings: []

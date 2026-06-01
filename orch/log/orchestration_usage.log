@@ -1,0 +1,512 @@
+---
+logged_at: '2026-01-21T19:11:43+11:00'
+prd_path: docs/prds/focus/yaml-data-foundation-prd.md
+prd_title: yaml-data-foundation-prd
+started_at: '2026-01-21T18:29:43+11:00'
+completed_at: '2026-01-21T19:11:43+11:00'
+duration: 42m 0s
+total_messages: 6
+session_impact_percent: 4
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 0
+---
+logged_at: '2026-01-21T19:58:26+11:00'
+prd_path: docs/prds/focus/project-roadmap-management-prd.md
+prd_title: project-roadmap-management-prd
+started_at: '2026-01-21T19:16:57+11:00'
+completed_at: '2026-01-21T19:58:26+11:00'
+duration: 41m 29s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-01-22T07:01:20+11:00'
+prd_path: docs/prds/headspace/e1_s5_brain-reboot-view-prd.md
+prd_title: e1_s5_brain-reboot-view-prd
+started_at: '2026-01-21T20:11:24+11:00'
+completed_at: '2026-01-22T07:01:20+11:00'
+duration: 10h 49m
+total_messages: 35
+session_impact_percent: 26
+phases:
+  OpenSpec Generation: 5
+  Branch Setup: 5
+  Implementation: 5
+  Testing: 10
+  PR Creation: 5
+  Cleanup/Merge: 5
+---
+logged_at: '2026-01-22T14:34:28+11:00'
+prd_path: docs/prds/dashboard/logging-ui-prd.md
+prd_title: logging-ui-prd
+started_at: '2026-01-22T14:18:18+11:00'
+completed_at: '2026-01-22T14:34:28+11:00'
+duration: 16m 10s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-01-24T10:54:19+11:00'
+prd_path: docs/prds/tmux/tmux-session-logging-prd.md
+prd_title: tmux-session-logging-prd
+started_at: '2026-01-24T10:16:14+11:00'
+completed_at: '2026-01-24T10:54:19+11:00'
+duration: 38m 5s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-01-25T21:48:32+11:00'
+prd_path: docs/prds/logging/terminal-logging-rename-prd.md
+prd_title: terminal-logging-rename-prd
+started_at: '2026-01-25T20:34:23+11:00'
+completed_at: '2026-01-25T21:48:32+11:00'
+duration: 1h 14m
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-01-29T08:57:50+11:00'
+prd_path: docs/prds/flask/e1-s1-flask-bootstrap-prd.md
+prd_title: e1-s1-flask-bootstrap-prd
+started_at: '2026-01-29T08:36:38+11:00'
+completed_at: '2026-01-29T08:57:50+11:00'
+duration: 21m 12s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-01-29T09:37:02+11:00'
+prd_path: docs/prds/core/e1-s2-database-setup-prd.md
+prd_title: e1-s2-database-setup-prd
+started_at: '2026-01-29T09:21:41+11:00'
+completed_at: '2026-01-29T09:37:02+11:00'
+duration: 15m 21s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-01-29T18:13:45+11:00'
+prd_path: docs/prds/core/e1-s3-domain-models-prd.md
+prd_title: e1-s3-domain-models-prd
+started_at: '2026-01-29T09:53:14+11:00'
+completed_at: '2026-01-29T18:13:45+11:00'
+duration: 8h 20m
+total_messages: 112
+session_impact_percent: 83
+phases:
+  OpenSpec Generation: 16
+  Branch Setup: 16
+  Implementation: 16
+  Testing: 32
+  PR Creation: 16
+  Cleanup/Merge: 16
+---
+logged_at: '2026-02-01T09:32:32+11:00'
+prd_path: docs/prds/testing/integration-testing-framework-prd.md
+prd_title: integration-testing-framework-prd
+started_at: '2026-01-31T10:06:13+11:00'
+completed_at: '2026-02-01T09:32:32+11:00'
+duration: 23h 26m
+total_messages: 42
+session_impact_percent: 31
+phases:
+  OpenSpec Generation: 6
+  Branch Setup: 6
+  Implementation: 6
+  Testing: 12
+  PR Creation: 6
+  Cleanup/Merge: 6
+---
+logged_at: '2026-02-01T16:40:15+11:00'
+prd_path: docs/prds/core/e3-s6-content-pipeline-prd.md
+prd_title: e3-s6-content-pipeline-prd
+started_at: '2026-02-01T15:56:09+11:00'
+completed_at: '2026-02-01T16:40:15+11:00'
+duration: 44m 6s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-02-01T23:23:51+11:00'
+prd_path: docs/prds/inference/e3-s7-task-instruction-completion-summary-prd.md
+prd_title: e3-s7-task-instruction-completion-summary-prd
+started_at: '2026-02-01T22:44:55+11:00'
+completed_at: '2026-02-01T23:23:51+11:00'
+duration: 38m 56s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-02-02T19:08:53+11:00'
+prd_path: docs/prds/core/e4-s1-archive-system-prd.md
+prd_title: e4-s1-archive-system-prd
+started_at: '2026-02-02T16:20:47+11:00'
+completed_at: '2026-02-02T19:08:53+11:00'
+duration: 2h 48m
+total_messages: 35
+session_impact_percent: 26
+phases:
+  OpenSpec Generation: 5
+  Branch Setup: 5
+  Implementation: 5
+  Testing: 10
+  PR Creation: 5
+  Cleanup/Merge: 5
+---
+logged_at: '2026-02-02T22:23:29+11:00'
+prd_path: docs/prds/bridge/e5-s1-input-bridge-prd.md
+prd_title: e5-s1-input-bridge-prd
+started_at: '2026-02-02T21:45:06+11:00'
+completed_at: '2026-02-02T22:23:29+11:00'
+duration: 38m 23s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-02-04T10:21:55+11:00'
+prd_path: docs/prds/ui/e5-s2-project-show-core-prd.md
+prd_title: e5-s2-project-show-core-prd
+started_at: '2026-02-04T09:43:01+11:00'
+completed_at: '2026-02-04T10:21:55+11:00'
+duration: 38m 54s
+total_messages: 14
+session_impact_percent: 10
+phases:
+  OpenSpec Generation: 2
+  Branch Setup: 2
+  Implementation: 2
+  Testing: 4
+  PR Creation: 2
+  Cleanup/Merge: 2
+---
+logged_at: '2026-02-04T12:23:35+11:00'
+prd_path: docs/prds/bridge/e5-s4-tmux-bridge-prd.md
+prd_title: e5-s4-tmux-bridge-prd
+started_at: '2026-02-04T11:21:42+11:00'
+completed_at: '2026-02-04T12:23:35+11:00'
+duration: 1h 1m
+total_messages: 15
+session_impact_percent: 11
+phases:
+  OpenSpec Generation: 2
+  Branch Setup: 2
+  Implementation: 2
+  Testing: 5
+  PR Creation: 2
+  Cleanup/Merge: 2
+---
+logged_at: '2026-02-04T19:15:07+11:00'
+prd_path: docs/prds/ui/e5-s6-dashboard-restructure-prd.md
+prd_title: e5-s6-dashboard-restructure-prd
+started_at: '2026-02-04T18:54:17+11:00'
+completed_at: '2026-02-04T19:15:07+11:00'
+duration: 20m 50s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-02-05T19:13:45+11:00'
+prd_path: docs/prds/ui/e5-s7-config-help-system-prd.md
+prd_title: e5-s7-config-help-system-prd
+started_at: '2026-02-05T18:54:38+11:00'
+completed_at: '2026-02-05T19:13:45+11:00'
+duration: 19m 7s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-02-06T11:27:42+11:00'
+prd_path: docs/prds/bridge/e5-s8-cli-tmux-bridge-prd.md
+prd_title: e5-s8-cli-tmux-bridge-prd
+started_at: '2026-02-06T11:09:19+11:00'
+completed_at: '2026-02-06T11:27:42+11:00'
+duration: 18m 23s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-02-09T18:28:29+11:00'
+prd_path: docs/prds/core/e5-s9-full-command-output-capture-prd.md
+prd_title: e5-s9-full-command-output-capture-prd
+started_at: '2026-02-09T18:10:06+11:00'
+completed_at: '2026-02-09T18:28:29+11:00'
+duration: 18m 23s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-02-09T20:20:08+11:00'
+prd_path: docs/prds/bridge/e6-s1-voice-bridge-server-prd.md
+prd_title: e6-s1-voice-bridge-server-prd
+started_at: '2026-02-09T19:39:13+11:00'
+completed_at: '2026-02-09T20:20:08+11:00'
+duration: 40m 55s
+total_messages: 14
+session_impact_percent: 10
+phases:
+  OpenSpec Generation: 2
+  Branch Setup: 2
+  Implementation: 2
+  Testing: 4
+  PR Creation: 2
+  Cleanup/Merge: 2
+---
+logged_at: '2026-02-10T18:03:05+11:00'
+prd_path: docs/prds/bridge/e6-s3-agent-chat-history-prd.md
+prd_title: e6-s3-agent-chat-history-prd
+started_at: '2026-02-10T17:38:17+11:00'
+completed_at: '2026-02-10T18:03:05+11:00'
+duration: 24m 48s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-02-11T13:16:38+11:00'
+prd_path: docs/prds/reporting/issue-report-generation-prd.md
+prd_title: issue-report-generation-prd
+started_at: '2026-02-11T12:41:58+11:00'
+completed_at: '2026-02-11T13:16:38+11:00'
+duration: 34m 40s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-02-11T16:00:50+11:00'
+prd_path: docs/prds/agents/e6-s4-agent-lifecycle-prd.md
+prd_title: e6-s4-agent-lifecycle-prd
+started_at: '2026-02-11T15:10:57+11:00'
+completed_at: '2026-02-11T16:00:50+11:00'
+duration: 49m 53s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-02-11T18:06:14+11:00'
+prd_path: docs/prds/bridge/e6-s5-file-image-sharing-prd.md
+prd_title: e6-s5-file-image-sharing-prd
+started_at: '2026-02-11T17:37:38+11:00'
+completed_at: '2026-02-11T18:06:14+11:00'
+duration: 28m 36s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-02-19T15:37:30+11:00'
+prd_path: docs/prds/test/e7-s1-agent-driven-integration-testing-prd.md
+prd_title: e7-s1-agent-driven-integration-testing-prd
+started_at: '2026-02-19T15:12:13+11:00'
+completed_at: '2026-02-19T15:37:30+11:00'
+duration: 25m 17s
+total_messages: 7
+session_impact_percent: 5
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 1
+---
+logged_at: '2026-02-20T12:06:21+11:00'
+prd_path: docs/prds/test/e7-s2-agent-driven-integration-testing-prd.md
+prd_title: e7-s2-agent-driven-integration-testing-prd
+started_at: '2026-02-20T10:35:08+11:00'
+completed_at: '2026-02-20T12:06:21+11:00'
+duration: 1h 31m
+total_messages: 17
+session_impact_percent: 13
+phases:
+  OpenSpec Generation: 2
+  Branch Setup: 2
+  Implementation: 3
+  Testing: 6
+  PR Creation: 2
+  Cleanup/Merge: 2
+---
+logged_at: '2026-02-22T09:48:38+11:00'
+prd_path: docs/prds/persona/e8-s1-role-persona-models-prd.md
+prd_title: e8-s1-role-persona-models-prd
+started_at: '2026-02-20T17:28:51+11:00'
+completed_at: '2026-02-22T09:48:38+11:00'
+duration: 40h 19m
+total_messages: 106
+session_impact_percent: 79
+phases:
+  OpenSpec Generation: 14
+  Branch Setup: 14
+  Implementation: 14
+  Testing: 36
+  PR Creation: 14
+  Cleanup/Merge: 14
+---
+logged_at: '2026-02-23T20:18:25+11:00'
+prd_path: docs/prds/persona/e8-s17-persona-agent-creation-prd.md
+prd_title: e8-s17-persona-agent-creation-prd
+started_at: '2026-02-23T19:55:14+11:00'
+completed_at: '2026-02-23T20:18:25+11:00'
+duration: 23m 11s
+total_messages: 5
+session_impact_percent: 4
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 1
+  PR Creation: 1
+  Cleanup/Merge: 0
+---
+logged_at: '2026-02-24T18:43:50+11:00'
+prd_path: docs/prds/core/e1-s1-rename-otagemon-prd.md
+prd_title: e1-s1-rename-otagemon-prd
+started_at: '2026-02-24T15:47:48+11:00'
+completed_at: '2026-02-24T18:43:50+11:00'
+duration: 2h 56m
+total_messages: 54
+session_impact_percent: 40
+phases:
+  OpenSpec Generation: 10
+  Branch Setup: 10
+  Implementation: 10
+  Testing: 17
+  PR Creation: 7
+  Cleanup/Merge: 0
+---
+logged_at: '2026-02-25T12:26:42+11:00'
+prd_path: docs/prds/onboarding/e1-s11-onboard-headspace-prd.md
+prd_title: e1-s11-onboard-headspace-prd
+started_at: '2026-02-25T12:25:28+11:00'
+completed_at: '2026-02-25T12:26:42+11:00'
+duration: 1m 14s
+total_messages: 1
+session_impact_percent: 1
+phases:
+  OpenSpec Generation: 0
+  Branch Setup: 1
+  Implementation: 0
+  Testing: 0
+  PR Creation: 0
+  Cleanup/Merge: 0
+---
+logged_at: '2026-02-25T13:44:13+11:00'
+prd_path: docs/prds/onboarding/e1-s11-onboard-headspace-prd.md
+prd_title: e1-s11-onboard-headspace-prd
+started_at: '2026-02-25T13:21:18+11:00'
+completed_at: '2026-02-25T13:44:13+11:00'
+duration: 22m 55s
+total_messages: 6
+session_impact_percent: 4
+phases:
+  OpenSpec Generation: 1
+  Branch Setup: 1
+  Implementation: 1
+  Testing: 2
+  PR Creation: 1
+  Cleanup/Merge: 0

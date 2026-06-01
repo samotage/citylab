@@ -1,0 +1,9 @@
+---
+- prd_path: docs/prds/inference/e3-s7-task-instruction-completion-summary-prd.md
+  change_name: e3-s7-task-instruction-completion-summary
+  status: completed
+  added_at: '2026-02-01T22:41:17+11:00'
+  priority: 1
+  started_at: '2026-02-01T22:45:06+11:00'
+  proposal_summary_path: openspec/changes/e3-s7-task-instruction-completion-summary/proposal-summary.md
+  completed_at: '2026-02-01T23:23:38+11:00'

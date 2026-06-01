@@ -1,0 +1,9 @@
+# Codex CLI configuration — managed by otageLabs
+# Symlinked into each project via otl_support pattern.
+# Do NOT edit project copies directly — edit this source file.
+
+[tui]
+# KC2: Disable alternate screen buffer so tmux scrollback works.
+# Without this, Codex's Ink TUI renders in fullscreen mode and
+# resize corrupts the display.
+alternate_screen = "never"

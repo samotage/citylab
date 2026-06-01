@@ -1,0 +1,17 @@
+---
+- prd_path: docs/prds/agents/e8-s18-agent-revival-prd.md
+  change_name: e8-s18-agent-revival
+  status: completed
+  added_at: '2026-02-25T10:35:40+11:00'
+  priority: 1
+  started_at: '2026-02-25T10:42:28+11:00'
+  proposal_summary_path: openspec/changes/e8-s18-agent-revival/proposal-summary.md
+  completed_at: '2026-02-25T12:25:17+11:00'
+- prd_path: docs/prds/onboarding/e1-s11-onboard-headspace-prd.md
+  change_name: e1-s11-onboard-headspace
+  status: failed
+  added_at: '2026-02-25T11:06:57+11:00'
+  priority: 2
+  started_at: '2026-02-25T12:25:25+11:00'
+  failed_at: '2026-02-25T12:26:36+11:00'
+  failure_reason: 'prd_not_found: PRD file does not exist'

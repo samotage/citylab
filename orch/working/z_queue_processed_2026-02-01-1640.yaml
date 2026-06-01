@@ -1,0 +1,9 @@
+---
+- prd_path: docs/prds/core/e3-s6-content-pipeline-prd.md
+  change_name: e3-s6-content-pipeline
+  status: completed
+  added_at: '2026-02-01T15:55:10+11:00'
+  priority: 1
+  started_at: '2026-02-01T15:56:19+11:00'
+  proposal_summary_path: openspec/changes/e3-s6-content-pipeline/proposal-summary.md
+  completed_at: '2026-02-01T16:40:02+11:00'

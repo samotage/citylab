@@ -1,0 +1,18 @@
+---
+- prd_path: docs/prds/bridge/e6-s1-voice-bridge-server-prd.md
+  change_name: e6-s1-voice-bridge-server
+  status: completed
+  added_at: '2026-02-09T19:33:30+11:00'
+  priority: 1
+  started_at: '2026-02-09T19:39:25+11:00'
+  proposal_summary_path: openspec/changes/e6-s1-voice-bridge-server/proposal-summary.md
+  completed_at: '2026-02-09T20:02:06+11:00'
+- prd_path: docs/prds/bridge/e6-s2-voice-bridge-client-prd.md
+  change_name: e6-s2-voice-bridge-client
+  status: completed
+  added_at: '2026-02-09T19:33:31+11:00'
+  priority: 2
+  depends_on: e6-s1-voice-bridge-server
+  started_at: '2026-02-09T20:02:29+11:00'
+  proposal_summary_path: openspec/changes/e6-s2-voice-bridge-client/proposal-summary.md
+  completed_at: '2026-02-09T20:19:55+11:00'

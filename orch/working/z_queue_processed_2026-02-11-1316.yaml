@@ -1,0 +1,9 @@
+---
+- prd_path: docs/prds/reporting/issue-report-generation-prd.md
+  change_name: issue-report-generation
+  status: completed
+  added_at: '2026-02-11T12:41:01+11:00'
+  priority: 1
+  started_at: '2026-02-11T12:42:12+11:00'
+  proposal_summary_path: openspec/changes/issue-report-generation/proposal-summary.md
+  completed_at: '2026-02-11T13:16:25+11:00'

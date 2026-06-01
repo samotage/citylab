@@ -1,0 +1,9 @@
+---
+- prd_path: docs/prds/bridge/e6-s5-file-image-sharing-prd.md
+  change_name: e6-s5-file-image-sharing
+  status: completed
+  added_at: '2026-02-11T17:21:02+11:00'
+  priority: 1
+  started_at: '2026-02-11T17:38:17+11:00'
+  proposal_summary_path: openspec/changes/e6-s5-file-image-sharing/proposal-summary.md
+  completed_at: '2026-02-11T18:06:10+11:00'
