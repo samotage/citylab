@@ -1,0 +1,1 @@
+A seed file to get OpenSpec bootstrapped into the repo. 
