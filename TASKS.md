@@ -41,3 +41,12 @@
 6. List schedules: `cli-citylab schedules list` — see the market-scan entry
 7. Check logs — APScheduler registered the job, next fire time visible
 8. The key proof: a remote agent can call `cli-citylab` to operate this app and manage its scheduled tasks
+
+## Ship Status
+
+- Build: complete
+- Tests: passed (8/8)
+- Smoke: passed (8/8 demo steps)
+
+### Known Issues
+None
