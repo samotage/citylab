@@ -27,7 +27,7 @@
 
 - [x] **Task 11: Database migrations** — Initialize Alembic (`flask db init`), generate initial migration from models, apply with `flask db upgrade`. Verify the migration files are correct.
 
-- [ ] **Task 12: Test infrastructure** — Create `tests/__init__.py`, `tests/conftest.py` (`_force_test_database`, `app`, `client`, `db_session` fixtures), `tests/test_health.py`, `tests/test_auth.py`, `tests/test_api_token.py`. Run `pytest tests/` and verify all pass.
+- [x] **Task 12: Test infrastructure** — Create `tests/__init__.py`, `tests/conftest.py` (`_force_test_database`, `app`, `client`, `db_session` fixtures), `tests/test_health.py`, `tests/test_auth.py`, `tests/test_api_token.py`. Run `pytest tests/` and verify all pass.
 
 - [ ] **Task 13: README** — Create `README.md` with project name, quick start (create DB, flask db upgrade, python run.py), CLI usage summary.
 
