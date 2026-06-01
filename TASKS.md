@@ -23,7 +23,7 @@
 
 - [x] **Task 9: CLI wrapper** — Create `src/citylab/cli_wrapper/__init__.py` (Click entry point with `main` group), `src/citylab/cli_wrapper/client.py` (HTTP client with Bearer token, error mapping), `src/citylab/cli_wrapper/config.py` (config discovery), commands: `app status`, `schedules list/create/delete`.
 
-- [ ] **Task 10: Agent wiring** — Create `skill-injection-registry.yaml` with citylab-operator persona stub. Create `src/citylab/cli/commands.py` with `flask seed-admin` CLI command.
+- [x] **Task 10: Agent wiring** — Create `skill-injection-registry.yaml` with citylab-operator persona stub. Create `src/citylab/cli/commands.py` with `flask seed-admin` CLI command.
 
 - [ ] **Task 11: Database migrations** — Initialize Alembic (`flask db init`), generate initial migration from models, apply with `flask db upgrade`. Verify the migration files are correct.
 
