@@ -15,7 +15,7 @@ for the demo, or `pip install -e .`.
 
 ## Task List
 
-- [ ] 1. Add weather models — create `src/citylab/models/weather.py` with three
+- [x] 1. Add weather models — create `src/citylab/models/weather.py` with three
        BaseModel subclasses, each with `to_dict()`, mirroring the energy models:
        - `WeatherLocation` (name unique, bom_station_id, bom_forecast_area_id,
          latitude, longitude, state, region_relevance)
