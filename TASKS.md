@@ -30,7 +30,7 @@ for the demo, or `pip install -e .`.
        observed_at) on observations via `__table_args__`. Register all three in
        `src/citylab/models/__init__.py`.
 
-- [ ] 2. Generate and apply the Alembic migration for the three weather tables
+- [x] 2. Generate and apply the Alembic migration for the three weather tables
        (`flask db migrate` + `flask db upgrade`). Confirm the target DB is the
        `citylab` dev DB before running (additive upgrade is permitted). Verify the
        tables exist.
