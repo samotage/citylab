@@ -76,7 +76,7 @@ for the demo, or `pip install -e .`.
        `require_api_token` and returning the `{ok, data, data_as_of}` envelope. Register
        the blueprint in `src/citylab/routes/api_v1/__init__.py`.
 
-- [ ] 8. Weather CLI group — create `src/citylab/cli_wrapper/commands_weather.py`
+- [x] 8. Weather CLI group — create `src/citylab/cli_wrapper/commands_weather.py`
        (`weather_group`) with `summary`, `outlook --factor wind|rain|temperature`,
        `forecasts --location ...`, and `observations --location ...`, mirroring
        commands_energy (APIClient + JSON print). Register with
