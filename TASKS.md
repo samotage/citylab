@@ -87,7 +87,7 @@ for the demo, or `pip install -e .`.
        location seeding idempotency; weather_query summary/outlook grouping; weather API
        endpoints returning the envelope with `data_as_of`.
 
-- [ ] 10. End-to-end demo verification — run the BOM fetcher once (live or synthetic),
+- [x] 10. End-to-end demo verification — run the BOM fetcher once (live or synthetic),
         confirm forecasts + observations land for all 10 locations, then walk the demo
         script via `PYTHONPATH=src python -m citylab.cli_wrapper`: `data sources` shows BOM,
         `weather summary`, `weather outlook --factor wind`, `weather outlook --factor rain`.
