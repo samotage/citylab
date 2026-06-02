@@ -57,7 +57,7 @@ for the demo, or `pip install -e .`.
        on first run; incremental thereafter. Register via `register_fetcher("bom", BOMFetcher)`
        and import the module in `services/ingestion/__init__.py` so it self-registers.
 
-- [ ] 5. Add BOM to `config.yaml` `data_sources` — a `bom` entry with name, base_url
+- [x] 5. Add BOM to `config.yaml` `data_sources` — a `bom` entry with name, base_url
        (https://api.weather.bom.gov.au), and cron_expression (forecast every 3 hours;
        observations fetched within the same run). Show the config.yaml diff before editing
        per the config-change guardrail.
