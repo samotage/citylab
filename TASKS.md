@@ -55,3 +55,12 @@ Branch: feature/hack-energy-market-data-ingestion
 5. `cli-citylab energy prices --from 2025-06-01` — see historical spot prices
 6. `cli-citylab energy generation` — see generation mix: brown coal, gas, solar, wind, hydro, battery
 7. The key proof: an agent can call `cli-citylab energy summary` and get everything it needs to reason about the current Victorian energy market in one call
+
+## Ship Status
+
+- Build: complete
+- Tests: passed (23/23)
+- Smoke: passed (7/7 demo steps)
+
+### Known Issues
+- Non-blocking: `cli-citylab` is not on PATH because the package is not pip-installed. For the demo, run via `PYTHONPATH=src python -m citylab.cli_wrapper ...` or `pip install -e .`.
