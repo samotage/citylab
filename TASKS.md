@@ -21,7 +21,7 @@ package is pip-installed. Run the CLI via
 
 ## Task List
 
-- [ ] 1. Add models `SolarLocation` and `SolarForecast` in
+- [x] 1. Add models `SolarLocation` and `SolarForecast` in
   `src/citylab/models/solar.py`. Follow `src/citylab/models/weather.py`.
   - `SolarLocation`: name (unique), latitude, longitude, state,
     region_relevance (e.g. "utility_solar", "rooftop_aggregate", "hybrid_zone"),
@@ -32,17 +32,17 @@ package is pip-installed. Run the CLI via
     `ix_solar_forecasts_location_for` index on (location_id, forecast_for) and
     `to_dict()` / `__repr__`.
 
-- [ ] 2. Register the new models in `src/citylab/models/__init__.py`
+- [x] 2. Register the new models in `src/citylab/models/__init__.py`
   (import `SolarLocation`, `SolarForecast` alongside the weather models).
 
-- [ ] 3. Generate the Alembic migration for the two solar tables. Run
+- [x] 3. Generate the Alembic migration for the two solar tables. Run
   `flask db migrate -m "solcast solar forecast ingestion tables"`, then review
   the generated file in `migrations/versions/` against the weather migration
   (35961a27f104) to confirm columns + index are correct. Down-revision must be
   the current head. Do NOT auto-apply to a non-test DB without confirming the
   target.
 
-- [ ] 4. Implement `SolcastFetcher` in
+- [x] 4. Implement `SolcastFetcher` in
   `src/citylab/services/ingestion/solcast.py`. Follow `bom.py`:
   - `source_type = "solcast"`, `register_fetcher("solcast", SolcastFetcher)` at
     module end.
@@ -60,11 +60,11 @@ package is pip-installed. Run the CLI via
   - `transform(raw)` builds `SolarForecast(**row)` instances; `store()` adds +
     flushes and returns the count.
 
-- [ ] 5. Register the fetcher on package import in
+- [x] 5. Register the fetcher on package import in
   `src/citylab/services/ingestion/__init__.py`
   (add `from citylab.services.ingestion import solcast  # noqa: F401,E402`).
 
-- [ ] 6. Add `seed_solar_locations()` in
+- [x] 6. Add `seed_solar_locations()` in
   `src/citylab/services/ingestion/seed.py`, modelled on
   `seed_weather_locations()`. Seed the 6 PRD locations, each with lat/long,
   state, region_relevance, and a reference_pv_capacity_kw, idempotent (matched
@@ -76,7 +76,7 @@ package is pip-installed. Run the CLI via
   - Northern SA (Port Augusta) — hybrid_zone
   - Riverland (Renmark/Berri) — utility_solar
 
-- [ ] 7. Add the `solcast` entry to the `data_sources` section of
+- [x] 7. Add the `solcast` entry to the `data_sources` section of
   `config.yaml` (name "Solcast Solar Forecasts", base_url
   https://api.solcast.com.au, `api_key: ${SOLCAST_API_KEY}`,
   `cron_expression: "0 * * * *"` for hourly, a `timeout_seconds`, and a
@@ -84,13 +84,13 @@ package is pip-installed. Run the CLI via
   NOTE: config.yaml is a protected file — show the diff and get approval before
   editing.
 
-- [ ] 8. Wire seeding + scheduling. In `src/citylab/services/scheduler.py` add
+- [x] 8. Wire seeding + scheduling. In `src/citylab/services/scheduler.py` add
   `seed_solar_locations` to the imports and call it next to
   `seed_weather_locations()` on startup. In `src/citylab/cli/commands.py` add
   `seed_solar_locations` to the seed CLI command's imports and invocation so the
   flask seed command also seeds solar locations.
 
-- [ ] 9. Implement the read service `src/citylab/services/solar_query.py`,
+- [x] 9. Implement the read service `src/citylab/services/solar_query.py`,
   modelled on `weather_query.py`. Reuse
   `energy_query.latest_fetch_timestamp` and `_parse_dt` for the freshness
   contract. Provide:
@@ -104,7 +104,7 @@ package is pip-installed. Run the CLI via
   - A `_resolve_locations` selector accepting name substring / id /
     region_relevance / state (VIC, SA, etc.), like weather_query.
 
-- [ ] 10. Add the API blueprint `src/citylab/routes/api_v1/solar.py`
+- [x] 10. Add the API blueprint `src/citylab/routes/api_v1/solar.py`
   (`solar_api_bp`), modelled on `weather.py`. Token-protected endpoints, all
   returning the `{ok, data, data_as_of}` envelope:
   - `GET /solar/forecasts?location=&from=&to=`
@@ -112,13 +112,13 @@ package is pip-installed. Run the CLI via
   - `GET /solar/outlook?days=`
   Register it in `src/citylab/routes/api_v1/__init__.py`.
 
-- [ ] 11. Add the CLI group `src/citylab/cli_wrapper/commands_solar.py`
+- [x] 11. Add the CLI group `src/citylab/cli_wrapper/commands_solar.py`
   (`solar_group`), modelled on `commands_weather.py`, with subcommands
   `summary`, `outlook` (--days), and `forecasts` (--location/--from/--to).
   Register it in `src/citylab/cli_wrapper/__init__.py`
   (`main.add_command(solar_group, "solar")`).
 
-- [ ] 12. Add tests in `tests/test_solcast_ingestion.py`, modelled on
+- [x] 12. Add tests in `tests/test_solcast_ingestion.py`, modelled on
   `tests/test_weather_ingestion.py`. Use the existing fixture system
   (app/client/db_session) — NO ad-hoc DB connections. Cover: fetcher synthetic
   run produces SolarForecast rows for seeded locations with non-negative GHI
@@ -126,11 +126,11 @@ package is pip-installed. Run the CLI via
   idempotency; solar_query summary/outlook return data; API endpoints return the
   envelope with data_as_of; CLI group is registered.
 
-- [ ] 13. Run targeted tests and apply the migration against the test DB.
+- [x] 13. Run targeted tests and apply the migration against the test DB.
   `pytest tests/test_solcast_ingestion.py`. Confirm the DataSource list now
   includes Solcast. Fix failures.
 
-- [ ] 14. Smoke the demo script end to end (see below) on the dev/test surface
+- [x] 14. Smoke the demo script end to end (see below) on the dev/test surface
   as governed by guardrails, then commit.
 
 ## Demo Script
