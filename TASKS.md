@@ -1,114 +1,142 @@
-# Tasks: BOM Weather Forecast Ingestion
+# Tasks: Solcast Solar Irradiance Forecast Ingestion
 
-Source PRD: docs/prds/data/bom-weather-forecast-ingestion.md
-Branch: feature/hack-bom-weather-forecast-ingestion
+Source PRD: docs/prds/data/solcast-solar-forecast-ingestion.md
+Branch: feature/hack-solcast-solar-forecast-ingestion
 
-Reuses the shared ingestion architecture already on master (BaseFetcher contract,
-fetcher registry, DataSource model + seed, APScheduler `sync_data_sources`, the
-`data_as_of` freshness envelope from energy_query). BOM scheduling is free once a
-DataSource row exists — the scheduler reads DataSource rows generically. The
-`bom` source_type is already in DataSource.SOURCE_TYPES and seed `_SOURCE_TYPE_BY_KEY`.
+This feature reuses the shared ingestion architecture already on master. It is
+closely modelled on the BOM weather feature: SolarLocation + SolarForecast
+models, a SolcastFetcher (live-probe with synthetic fallback), a solar_query
+read service, a solar API blueprint, a solar CLI group, location seeding, a
+config.yaml data_sources entry, an Alembic migration, and the wiring across the
+ingestion package, scheduler, models, API, and CLI.
 
-Note (carried from PRD 1 known issue): `cli-citylab` is not on PATH unless the
-package is pip-installed. Run the CLI via `PYTHONPATH=src python -m citylab.cli_wrapper ...`
-for the demo, or `pip install -e .`.
+Pre-done on master: `solcast` is already present in `DataSource.SOURCE_TYPES`
+(src/citylab/models/data_source.py:12) and in `_SOURCE_TYPE_BY_KEY`
+(src/citylab/services/ingestion/seed.py:16).
+
+Known issue (carried from prior PRDs): `cli-citylab` is not on PATH unless the
+package is pip-installed. Run the CLI via
+`PYTHONPATH=src python -m citylab.cli_wrapper ...` for the demo, or
+`pip install -e .`.
 
 ## Task List
 
-- [x] 1. Add weather models — create `src/citylab/models/weather.py` with three
-       BaseModel subclasses, each with `to_dict()`, mirroring the energy models:
-       - `WeatherLocation` (name unique, bom_station_id, bom_forecast_area_id,
-         latitude, longitude, state, region_relevance)
-       - `WeatherForecast` (location_id FK, issued_at, forecast_for, forecast_period,
-         temperature_min_c, temperature_max_c, temperature_c, wind_speed_kmh,
-         wind_direction, wind_gust_kmh, rainfall_mm, rainfall_probability_pct,
-         cloud_cover_pct, humidity_pct, weather_description)
-       - `WeatherObservation` (location_id FK, observed_at, temperature_c,
-         wind_speed_kmh, wind_direction, wind_gust_kmh, rainfall_since_9am_mm,
-         humidity_pct, pressure_hpa)
-       Add indexes (location_id, forecast_for) on forecasts and (location_id,
-       observed_at) on observations via `__table_args__`. Register all three in
-       `src/citylab/models/__init__.py`.
+- [ ] 1. Add models `SolarLocation` and `SolarForecast` in
+  `src/citylab/models/solar.py`. Follow `src/citylab/models/weather.py`.
+  - `SolarLocation`: name (unique), latitude, longitude, state,
+    region_relevance (e.g. "utility_solar", "rooftop_aggregate", "hybrid_zone"),
+    reference_pv_capacity_kw, plus `to_dict()` / `__repr__`.
+  - `SolarForecast`: location_id FK, issued_at, forecast_for, forecast_period
+    ("30min"/"hourly"), ghi_wm2, dni_wm2, dhi_wm2, cloud_opacity_pct,
+    air_temp_c, estimated_pv_output_kw, plus an
+    `ix_solar_forecasts_location_for` index on (location_id, forecast_for) and
+    `to_dict()` / `__repr__`.
 
-- [x] 2. Generate and apply the Alembic migration for the three weather tables
-       (`flask db migrate` + `flask db upgrade`). Confirm the target DB is the
-       `citylab` dev DB before running (additive upgrade is permitted). Verify the
-       tables exist.
+- [ ] 2. Register the new models in `src/citylab/models/__init__.py`
+  (import `SolarLocation`, `SolarForecast` alongside the weather models).
 
-- [x] 3. Seed the 10 forecast locations — add a `seed_weather_locations()` helper
-       (in `src/citylab/services/ingestion/seed.py` or `models/weather.py`), idempotent
-       (match by name), covering the PRD locations with correct region_relevance:
-       - Vic: Melbourne metro (demand_centre), Western Vic/Ballarat-Ararat (wind_corridor),
-         Gippsland (demand_centre + offshore wind)
-       - Tas: Western Tas/Strahan-Queenstown (hydro_catchment), Central Highlands (hydro_catchment)
-       - SA: Mid-North/Port Augusta-Clare (wind_corridor), Yorke/Adelaide Hills (wind_corridor)
-       - Snowy/NSW: Snowy Mountains (hydro_catchment), Southern NSW (demand_centre / interconnector context)
-       Wire it to run alongside `seed_data_sources` on app startup.
+- [ ] 3. Generate the Alembic migration for the two solar tables. Run
+  `flask db migrate -m "solcast solar forecast ingestion tables"`, then review
+  the generated file in `migrations/versions/` against the weather migration
+  (35961a27f104) to confirm columns + index are correct. Down-revision must be
+  the current head. Do NOT auto-apply to a non-test DB without confirming the
+  target.
 
-- [x] 4. Implement `BOMFetcher` — create `src/citylab/services/ingestion/bom.py`
-       (source_type `bom`) following the OpenNEMFetcher pattern: `fetch()` attempts live
-       BOM access (api.weather.bom.gov.au forecast + observation endpoints, base_url from
-       DataSource), falling back to a synthetic-but-realistic per-location snapshot on any
-       failure so the demo never breaks, clearly flagged in logs. Synthetic data must be
-       region-plausible (Tas/Snowy wetter for hydro, SA/Western-Vic windier, Melbourne
-       demand-driven temps). `transform()` builds WeatherForecast (short-range 3-day
-       hourly/3-hourly + medium-range 7-day daily) and WeatherObservation instances for
-       each seeded location. `store()` adds + flushes. Backfill last 3 days of forecasts
-       on first run; incremental thereafter. Register via `register_fetcher("bom", BOMFetcher)`
-       and import the module in `services/ingestion/__init__.py` so it self-registers.
+- [ ] 4. Implement `SolcastFetcher` in
+  `src/citylab/services/ingestion/solcast.py`. Follow `bom.py`:
+  - `source_type = "solcast"`, `register_fetcher("solcast", SolcastFetcher)` at
+    module end.
+  - `fetch()` tries a live reachability probe against the Solcast base_url
+    (raise on failure), else falls back to `_synthetic()`. Stamp source
+    "live"/"synthetic". Respect a daily rate-limit guard from config (free-tier
+    awareness — back off if a configured call budget is exhausted).
+  - Synthetic irradiance must be diurnal: GHI peaks at solar noon, zero at
+    night; DNI/DHI derived from GHI; cloud_opacity_pct modulates GHI down;
+    estimated_pv_output_kw scaled from GHI and reference_pv_capacity_kw. Bias by
+    region_relevance so NW Vic / Riverland read sunnier.
+  - Horizons (PRD): 30-min intervals out to 24h (intraday) + hourly out to 7
+    days (short-range). On first run (backfill, last_fetch_at is None) stamp the
+    last 3 days of issued forecasts for history.
+  - `transform(raw)` builds `SolarForecast(**row)` instances; `store()` adds +
+    flushes and returns the count.
 
-- [x] 5. Add BOM to `config.yaml` `data_sources` — a `bom` entry with name, base_url
-       (https://api.weather.bom.gov.au), and cron_expression (forecast every 3 hours;
-       observations fetched within the same run). Show the config.yaml diff before editing
-       per the config-change guardrail.
+- [ ] 5. Register the fetcher on package import in
+  `src/citylab/services/ingestion/__init__.py`
+  (add `from citylab.services.ingestion import solcast  # noqa: F401,E402`).
 
-- [x] 6. Weather query service — create `src/citylab/services/weather_query.py`
-       (mirror energy_query): `query_forecasts(location, dt_from, dt_to)`,
-       `query_observations(location)`, `summary()` grouped by region_relevance (demand
-       centres, wind corridors, hydro catchments), and `outlook(factor)` for
-       wind|rain|temperature filtered across the relevant corridors/catchments. Reuse
-       `energy_query.latest_fetch_timestamp()` (or a BOM-scoped equivalent) for
-       `data_as_of`. Accept location by name / id / region/state.
+- [ ] 6. Add `seed_solar_locations()` in
+  `src/citylab/services/ingestion/seed.py`, modelled on
+  `seed_weather_locations()`. Seed the 6 PRD locations, each with lat/long,
+  state, region_relevance, and a reference_pv_capacity_kw, idempotent (matched
+  by name):
+  - NW Vic (Mildura/Swan Hill) — utility_solar
+  - Western Vic (Ballarat/Bendigo) — hybrid_zone
+  - Melbourne metro — rooftop_aggregate
+  - Gippsland — utility_solar
+  - Northern SA (Port Augusta) — hybrid_zone
+  - Riverland (Renmark/Berri) — utility_solar
 
-- [x] 7. Weather API blueprint — create `src/citylab/routes/api_v1/weather.py`
-       (`weather_api_bp`) with `GET /weather/forecasts`, `/weather/observations`,
-       `/weather/summary`, `/weather/outlook?factor=...`, each protected by
-       `require_api_token` and returning the `{ok, data, data_as_of}` envelope. Register
-       the blueprint in `src/citylab/routes/api_v1/__init__.py`.
+- [ ] 7. Add the `solcast` entry to the `data_sources` section of
+  `config.yaml` (name "Solcast Solar Forecasts", base_url
+  https://api.solcast.com.au, `api_key: ${SOLCAST_API_KEY}`,
+  `cron_expression: "0 * * * *"` for hourly, a `timeout_seconds`, and a
+  `daily_call_budget` for rate-limit awareness).
+  NOTE: config.yaml is a protected file — show the diff and get approval before
+  editing.
 
-- [x] 8. Weather CLI group — create `src/citylab/cli_wrapper/commands_weather.py`
-       (`weather_group`) with `summary`, `outlook --factor wind|rain|temperature`,
-       `forecasts --location ...`, and `observations --location ...`, mirroring
-       commands_energy (APIClient + JSON print). Register with
-       `main.add_command(weather_group, "weather")` in `cli_wrapper/__init__.py`.
+- [ ] 8. Wire seeding + scheduling. In `src/citylab/services/scheduler.py` add
+  `seed_solar_locations` to the imports and call it next to
+  `seed_weather_locations()` on startup. In `src/citylab/cli/commands.py` add
+  `seed_solar_locations` to the seed CLI command's imports and invocation so the
+  flask seed command also seeds solar locations.
 
-- [x] 9. Tests — add targeted tests using the existing fixtures (`app`, `client`,
-       `db_session`), no live network: BOMFetcher transform/store + synthetic fallback;
-       location seeding idempotency; weather_query summary/outlook grouping; weather API
-       endpoints returning the envelope with `data_as_of`.
+- [ ] 9. Implement the read service `src/citylab/services/solar_query.py`,
+  modelled on `weather_query.py`. Reuse
+  `energy_query.latest_fetch_timestamp` and `_parse_dt` for the freshness
+  contract. Provide:
+  - `query_forecasts(location, dt_from, dt_to, limit)` — latest-issue forecasts
+    for resolved location(s).
+  - `summary()` — current GHI + next-24h solar outlook grouped by
+    region_relevance, with an estimated generation-impact headline per group.
+  - `outlook(days)` — multi-day, narrative-friendly view: per-location peak GHI /
+    avg cloud_opacity over the horizon so an agent can say "strong solar across
+    NW Vic next 3 days, cloud band day 4".
+  - A `_resolve_locations` selector accepting name substring / id /
+    region_relevance / state (VIC, SA, etc.), like weather_query.
 
-- [x] 10. End-to-end demo verification — run the BOM fetcher once (live or synthetic),
-        confirm forecasts + observations land for all 10 locations, then walk the demo
-        script via `PYTHONPATH=src python -m citylab.cli_wrapper`: `data sources` shows BOM,
-        `weather summary`, `weather outlook --factor wind`, `weather outlook --factor rain`.
-        Confirm the rain-outlook → Basslink → energy-summary correlation narrative is
-        supported by the data.
+- [ ] 10. Add the API blueprint `src/citylab/routes/api_v1/solar.py`
+  (`solar_api_bp`), modelled on `weather.py`. Token-protected endpoints, all
+  returning the `{ok, data, data_as_of}` envelope:
+  - `GET /solar/forecasts?location=&from=&to=`
+  - `GET /solar/summary`
+  - `GET /solar/outlook?days=`
+  Register it in `src/citylab/routes/api_v1/__init__.py`.
+
+- [ ] 11. Add the CLI group `src/citylab/cli_wrapper/commands_solar.py`
+  (`solar_group`), modelled on `commands_weather.py`, with subcommands
+  `summary`, `outlook` (--days), and `forecasts` (--location/--from/--to).
+  Register it in `src/citylab/cli_wrapper/__init__.py`
+  (`main.add_command(solar_group, "solar")`).
+
+- [ ] 12. Add tests in `tests/test_solcast_ingestion.py`, modelled on
+  `tests/test_weather_ingestion.py`. Use the existing fixture system
+  (app/client/db_session) — NO ad-hoc DB connections. Cover: fetcher synthetic
+  run produces SolarForecast rows for seeded locations with non-negative GHI
+  that is zero at night and positive at solar noon; location seeding
+  idempotency; solar_query summary/outlook return data; API endpoints return the
+  envelope with data_as_of; CLI group is registered.
+
+- [ ] 13. Run targeted tests and apply the migration against the test DB.
+  `pytest tests/test_solcast_ingestion.py`. Confirm the DataSource list now
+  includes Solcast. Fix failures.
+
+- [ ] 14. Smoke the demo script end to end (see below) on the dev/test surface
+  as governed by guardrails, then commit.
 
 ## Demo Script
 
-1. `cli-citylab data sources` — see BOM listed alongside OpenNEM as active data source
-2. `cli-citylab weather summary` — see current conditions: Melbourne temp and demand context, SA wind corridor speeds, Tas catchment rainfall, Snowy rainfall
-3. `cli-citylab weather outlook --factor wind` — see 3-day wind forecast across SA and Vic wind corridors
-4. `cli-citylab weather outlook --factor rain` — see rainfall outlook for Tasmanian and Snowy hydro catchments
-5. The key proof: an agent reads `cli-citylab weather outlook --factor rain` → sees heavy rain forecast for Tas → infers Basslink imports likely to increase → correlates with `cli-citylab energy summary` → reasons that prices may soften
-
-## Ship Status
-
-- Build: complete
-- Tests: passed (35/35)
-- Smoke: passed (5/5 demo steps)
-
-### Known Issues
-
-- `weather outlook --factor` includes demand-centre locations alongside the requested factor's corridors/catchments (minor, non-blocking; demo still lands).
-- `cli-citylab` not on PATH — run via `PYTHONPATH=src python -m citylab.cli_wrapper`.
+1. `cli-citylab data sources` — see Solcast listed alongside OpenNEM and BOM as active data sources
+2. `cli-citylab solar summary` — see current irradiance and next-24h forecast across Victorian and SA solar regions
+3. `cli-citylab solar outlook` — see multi-day view: "strong solar forecast across NW Vic for next 3 days, cloud band approaching from west on day 4"
+4. `cli-citylab solar forecasts --location mildura` — see detailed hourly GHI/DNI/DHI forecast for the Mildura solar corridor
+5. The key proof: an agent reads solar outlook → correlates with energy generation data → reasons about renewable supply impact on price
