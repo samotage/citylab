@@ -34,13 +34,21 @@ def register_cli_commands(app):
 
     @app.cli.command("seed-data-sources")
     def seed_data_sources_cmd():
-        """Seed DataSource rows from the config.yaml data_sources section."""
-        from citylab.services.ingestion.seed import seed_data_sources
+        """Seed DataSource rows + weather locations from config.yaml."""
+        from citylab.services.ingestion.seed import (
+            seed_data_sources,
+            seed_weather_locations,
+        )
 
         results = seed_data_sources()
         if not results:
             click.echo("No data_sources configured in config.yaml.")
-            return
-        for r in results:
-            click.echo(f"  {r['name']} ({r['source_type']}) -> {r['cron_expression']}")
-        click.echo(f"Seeded/updated {len(results)} data source(s).")
+        else:
+            for r in results:
+                click.echo(f"  {r['name']} ({r['source_type']}) -> {r['cron_expression']}")
+            click.echo(f"Seeded/updated {len(results)} data source(s).")
+
+        locations = seed_weather_locations()
+        for loc in locations:
+            click.echo(f"  {loc['name']} [{loc['state']}] ({loc['region_relevance']})")
+        click.echo(f"Seeded/updated {len(locations)} weather location(s).")

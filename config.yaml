@@ -41,3 +41,10 @@ data_sources:
     api_key: ${OPENNEM_API_KEY}
     cron_expression: "*/5 * * * *"
     timeout_seconds: 8
+  bom:
+    name: "BOM Weather Forecasts"
+    base_url: https://api.weather.bom.gov.au
+    # BOM public endpoints do not require a key.
+    # Forecasts every 3 hours; observations fetched within the same run.
+    cron_expression: "0 */3 * * *"
+    timeout_seconds: 8

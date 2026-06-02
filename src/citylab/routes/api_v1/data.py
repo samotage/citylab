@@ -96,6 +96,7 @@ def market_intelligence():
     data_as_of so agents can judge freshness per source.
     """
     from citylab.services.energy_query import current_snapshot, latest_fetch_timestamp
+    from citylab.services import weather_query as wq
 
     region = request.args.get("region", "VIC1")
 
@@ -113,6 +114,17 @@ def market_intelligence():
 
     energy = current_snapshot(region)
 
+    # Weather: current conditions + rain/wind outlook for the hydro/wind
+    # corridors that move Victorian price (Basslink, Heywood, Murraylink).
+    try:
+        weather = {
+            "summary": wq.summary(),
+            "rain_outlook": wq.outlook("rain"),
+            "wind_outlook": wq.outlook("wind"),
+        }
+    except Exception:  # noqa: BLE001 - never break the combined endpoint
+        weather = None
+
     return jsonify(
         {
             "ok": True,
@@ -120,8 +132,8 @@ def market_intelligence():
                 "region": region,
                 "sources": per_source,
                 "energy": energy,
-                # Placeholders populated when BOM / Solcast PRDs land.
-                "weather": None,
+                "weather": weather,
+                # Placeholder populated when the Solcast PRD lands.
                 "solar": None,
             },
             "data_as_of": latest_fetch_timestamp(),

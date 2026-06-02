@@ -12,3 +12,8 @@ from citylab.models.energy import (  # noqa: F401
     GeneratorSubmission,
     PriceForecast,
 )
+from citylab.models.weather import (  # noqa: F401
+    WeatherLocation,
+    WeatherForecast,
+    WeatherObservation,
+)

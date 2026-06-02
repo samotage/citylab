@@ -32,6 +32,16 @@ def init_scheduler(app, config):
     # Initial sync
     with app.app_context():
         try:
+            from citylab.services.ingestion.seed import (
+                seed_data_sources,
+                seed_weather_locations,
+            )
+
+            seed_data_sources()
+            seed_weather_locations()
+        except Exception as e:
+            logger.warning(f"Initial seed failed: {e}")
+        try:
             sync_jobs()
         except Exception as e:
             logger.warning(f"Initial job sync failed: {e}")
