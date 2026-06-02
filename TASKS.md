@@ -7,8 +7,8 @@ Branch: feature/hack-energy-market-data-ingestion
 
 ### Foundation: Models & Migrations
 
-- [ ] 1. Create `DataSource` model in `src/citylab/models/data_source.py` (inherits BaseModel): name (unique), source_type (enum: opennem/bom/solcast/custom), base_url, config (JSONB), cron_expression, is_active, last_fetch_at, last_fetch_status (success/error/pending), last_error, next_fetch_at. Add `to_dict()`. Register in `src/citylab/models/__init__.py`.
-- [ ] 2. Create the six energy data models in `src/citylab/models/energy.py` (each inherits BaseModel, each with `to_dict()`):
+- [x] 1. Create `DataSource` model in `src/citylab/models/data_source.py` (inherits BaseModel): name (unique), source_type (enum: opennem/bom/solcast/custom), base_url, config (JSONB), cron_expression, is_active, last_fetch_at, last_fetch_status (success/error/pending), last_error, next_fetch_at. Add `to_dict()`. Register in `src/citylab/models/__init__.py`.
+- [x] 2. Create the six energy data models in `src/citylab/models/energy.py` (each inherits BaseModel, each with `to_dict()`):
       - `EnergyPrice` (region, interval_start, interval_end, interval_type, price_aud_mwh)
       - `EnergyDemand` (region, interval_start, demand_mw, demand_type)
       - `GenerationOutput` (region, interval_start, fuel_type, output_mw, capacity_mw)
@@ -16,7 +16,7 @@ Branch: feature/hack-energy-market-data-ingestion
       - `GeneratorSubmission` (station_name, unit_id, fuel_type, region, interval_start, bid_band, price_aud_mwh, volume_mw)
       - `PriceForecast` (region, forecast_issued_at, forecast_for, price_aud_mwh, forecast_type)
       Register all six in `src/citylab/models/__init__.py`.
-- [ ] 3. Add indexes per PRD retention section: (region, interval_start) on all time-series tables; composite (region, interval_start, fuel_type) on GenerationOutput. Define via `__table_args__` on each model.
+- [x] 3. Add indexes per PRD retention section: (region, interval_start) on all time-series tables; composite (region, interval_start, fuel_type) on GenerationOutput. Define via `__table_args__` on each model.
 - [ ] 4. Generate and apply Alembic migration for all seven new tables (`flask db migrate` + `flask db upgrade`). Confirm target DB is the `citylab` dev DB before running (additive upgrade is permitted).
 
 ### Ingestion Architecture (source-agnostic, reusable)
