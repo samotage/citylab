@@ -101,3 +101,14 @@ for the demo, or `pip install -e .`.
 3. `cli-citylab weather outlook --factor wind` — see 3-day wind forecast across SA and Vic wind corridors
 4. `cli-citylab weather outlook --factor rain` — see rainfall outlook for Tasmanian and Snowy hydro catchments
 5. The key proof: an agent reads `cli-citylab weather outlook --factor rain` → sees heavy rain forecast for Tas → infers Basslink imports likely to increase → correlates with `cli-citylab energy summary` → reasons that prices may soften
+
+## Ship Status
+
+- Build: complete
+- Tests: passed (35/35)
+- Smoke: passed (5/5 demo steps)
+
+### Known Issues
+
+- `weather outlook --factor` includes demand-centre locations alongside the requested factor's corridors/catchments (minor, non-blocking; demo still lands).
+- `cli-citylab` not on PATH — run via `PYTHONPATH=src python -m citylab.cli_wrapper`.
