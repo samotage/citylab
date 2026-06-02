@@ -35,7 +35,7 @@ for the demo, or `pip install -e .`.
        `citylab` dev DB before running (additive upgrade is permitted). Verify the
        tables exist.
 
-- [ ] 3. Seed the 10 forecast locations — add a `seed_weather_locations()` helper
+- [x] 3. Seed the 10 forecast locations — add a `seed_weather_locations()` helper
        (in `src/citylab/services/ingestion/seed.py` or `models/weather.py`), idempotent
        (match by name), covering the PRD locations with correct region_relevance:
        - Vic: Melbourne metro (demand_centre), Western Vic/Ballarat-Ararat (wind_corridor),
