@@ -62,7 +62,7 @@ for the demo, or `pip install -e .`.
        observations fetched within the same run). Show the config.yaml diff before editing
        per the config-change guardrail.
 
-- [ ] 6. Weather query service — create `src/citylab/services/weather_query.py`
+- [x] 6. Weather query service — create `src/citylab/services/weather_query.py`
        (mirror energy_query): `query_forecasts(location, dt_from, dt_to)`,
        `query_observations(location)`, `summary()` grouped by region_relevance (demand
        centres, wind corridors, hydro catchments), and `outlook(factor)` for
