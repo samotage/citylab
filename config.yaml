@@ -29,3 +29,15 @@ headspace:
 session:
   lifetime_days: 30
   cookie_name: session_citylab
+
+# Data ingestion sources. Sensitive credentials are referenced via env vars
+# (${VAR_NAME}) and injected into DataSource.config at seed time. New sources
+# are added here and seeded via `cli-citylab data seed`.
+data_sources:
+  opennem:
+    name: "OpenNEM Victorian NEM"
+    base_url: https://api.opennem.org.au
+    # OpenNEM public endpoints do not require a key; left here for future use.
+    api_key: ${OPENNEM_API_KEY}
+    cron_expression: "*/5 * * * *"
+    timeout_seconds: 8

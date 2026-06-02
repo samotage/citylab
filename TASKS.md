@@ -28,7 +28,7 @@ Branch: feature/hack-energy-market-data-ingestion
 ### OpenNEM Fetcher (first concrete source)
 
 - [x] 8. Implement `OpenNEMFetcher` in `src/citylab/services/ingestion/opennem.py` (subclass BaseFetcher, registered under `opennem`): API calls to OpenNEM for VIC1 (prices, demand, generation, interconnectors), rate limiting, pagination, 7-day backfill on first run / incremental from last_fetch_at thereafter. Map fuel types incl. battery_charging/battery_discharging; map the 5 interconnector corridors (Basslink/T-V, Heywood/V-SA, Murraylink/V-S, VNI, VNI West). Fetch generator submissions and pre-dispatch forecasts from AEMO endpoints within the same fetcher where OpenNEM lacks them.
-- [ ] 9. Add a `data_sources` section to `config.yaml` (env-var refs for API keys/credentials) and a seed routine/CLI that creates the OpenNEM DataSource row from config, injecting credentials into DataSource.config. Show config.yaml diff before applying.
+- [x] 9. Add a `data_sources` section to `config.yaml` (env-var refs for API keys/credentials) and a seed routine/CLI that creates the OpenNEM DataSource row from config, injecting credentials into DataSource.config. Show config.yaml diff before applying.
 
 ### Data API (source-agnostic)
 
