@@ -45,7 +45,7 @@ for the demo, or `pip install -e .`.
        - Snowy/NSW: Snowy Mountains (hydro_catchment), Southern NSW (demand_centre / interconnector context)
        Wire it to run alongside `seed_data_sources` on app startup.
 
-- [ ] 4. Implement `BOMFetcher` — create `src/citylab/services/ingestion/bom.py`
+- [x] 4. Implement `BOMFetcher` — create `src/citylab/services/ingestion/bom.py`
        (source_type `bom`) following the OpenNEMFetcher pattern: `fetch()` attempts live
        BOM access (api.weather.bom.gov.au forecast + observation endpoints, base_url from
        DataSource), falling back to a synthetic-but-realistic per-location snapshot on any
