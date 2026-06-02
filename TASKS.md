@@ -70,7 +70,7 @@ for the demo, or `pip install -e .`.
        `energy_query.latest_fetch_timestamp()` (or a BOM-scoped equivalent) for
        `data_as_of`. Accept location by name / id / region/state.
 
-- [ ] 7. Weather API blueprint — create `src/citylab/routes/api_v1/weather.py`
+- [x] 7. Weather API blueprint — create `src/citylab/routes/api_v1/weather.py`
        (`weather_api_bp`) with `GET /weather/forecasts`, `/weather/observations`,
        `/weather/summary`, `/weather/outlook?factor=...`, each protected by
        `require_api_token` and returning the `{ok, data, data_as_of}` envelope. Register
