@@ -1,52 +1,66 @@
-# TASKS — CityLab Project Bootstrap
+# Tasks: Energy Market Data Ingestion — Victorian NEM
 
-**Source PRD:** `docs/prds/core/bootstrap.md`
-**Branch:** `feature/hack-bootstrap`
+Source PRD: docs/prds/data/energy-market-data-ingestion.md
+Branch: feature/hack-energy-market-data-ingestion
 
 ## Task List
 
-- [x] **Task 1: Project files and dependencies** — Create `pyproject.toml` (package metadata, entry points, pytest config), `requirements.txt`, `.gitignore`, `.env.example`, `package.json`, `tailwind.config.js`. These are zero-dependency foundational files everything else imports or references.
+### Foundation: Models & Migrations
 
-- [x] **Task 2: Config layer** — Create `src/citylab/config.py` (three-tier cascade: DEFAULTS, config.yaml, env vars; `build_database_uri()`; `ENV_MAPPINGS`), `config.yaml` at project root (server, logging, database, redis, api token, headspace config).
+- [x] 1. Create `DataSource` model in `src/citylab/models/data_source.py` (inherits BaseModel): name (unique), source_type (enum: opennem/bom/solcast/custom), base_url, config (JSONB), cron_expression, is_active, last_fetch_at, last_fetch_status (success/error/pending), last_error, next_fetch_at. Add `to_dict()`. Register in `src/citylab/models/__init__.py`.
+- [x] 2. Create the six energy data models in `src/citylab/models/energy.py` (each inherits BaseModel, each with `to_dict()`):
+      - `EnergyPrice` (region, interval_start, interval_end, interval_type, price_aud_mwh)
+      - `EnergyDemand` (region, interval_start, demand_mw, demand_type)
+      - `GenerationOutput` (region, interval_start, fuel_type, output_mw, capacity_mw)
+      - `InterconnectorFlow` (interconnector_id, from_region, to_region, interval_start, flow_mw, capacity_mw, limit_mw)
+      - `GeneratorSubmission` (station_name, unit_id, fuel_type, region, interval_start, bid_band, price_aud_mwh, volume_mw)
+      - `PriceForecast` (region, forecast_issued_at, forecast_for, price_aud_mwh, forecast_type)
+      Register all six in `src/citylab/models/__init__.py`.
+- [x] 3. Add indexes per PRD retention section: (region, interval_start) on all time-series tables; composite (region, interval_start, fuel_type) on GenerationOutput. Define via `__table_args__` on each model.
+- [x] 4. Generate and apply Alembic migration for all seven new tables (`flask db migrate` + `flask db upgrade`). Confirm target DB is the `citylab` dev DB before running (additive upgrade is permitted).
 
-- [x] **Task 3: Extensions and database models** — Create `src/citylab/extensions.py` (SQLAlchemy 2.0 `DeclarativeBase`, naming convention, Flask-Migrate), `src/citylab/models/__init__.py`, `src/citylab/models/base.py` (BaseModel with id, created_at, updated_at), `src/citylab/models/user.py` (User: email, password_hash, is_active, Flask-Login mixin), `src/citylab/models/scheduled_task.py` (ScheduledTask: name, cron_expression, agent_persona, agent_action, is_active, last_run_at, next_run_at).
+### Ingestion Architecture (source-agnostic, reusable)
 
-- [x] **Task 4: App factory** — Create `src/citylab/__init__.py` with `create_app()`: config loading, logging setup, database init, Flask-Login init, CSRF protection, blueprint registration, CLI command registration, admin seeding, scheduler init. Also create `run.py`, `gunicorn.conf.py`, `restart_server.sh`.
+- [x] 5. Create `src/citylab/services/ingestion/__init__.py` and `base.py` with `BaseFetcher` abstract class defining the `fetch()` / `transform()` / `store()` contract plus a `run()` orchestrator that calls all three, updates DataSource status (last_fetch_at, last_fetch_status, last_error, next_fetch_at), and handles retry with exponential backoff (3 attempts).
+- [x] 6. Create a fetcher registry in `src/citylab/services/ingestion/registry.py` — dict mapping source_type string → fetcher class, with `register_fetcher()` and `get_fetcher(source_type)` helpers. This is the extension point: new source = new class + one registry entry.
+- [x] 7. Wire the ingestion scheduler: extend `src/citylab/services/scheduler.py` (or add `ingestion_scheduler.py`) so each active DataSource row gets an APScheduler cron job that resolves its fetcher via the registry and calls `run()`. Mirror the existing `sync_jobs()` pattern; update next_fetch_at on the DataSource.
 
-- [x] **Task 5: Auth routes and templates** — Create `src/citylab/routes/__init__.py`, `src/citylab/routes/auth.py` (login/logout with Flask-Login, Flask-WTF forms), `templates/base.html` (dark mode Tailwind, sidebar layout, HTMX), `templates/auth/login.html`, `templates/errors/404.html`, `templates/errors/500.html`. Vendor `static/vendor/htmx.min.js`. Create `static/css/src/input.css` and compile `static/css/main.css`.
+### OpenNEM Fetcher (first concrete source)
 
-- [x] **Task 6: Main and health routes** — Create `src/citylab/routes/main.py` (index `/` with login_required, renders dashboard), `src/citylab/routes/health.py` (`GET /health` returning database/redis/scheduler status), `templates/index.html` (dashboard placeholder).
+- [x] 8. Implement `OpenNEMFetcher` in `src/citylab/services/ingestion/opennem.py` (subclass BaseFetcher, registered under `opennem`): API calls to OpenNEM for VIC1 (prices, demand, generation, interconnectors), rate limiting, pagination, 7-day backfill on first run / incremental from last_fetch_at thereafter. Map fuel types incl. battery_charging/battery_discharging; map the 5 interconnector corridors (Basslink/T-V, Heywood/V-SA, Murraylink/V-S, VNI, VNI West). Fetch generator submissions and pre-dispatch forecasts from AEMO endpoints within the same fetcher where OpenNEM lacks them.
+- [x] 9. Add a `data_sources` section to `config.yaml` (env-var refs for API keys/credentials) and a seed routine/CLI that creates the OpenNEM DataSource row from config, injecting credentials into DataSource.config. Show config.yaml diff before applying.
 
-- [x] **Task 7: API v1 blueprint** — Create `src/citylab/routes/api_v1/__init__.py` (API blueprint factory at `/api/v1`, CSRF exempt, JSON error handlers), `src/citylab/routes/api_v1/auth.py` (`@require_api_token` decorator), `src/citylab/routes/api_v1/app.py` (`GET /api/v1/app/status`), `src/citylab/routes/api_v1/schedules.py` (CRUD for scheduled tasks + sync endpoint).
+### Data API (source-agnostic)
 
-- [x] **Task 8: Scheduler service** — Create `src/citylab/services/__init__.py`, `src/citylab/services/scheduler.py` (APScheduler BackgroundScheduler with SQLAlchemyJobStore, sync loop, `trigger_agent` job function), `src/citylab/services/headspace_client.py` (HTTP client for Headspace API dispatch).
+- [x] 10. Create `src/citylab/routes/api_v1/data.py` blueprint: `GET /data/sources` (list + status), `GET /data/sources/{id}/status`, `GET /data/market-intelligence` (cross-source summary; energy-only until BOM/Solcast exist; per-source `data_as_of`). Register blueprint in `src/citylab/routes/api_v1/__init__.py`. Use `require_api_token` and the `{"ok": ..., "data": ...}` envelope.
 
-- [x] **Task 9: CLI wrapper** — Create `src/citylab/cli_wrapper/__init__.py` (Click entry point with `main` group), `src/citylab/cli_wrapper/client.py` (HTTP client with Bearer token, error mapping), `src/citylab/cli_wrapper/config.py` (config discovery), commands: `app status`, `schedules list/create/delete`.
+### Energy API
 
-- [x] **Task 10: Agent wiring** — Create `skill-injection-registry.yaml` with citylab-operator persona stub. Create `src/citylab/cli/commands.py` with `flask seed-admin` CLI command.
+- [x] 11. Create `src/citylab/routes/api_v1/energy.py` blueprint: `GET /energy/prices`, `/energy/generation`, `/energy/interconnectors`, `/energy/forecasts`, `/energy/summary` (current snapshot: latest price, demand, generation mix, interconnector flows, battery state, nearest forecast). Support `region`/`from`/`to` query params. Every response includes a `data_as_of` timestamp. Register in api_v1 `__init__.py`.
 
-- [x] **Task 11: Database migrations** — Initialize Alembic (`flask db init`), generate initial migration from models, apply with `flask db upgrade`. Verify the migration files are correct.
+### CLI
 
-- [x] **Task 12: Test infrastructure** — Create `tests/__init__.py`, `tests/conftest.py` (`_force_test_database`, `app`, `client`, `db_session` fixtures), `tests/test_health.py`, `tests/test_auth.py`, `tests/test_api_token.py`. Run `pytest tests/` and verify all pass.
+- [x] 12. Create `src/citylab/cli_wrapper/commands_data.py` (`data` group: `sources`, `market-intelligence`) and `commands_energy.py` (`energy` group: `summary`, `prices` with `--from`/`--to`, `generation`, `interconnectors`, `forecasts`). Register both groups in `src/citylab/cli_wrapper/__init__.py`. Mirror the existing APIClient / JSON-print pattern.
 
-- [x] **Task 13: README** — Create `README.md` with project name, quick start (create DB, flask db upgrade, python run.py), CLI usage summary.
+### Tests
+
+- [x] 13. Add targeted tests: model creation/to_dict, fetcher registry register/lookup, BaseFetcher status-update + retry logic (mock the HTTP layer — no live OpenNEM calls), and energy/data API endpoints returning the envelope with `data_as_of`. Use existing fixtures (`app`, `client`, `db_session`). No live network in tests.
 
 ## Demo Script
 
-1. Start the app: `python run.py` — see "Running on http://127.0.0.1:5099"
-2. Open browser to `http://127.0.0.1:5099` — redirected to login page
-3. Log in with admin credentials — see the dashboard
-4. In terminal: `cli-citylab app status` — see JSON response with app health
-5. Create a schedule: `cli-citylab schedules create --name market-scan --cron "*/5 * * * *" --persona energy-monitor --action scan-prices`
-6. List schedules: `cli-citylab schedules list` — see the market-scan entry
-7. Check logs — APScheduler registered the job, next fire time visible
-8. The key proof: a remote agent can call `cli-citylab` to operate this app and manage its scheduled tasks
+1. Start the app: `python run.py`
+2. In terminal: `cli-citylab data sources` — see OpenNEM registered as active data source
+3. Wait for first fetch cycle (or trigger manually via API)
+4. `cli-citylab energy summary` — see current Victorian spot price, demand, generation mix breakdown, interconnector flows (Basslink, Heywood, Murraylink, VNI, VNI West), battery state, and nearest forward price forecast
+5. `cli-citylab energy prices --from 2025-06-01` — see historical spot prices
+6. `cli-citylab energy generation` — see generation mix: brown coal, gas, solar, wind, hydro, battery
+7. The key proof: an agent can call `cli-citylab energy summary` and get everything it needs to reason about the current Victorian energy market in one call
 
 ## Ship Status
 
 - Build: complete
-- Tests: passed (8/8)
-- Smoke: passed (8/8 demo steps)
+- Tests: passed (23/23)
+- Smoke: passed (7/7 demo steps)
 
 ### Known Issues
-None
+- Non-blocking: `cli-citylab` is not on PATH because the package is not pip-installed. For the demo, run via `PYTHONPATH=src python -m citylab.cli_wrapper ...` or `pip install -e .`.

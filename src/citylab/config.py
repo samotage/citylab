@@ -122,6 +122,24 @@ def build_database_uri(config: dict) -> str:
     return f"postgresql://{user}@{host}:{port}/{name}"
 
 
+def _resolve_env_refs(value):
+    """Recursively resolve ${VAR} references against os.environ.
+
+    Unset vars resolve to None so callers can detect missing credentials.
+    """
+    import re
+
+    if isinstance(value, dict):
+        return {k: _resolve_env_refs(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_resolve_env_refs(v) for v in value]
+    if isinstance(value, str):
+        m = re.fullmatch(r"\$\{([A-Z0-9_]+)\}", value.strip())
+        if m:
+            return os.environ.get(m.group(1))
+    return value
+
+
 def load_config() -> dict:
     """Load configuration with three-tier cascade: DEFAULTS → config.yaml → env."""
     config = DEFAULTS.copy()
@@ -141,5 +159,9 @@ def load_config() -> dict:
 
     # Layer 3: env vars
     config = _apply_env_overrides(config)
+
+    # Resolve ${VAR} references in the data_sources section (credentials)
+    if "data_sources" in config:
+        config["data_sources"] = _resolve_env_refs(config["data_sources"])
 
     return config

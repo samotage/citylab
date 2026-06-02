@@ -89,11 +89,15 @@ def create_app(testing: bool = False) -> Flask:
     from citylab.routes.api_v1 import create_api_v1_blueprint
     from citylab.routes.api_v1.app import app_api_bp
     from citylab.routes.api_v1.schedules import schedules_api_bp
+    from citylab.routes.api_v1.data import data_api_bp
+    from citylab.routes.api_v1.energy import energy_api_bp
 
     api_bp = create_api_v1_blueprint()
     csrf.exempt(api_bp)
     csrf.exempt(app_api_bp)
     csrf.exempt(schedules_api_bp)
+    csrf.exempt(data_api_bp)
+    csrf.exempt(energy_api_bp)
     app.register_blueprint(api_bp)
 
     # --- CLI commands ---
@@ -138,7 +142,7 @@ def _is_flask_cli() -> bool:
     """Detect if we're running under flask CLI (db migrate, etc.)."""
     import sys
     return any(
-        arg in sys.argv for arg in ["db", "seed-admin", "routes", "shell"]
+        arg in sys.argv for arg in ["db", "seed-admin", "seed-data-sources", "routes", "shell"]
     )
 
 

@@ -19,8 +19,12 @@ def create_api_v1_blueprint() -> Blueprint:
     # Register API sub-modules
     from citylab.routes.api_v1.app import app_api_bp
     from citylab.routes.api_v1.schedules import schedules_api_bp
+    from citylab.routes.api_v1.data import data_api_bp
+    from citylab.routes.api_v1.energy import energy_api_bp
 
     api_bp.register_blueprint(app_api_bp)
     api_bp.register_blueprint(schedules_api_bp)
+    api_bp.register_blueprint(data_api_bp)
+    api_bp.register_blueprint(energy_api_bp)
 
     return api_bp

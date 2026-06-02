@@ -4,6 +4,8 @@ import click
 
 from citylab.cli_wrapper.commands_app import app_group
 from citylab.cli_wrapper.commands_schedules import schedules_group
+from citylab.cli_wrapper.commands_data import data_group
+from citylab.cli_wrapper.commands_energy import energy_group
 
 
 @click.group()
@@ -15,3 +17,5 @@ def main():
 
 main.add_command(app_group, "app")
 main.add_command(schedules_group, "schedules")
+main.add_command(data_group, "data")
+main.add_command(energy_group, "energy")
