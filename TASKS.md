@@ -32,15 +32,15 @@ Branch: feature/hack-energy-market-data-ingestion
 
 ### Data API (source-agnostic)
 
-- [ ] 10. Create `src/citylab/routes/api_v1/data.py` blueprint: `GET /data/sources` (list + status), `GET /data/sources/{id}/status`, `GET /data/market-intelligence` (cross-source summary; energy-only until BOM/Solcast exist; per-source `data_as_of`). Register blueprint in `src/citylab/routes/api_v1/__init__.py`. Use `require_api_token` and the `{"ok": ..., "data": ...}` envelope.
+- [x] 10. Create `src/citylab/routes/api_v1/data.py` blueprint: `GET /data/sources` (list + status), `GET /data/sources/{id}/status`, `GET /data/market-intelligence` (cross-source summary; energy-only until BOM/Solcast exist; per-source `data_as_of`). Register blueprint in `src/citylab/routes/api_v1/__init__.py`. Use `require_api_token` and the `{"ok": ..., "data": ...}` envelope.
 
 ### Energy API
 
-- [ ] 11. Create `src/citylab/routes/api_v1/energy.py` blueprint: `GET /energy/prices`, `/energy/generation`, `/energy/interconnectors`, `/energy/forecasts`, `/energy/summary` (current snapshot: latest price, demand, generation mix, interconnector flows, battery state, nearest forecast). Support `region`/`from`/`to` query params. Every response includes a `data_as_of` timestamp. Register in api_v1 `__init__.py`.
+- [x] 11. Create `src/citylab/routes/api_v1/energy.py` blueprint: `GET /energy/prices`, `/energy/generation`, `/energy/interconnectors`, `/energy/forecasts`, `/energy/summary` (current snapshot: latest price, demand, generation mix, interconnector flows, battery state, nearest forecast). Support `region`/`from`/`to` query params. Every response includes a `data_as_of` timestamp. Register in api_v1 `__init__.py`.
 
 ### CLI
 
-- [ ] 12. Create `src/citylab/cli_wrapper/commands_data.py` (`data` group: `sources`, `market-intelligence`) and `commands_energy.py` (`energy` group: `summary`, `prices` with `--from`/`--to`, `generation`, `interconnectors`, `forecasts`). Register both groups in `src/citylab/cli_wrapper/__init__.py`. Mirror the existing APIClient / JSON-print pattern.
+- [x] 12. Create `src/citylab/cli_wrapper/commands_data.py` (`data` group: `sources`, `market-intelligence`) and `commands_energy.py` (`energy` group: `summary`, `prices` with `--from`/`--to`, `generation`, `interconnectors`, `forecasts`). Register both groups in `src/citylab/cli_wrapper/__init__.py`. Mirror the existing APIClient / JSON-print pattern.
 
 ### Tests
 
