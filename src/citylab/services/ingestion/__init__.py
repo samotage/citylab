@@ -14,3 +14,4 @@ from citylab.services.ingestion.registry import (  # noqa: F401
 # Import concrete fetchers so they self-register on package import.
 from citylab.services.ingestion import opennem  # noqa: F401,E402
 from citylab.services.ingestion import bom  # noqa: F401,E402
+from citylab.services.ingestion import solcast  # noqa: F401,E402

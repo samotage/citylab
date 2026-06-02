@@ -17,3 +17,7 @@ from citylab.models.weather import (  # noqa: F401
     WeatherForecast,
     WeatherObservation,
 )
+from citylab.models.solar import (  # noqa: F401
+    SolarLocation,
+    SolarForecast,
+)

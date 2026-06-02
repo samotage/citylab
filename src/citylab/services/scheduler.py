@@ -34,11 +34,13 @@ def init_scheduler(app, config):
         try:
             from citylab.services.ingestion.seed import (
                 seed_data_sources,
+                seed_solar_locations,
                 seed_weather_locations,
             )
 
             seed_data_sources()
             seed_weather_locations()
+            seed_solar_locations()
         except Exception as e:
             logger.warning(f"Initial seed failed: {e}")
         try:
