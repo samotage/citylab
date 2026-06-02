@@ -44,7 +44,7 @@ Branch: feature/hack-energy-market-data-ingestion
 
 ### Tests
 
-- [ ] 13. Add targeted tests: model creation/to_dict, fetcher registry register/lookup, BaseFetcher status-update + retry logic (mock the HTTP layer — no live OpenNEM calls), and energy/data API endpoints returning the envelope with `data_as_of`. Use existing fixtures (`app`, `client`, `db_session`). No live network in tests.
+- [x] 13. Add targeted tests: model creation/to_dict, fetcher registry register/lookup, BaseFetcher status-update + retry logic (mock the HTTP layer — no live OpenNEM calls), and energy/data API endpoints returning the envelope with `data_as_of`. Use existing fixtures (`app`, `client`, `db_session`). No live network in tests.
 
 ## Demo Script
 
