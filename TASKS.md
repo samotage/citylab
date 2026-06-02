@@ -17,17 +17,17 @@ Branch: feature/hack-energy-market-data-ingestion
       - `PriceForecast` (region, forecast_issued_at, forecast_for, price_aud_mwh, forecast_type)
       Register all six in `src/citylab/models/__init__.py`.
 - [x] 3. Add indexes per PRD retention section: (region, interval_start) on all time-series tables; composite (region, interval_start, fuel_type) on GenerationOutput. Define via `__table_args__` on each model.
-- [ ] 4. Generate and apply Alembic migration for all seven new tables (`flask db migrate` + `flask db upgrade`). Confirm target DB is the `citylab` dev DB before running (additive upgrade is permitted).
+- [x] 4. Generate and apply Alembic migration for all seven new tables (`flask db migrate` + `flask db upgrade`). Confirm target DB is the `citylab` dev DB before running (additive upgrade is permitted).
 
 ### Ingestion Architecture (source-agnostic, reusable)
 
-- [ ] 5. Create `src/citylab/services/ingestion/__init__.py` and `base.py` with `BaseFetcher` abstract class defining the `fetch()` / `transform()` / `store()` contract plus a `run()` orchestrator that calls all three, updates DataSource status (last_fetch_at, last_fetch_status, last_error, next_fetch_at), and handles retry with exponential backoff (3 attempts).
-- [ ] 6. Create a fetcher registry in `src/citylab/services/ingestion/registry.py` — dict mapping source_type string → fetcher class, with `register_fetcher()` and `get_fetcher(source_type)` helpers. This is the extension point: new source = new class + one registry entry.
-- [ ] 7. Wire the ingestion scheduler: extend `src/citylab/services/scheduler.py` (or add `ingestion_scheduler.py`) so each active DataSource row gets an APScheduler cron job that resolves its fetcher via the registry and calls `run()`. Mirror the existing `sync_jobs()` pattern; update next_fetch_at on the DataSource.
+- [x] 5. Create `src/citylab/services/ingestion/__init__.py` and `base.py` with `BaseFetcher` abstract class defining the `fetch()` / `transform()` / `store()` contract plus a `run()` orchestrator that calls all three, updates DataSource status (last_fetch_at, last_fetch_status, last_error, next_fetch_at), and handles retry with exponential backoff (3 attempts).
+- [x] 6. Create a fetcher registry in `src/citylab/services/ingestion/registry.py` — dict mapping source_type string → fetcher class, with `register_fetcher()` and `get_fetcher(source_type)` helpers. This is the extension point: new source = new class + one registry entry.
+- [x] 7. Wire the ingestion scheduler: extend `src/citylab/services/scheduler.py` (or add `ingestion_scheduler.py`) so each active DataSource row gets an APScheduler cron job that resolves its fetcher via the registry and calls `run()`. Mirror the existing `sync_jobs()` pattern; update next_fetch_at on the DataSource.
 
 ### OpenNEM Fetcher (first concrete source)
 
-- [ ] 8. Implement `OpenNEMFetcher` in `src/citylab/services/ingestion/opennem.py` (subclass BaseFetcher, registered under `opennem`): API calls to OpenNEM for VIC1 (prices, demand, generation, interconnectors), rate limiting, pagination, 7-day backfill on first run / incremental from last_fetch_at thereafter. Map fuel types incl. battery_charging/battery_discharging; map the 5 interconnector corridors (Basslink/T-V, Heywood/V-SA, Murraylink/V-S, VNI, VNI West). Fetch generator submissions and pre-dispatch forecasts from AEMO endpoints within the same fetcher where OpenNEM lacks them.
+- [x] 8. Implement `OpenNEMFetcher` in `src/citylab/services/ingestion/opennem.py` (subclass BaseFetcher, registered under `opennem`): API calls to OpenNEM for VIC1 (prices, demand, generation, interconnectors), rate limiting, pagination, 7-day backfill on first run / incremental from last_fetch_at thereafter. Map fuel types incl. battery_charging/battery_discharging; map the 5 interconnector corridors (Basslink/T-V, Heywood/V-SA, Murraylink/V-S, VNI, VNI West). Fetch generator submissions and pre-dispatch forecasts from AEMO endpoints within the same fetcher where OpenNEM lacks them.
 - [ ] 9. Add a `data_sources` section to `config.yaml` (env-var refs for API keys/credentials) and a seed routine/CLI that creates the OpenNEM DataSource row from config, injecting credentials into DataSource.config. Show config.yaml diff before applying.
 
 ### Data API (source-agnostic)
