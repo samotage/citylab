@@ -82,7 +82,7 @@ for the demo, or `pip install -e .`.
        commands_energy (APIClient + JSON print). Register with
        `main.add_command(weather_group, "weather")` in `cli_wrapper/__init__.py`.
 
-- [ ] 9. Tests — add targeted tests using the existing fixtures (`app`, `client`,
+- [x] 9. Tests — add targeted tests using the existing fixtures (`app`, `client`,
        `db_session`), no live network: BOMFetcher transform/store + synthetic fallback;
        location seeding idempotency; weather_query summary/outlook grouping; weather API
        endpoints returning the envelope with `data_as_of`.
