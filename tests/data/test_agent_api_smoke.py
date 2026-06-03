@@ -252,6 +252,47 @@ def test_market_intelligence_per_source_data_as_of(seeded, client):
     assert {"opennem", "bom", "solcast"} <= types
 
 
+def test_weather_solar_data_as_of_is_source_scoped(db_session, client):
+    """data_as_of must reflect each source's own fetch time, not cross-source max.
+
+    Seeds three sources with distinct last_fetch_at: opennem freshest, bom stale,
+    solcast stalest. The weather endpoint must report the bom time (not opennem's),
+    and solar the solcast time — proving the source_type scoping on
+    latest_fetch_timestamp().
+    """
+    from citylab.models.data_source import DataSource
+
+    base = datetime(2026, 6, 3, 0, 0, 0, tzinfo=timezone.utc)
+    stamps = {
+        "opennem": base,  # freshest -> would be the cross-source max
+        "bom": base - timedelta(hours=2),
+        "solcast": base - timedelta(hours=5),
+    }
+    for stype, ts in stamps.items():
+        ds = (
+            db_session.query(DataSource).filter_by(source_type=stype).first()
+            or DataSource(name=f"{stype} scope test", source_type=stype)
+        )
+        ds.last_fetch_at = ts
+        ds.last_fetch_status = "success"
+        db_session.add(ds)
+    db_session.flush()
+
+    weather = client.get("/api/v1/weather/summary", headers=AUTH).get_json()
+    solar = client.get("/api/v1/solar/summary", headers=AUTH).get_json()
+    energy = client.get("/api/v1/energy/summary", headers=AUTH).get_json()
+
+    def _instant(s):
+        return datetime.fromisoformat(s.replace("Z", "+00:00"))
+
+    # Weather reflects BOM (-2h) instant, NOT the fresher opennem max.
+    assert _instant(weather["data_as_of"]) == stamps["bom"]
+    # Solar reflects Solcast (-5h).
+    assert _instant(solar["data_as_of"]) == stamps["solcast"]
+    # Energy stays cross-source max (opennem freshest) — unchanged behaviour.
+    assert _instant(energy["data_as_of"]) == stamps["opennem"]
+
+
 # ---------------------------------------------------------------------------
 # CLI commands via Click CliRunner (no live server)
 # ---------------------------------------------------------------------------

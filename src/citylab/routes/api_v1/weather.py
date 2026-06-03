@@ -23,7 +23,7 @@ def forecasts():
         {
             "ok": True,
             "data": wq.query_forecasts(location, dt_from, dt_to),
-            "data_as_of": wq.latest_fetch_timestamp(),
+            "data_as_of": wq.latest_fetch_timestamp("bom"),
         }
     )
 
@@ -36,7 +36,7 @@ def observations():
         {
             "ok": True,
             "data": wq.query_observations(location),
-            "data_as_of": wq.latest_fetch_timestamp(),
+            "data_as_of": wq.latest_fetch_timestamp("bom"),
         }
     )
 
@@ -48,7 +48,7 @@ def summary():
         {
             "ok": True,
             "data": wq.summary(),
-            "data_as_of": wq.latest_fetch_timestamp(),
+            "data_as_of": wq.latest_fetch_timestamp("bom"),
         }
     )
 
@@ -62,6 +62,6 @@ def outlook():
         {
             "ok": True,
             "data": wq.outlook(factor, days=days),
-            "data_as_of": wq.latest_fetch_timestamp(),
+            "data_as_of": wq.latest_fetch_timestamp("bom"),
         }
     )

@@ -23,7 +23,7 @@ def forecasts():
         {
             "ok": True,
             "data": sq.query_forecasts(location, dt_from, dt_to),
-            "data_as_of": sq.latest_fetch_timestamp(),
+            "data_as_of": sq.latest_fetch_timestamp("solcast"),
         }
     )
 
@@ -35,7 +35,7 @@ def summary():
         {
             "ok": True,
             "data": sq.summary(),
-            "data_as_of": sq.latest_fetch_timestamp(),
+            "data_as_of": sq.latest_fetch_timestamp("solcast"),
         }
     )
 
@@ -48,6 +48,6 @@ def outlook():
         {
             "ok": True,
             "data": sq.outlook(days=days),
-            "data_as_of": sq.latest_fetch_timestamp(),
+            "data_as_of": sq.latest_fetch_timestamp("solcast"),
         }
     )
