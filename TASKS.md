@@ -56,12 +56,12 @@ package is pip-installed. Run the CLI via
   is in the known enum (OPENNEM_FUEL_MAP values); assert the live path raises on
   an unexpected payload and falls back to synthetic without crashing. No network.
 
-- [ ] 5. Write `tests/data/test_bom_fetcher.py`: assert `transform()` maps the
+- [x] 5. Write `tests/data/test_bom_fetcher.py`: assert `transform()` maps the
   captured BOM forecast + observation fixtures correctly; short-range
   (`3hourly`) vs daily (`daily`) forecast_period handling; temperature + wind
   populated; missing-field tolerance. No network.
 
-- [ ] 6. Write `tests/data/test_solcast_fetcher.py`: assert `transform()` maps the
+- [x] 6. Write `tests/data/test_solcast_fetcher.py`: assert `transform()` maps the
   captured Solcast irradiance fixture correctly; GHI populated and zero at night
   / positive at solar noon; DNI/DHI derivation; the rate-limit/budget back-off
   path (`daily_call_budget` reached → synthetic, no live call); intraday
