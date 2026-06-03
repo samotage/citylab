@@ -79,17 +79,17 @@ package is pip-installed. Run the CLI via
 
 ### Level 2: Data Quality Assertions
 
-- [ ] 8. Write `tests/data/test_data_quality.py` — completeness: every EnergyPrice
+- [x] 8. Write `tests/data/test_data_quality.py` — completeness: every EnergyPrice
   has non-null price_aud_mwh; every GenerationOutput has non-null output_mw and a
   valid fuel_type from the known enum; every InterconnectorFlow maps to one of
   the 5 corridors; every WeatherForecast has temperature + wind; every
   SolarForecast has GHI populated.
 
-- [ ] 9. Extend `test_data_quality.py` — freshness: after a fetch the most recent
+- [x] 9. Extend `test_data_quality.py` — freshness: after a fetch the most recent
   data point is within the expected interval window; no data gaps longer than 2x
   the expected interval; `last_fetch_at` updated.
 
-- [ ] 10. Extend `test_data_quality.py` — consistency: generation by fuel type
+- [x] 10. Extend `test_data_quality.py` — consistency: generation by fuel type
   sums to ~total generation (5% tolerance, accounting for battery_charging being
   negative); interconnector flows present for all 5 corridors; price forecasts
   have forecast_for in the future relative to forecast_issued_at.
