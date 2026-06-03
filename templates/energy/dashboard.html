@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Energy Market — CityLab{% endblock %}
+
+{% block head %}
+<script src="{{ url_for('static', filename='vendor/chart.min.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="energy-dashboard">
+    <div class="flex items-baseline justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-100">Victorian Energy Market</h2>
+        <span class="text-sm text-gray-500">VIC1 &middot; live</span>
+    </div>
+
+    <!-- Top strip: market snapshot -->
+    <div id="panel-price"
+         class="card mb-6"
+         hx-get="{{ url_for('energy.partial_price') }}"
+         hx-trigger="load, every 30s"
+         hx-swap="innerHTML">
+        <div class="text-gray-500">Loading market snapshot&hellip;</div>
+    </div>
+
+    <!-- 2-col panel grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div id="panel-generation"
+             class="card"
+             hx-get="{{ url_for('energy.partial_generation') }}"
+             hx-trigger="load, every 60s"
+             hx-swap="innerHTML">
+            <div class="text-gray-500">Loading generation mix&hellip;</div>
+        </div>
+
+        <div id="panel-interconnectors"
+             class="card"
+             hx-get="{{ url_for('energy.partial_interconnectors') }}"
+             hx-trigger="load, every 60s"
+             hx-swap="innerHTML">
+            <div class="text-gray-500">Loading interconnectors&hellip;</div>
+        </div>
+
+        <div id="panel-weather"
+             class="card lg:col-span-2"
+             hx-get="{{ url_for('energy.partial_weather') }}"
+             hx-trigger="load, every 120s"
+             hx-swap="innerHTML">
+            <div class="text-gray-500">Loading weather &amp; renewable outlook&hellip;</div>
+        </div>
+    </div>
+
+    <!-- Price forecast strip -->
+    <div id="panel-forecast"
+         class="card mb-6"
+         hx-get="{{ url_for('energy.partial_forecast') }}"
+         hx-trigger="load, every 60s"
+         hx-swap="innerHTML">
+        <div class="text-gray-500">Loading price forecast&hellip;</div>
+    </div>
+
+    <!-- Source health strip -->
+    <div id="panel-sources"
+         class="card"
+         hx-get="{{ url_for('energy.partial_sources') }}"
+         hx-trigger="load, every 60s"
+         hx-swap="innerHTML">
+        <div class="text-gray-500">Loading data source health&hellip;</div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+<div class="flex items-center justify-between mb-4">
+    <h3 class="text-sm font-medium text-gray-400 uppercase tracking-wider">Generation Mix</h3>
+    <div class="text-right">
+        <div class="text-xl font-semibold text-gray-100">{{ '{:,.0f}'.format(vm.total_output_mw) }} MW</div>
+        {% if vm.utilisation_pct is not none %}
+        <div class="text-xs text-gray-500">{{ vm.utilisation_pct }}% of capacity</div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid grid-cols-2 gap-4 items-center">
+    <div class="relative" style="height: 220px;">
+        <canvas id="generation-chart"></canvas>
+    </div>
+    <div class="space-y-1 text-sm">
+        {% for label in vm.labels %}
+        <div class="flex items-center justify-between">
+            <span class="flex items-center gap-2 text-gray-300">
+                <span class="inline-block w-3 h-3 rounded-sm" style="background: {{ vm.colours[loop.index0] }};"></span>
+                {{ label }}
+            </span>
+            <span class="text-gray-400">{{ '{:,.0f}'.format(vm.outputs[loop.index0]) }} MW</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+(function () {
+    if (typeof Chart === "undefined") return;
+    var canvas = document.getElementById("generation-chart");
+    if (!canvas) return;
+    var existing = Chart.getChart(canvas);
+    if (existing) existing.destroy();
+    new Chart(canvas, {
+        type: "doughnut",
+        data: {
+            labels: {{ vm.labels | tojson }},
+            datasets: [{
+                data: {{ vm.outputs | tojson }},
+                backgroundColor: {{ vm.colours | tojson }},
+                borderColor: "#1f2937",
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "62%",
+            plugins: { legend: { display: false } },
+            animation: { duration: 300 }
+        }
+    });
+})();
+</script>
