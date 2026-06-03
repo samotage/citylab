@@ -114,7 +114,7 @@ package is pip-installed. Run the CLI via
 
 ### Pre-Hackathon Gate CLI
 
-- [ ] 13. Factor the check logic into a reusable service
+- [x] 13. Factor the check logic into a reusable service
   `src/citylab/services/data_verify.py` that runs the completeness / freshness /
   consistency checks against the live database and returns a structured
   per-source, per-category pass/fail result. Then add `cli-citylab data verify`
@@ -123,7 +123,7 @@ package is pip-installed. Run the CLI via
   exits non-zero on any failure. Both the CLI and the Level 2 tests should be
   able to call the service.
 
-- [ ] 14. Write `tests/data/test_data_verify.py`: unit-test the `data_verify`
+- [x] 14. Write `tests/data/test_data_verify.py`: unit-test the `data_verify`
   service against seeded data (all-green) and against a broken state (e.g. a
   nulled field or a stale source) to confirm it reports the specific failing
   source + category rather than silently passing.
