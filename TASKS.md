@@ -69,7 +69,7 @@ package is pip-installed. Run the CLI via
 
 ### Level 2: Pipeline Integration
 
-- [ ] 7. Write `tests/data/test_pipeline_integration.py`: for each source, seed a
+- [x] 7. Write `tests/data/test_pipeline_integration.py`: for each source, seed a
   DataSource (+ locations), run the fetcher end-to-end against `citylab_test`,
   and assert data lands in the correct tables, FKs resolve (forecasts →
   locations), timestamps parse, row counts match expected (no silent loss), and
