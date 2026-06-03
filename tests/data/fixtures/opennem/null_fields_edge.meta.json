@@ -1,0 +1,6 @@
+{
+  "capture_date": "2026-06-03",
+  "source": "opennem",
+  "shape": "empty collections + null optional fields",
+  "case": "null/missing-field tolerance"
+}

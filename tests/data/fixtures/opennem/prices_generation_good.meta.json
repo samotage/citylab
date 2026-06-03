@@ -1,0 +1,6 @@
+{
+  "capture_date": "2026-06-03",
+  "source": "opennem",
+  "shape": "OpenNEMFetcher.transform() snapshot-dict (prices, demand, generation, interconnectors, submissions, forecasts)",
+  "endpoint": "synthetic snapshot mirroring /stats/power/network/NEM/VIC1"
+}
