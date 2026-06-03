@@ -140,3 +140,14 @@ package is pip-installed. Run the CLI via
 2. `cli-citylab data verify` — see per-source verification: OpenNEM ✓, BOM ✓, Solcast ✓ with check counts
 3. Intentionally break something (e.g., invalidate an API fixture) → re-run → see specific failure identifying the broken source and check
 4. The key proof: if `cli-citylab data verify` is green, the data pipelines are trustworthy and we can focus on the hackathon problem, not debugging plumbing
+
+## Ship Status
+
+- Build: complete
+- Tests: passed (123/123 full suite; 75 new harness tests; data verify gate exits 0)
+- Smoke: passed (4/4 demo steps; L1 0.46s / L2 2.81s / L3 5.33s within budget; verify gate green text+JSON; broken-state detection verified via tests)
+
+### Known Issues
+
+- `cli-citylab` not on PATH — run via `PYTHONPATH=src python -m citylab.cli_wrapper` (non-blocking).
+- Verify gate emits APScheduler/seed log lines before the report (cosmetic); use `--json 2>/dev/null` for clean JSON output.
