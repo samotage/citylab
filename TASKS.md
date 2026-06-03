@@ -64,3 +64,15 @@ auto-refresh + Chart.js, consistent with the existing `base.html` / Tailwind
 8. Data source health: all three green, last fetch within expected intervals
 9. Wait 5 minutes — watch the price and generation panels auto-update via HTMX
 10. The key proof: a human and an agent see the same market picture — the dashboard visualises exactly what `cli-citylab energy summary` + `weather summary` + `solar summary` return
+
+## Ship Status
+
+- Build: complete
+- Tests: passed (135/135 full suite; 12 new dashboard tests)
+- Smoke: passed (10/10 demo steps; 41/41 in-process render assertions + full-page browser screenshot; all 6 panels render with real data; no console/Jinja errors)
+
+### Known Issues
+
+- cli-citylab not on PATH (non-blocking).
+- Generation utilisation_pct hidden because capacity_mw not seeded (template-guarded, non-blocking).
+- Live-browser walkthrough behind login gate not possible without dev password (auth front door verified).
