@@ -96,7 +96,7 @@ package is pip-installed. Run the CLI via
 
 ### Level 3: Agent API & CLI Smoke
 
-- [ ] 11. Write `tests/data/test_agent_api_smoke.py` — API: with seeded data,
+- [x] 11. Write `tests/data/test_agent_api_smoke.py` — API: with seeded data,
   exercise every energy / weather / solar endpoint plus
   `/api/v1/data/market-intelligence`; assert non-empty results, correct
   `{ok, data, data_as_of}` envelope, `data_as_of` ISO timestamp present, from/to
@@ -104,7 +104,7 @@ package is pip-installed. Run the CLI via
   errors), summary endpoints respond within the 2s agent tolerance. Mark
   `@pytest.mark.integration`.
 
-- [ ] 12. Extend `test_agent_api_smoke.py` — cross-source agent reasoning path:
+- [x] 12. Extend `test_agent_api_smoke.py` — cross-source agent reasoning path:
   `energy summary` → `weather outlook --factor wind` → `solar summary` returns a
   coherent combined picture; `market-intelligence` returns per-source
   `data_as_of`. Verify the four CLI commands (`energy summary`, `weather
