@@ -130,7 +130,7 @@ package is pip-installed. Run the CLI via
 
 ### Wrap-up
 
-- [ ] 15. Run `pytest tests/data/ -v` and confirm Level 1+2 run under 60s and
+- [x] 15. Run `pytest tests/data/ -v` and confirm Level 1+2 run under 60s and
   Level 3 under 30s with seeded data. Run `cli-citylab data verify` against the
   seeded DB and confirm per-source green. Fix any failures.
 
