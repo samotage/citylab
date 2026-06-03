@@ -36,15 +36,22 @@ def _parse_dt(value: str | None):
         return None
 
 
-def latest_fetch_timestamp() -> str | None:
-    """Most recent successful DataSource fetch, as ISO string (data_as_of)."""
+def latest_fetch_timestamp(source_type: str | None = None) -> str | None:
+    """Most recent successful DataSource fetch, as ISO string (data_as_of).
+
+    With no ``source_type``, returns the max across all sources (cross-source
+    freshness). Pass a ``source_type`` (e.g. ``"bom"``, ``"solcast"``) to scope
+    the timestamp to a single source so per-source endpoints report their own
+    fetch time rather than an unrelated source's.
+    """
     from citylab.models.data_source import DataSource
 
-    ts = (
-        db.session.query(func.max(DataSource.last_fetch_at))
-        .filter(DataSource.last_fetch_status == "success")
-        .scalar()
+    q = db.session.query(func.max(DataSource.last_fetch_at)).filter(
+        DataSource.last_fetch_status == "success"
     )
+    if source_type is not None:
+        q = q.filter(DataSource.source_type == source_type)
+    ts = q.scalar()
     return ts.isoformat() if ts else None
 
 
@@ -127,7 +134,7 @@ def current_snapshot(region: str = DEFAULT_REGION) -> dict:
         )
         for r in gen_rows:
             generation_mix.append(
-                {"fuel_type": r.fuel_type, "output_mw": r.output_mw}
+                {"fuel_type": r.fuel_type, "output_mw": r.output_mw, "capacity_mw": r.capacity_mw}
             )
             if r.fuel_type == "battery_charging":
                 battery["charging_mw"] = r.output_mw
