@@ -11,4 +11,100 @@
   .btn-primary {
     @apply py-2 px-4 bg-citylab-600 hover:bg-citylab-700 text-white font-medium rounded-lg transition-colors;
   }
+
+  /* --- Energy dashboard --- */
+
+  /* Spot price colour states */
+  .price-display {
+    @apply text-5xl font-bold tabular-nums;
+  }
+  .price-low {
+    @apply text-green-400;
+  }
+  .price-amber {
+    @apply text-amber-400;
+  }
+  .price-high {
+    @apply text-red-400;
+  }
+  .price-spike {
+    @apply text-red-500;
+    animation: price-spike-flash 1s steps(1, end) infinite;
+  }
+  .price-unknown {
+    @apply text-gray-500;
+  }
+
+  /* Interconnector status dots */
+  .ic-dot {
+    @apply inline-block w-3 h-3 rounded-full;
+  }
+  .ic-normal {
+    @apply bg-green-500;
+  }
+  .ic-high {
+    @apply bg-amber-500;
+  }
+  .ic-constrained {
+    @apply bg-red-500;
+  }
+  .ic-na {
+    @apply bg-gray-600;
+  }
+
+  /* Source health dots */
+  .source-dot {
+    @apply inline-block w-2.5 h-2.5 rounded-full;
+  }
+  .source-ok {
+    @apply bg-green-500;
+  }
+  .source-bad {
+    @apply bg-red-500;
+  }
+
+  /* Weather outlook indicator chips */
+  .chip {
+    @apply inline-block px-2.5 py-1 rounded-md text-sm font-medium capitalize;
+  }
+  .chip-wind-strong {
+    @apply bg-teal-500/20 text-teal-300;
+  }
+  .chip-wind-moderate {
+    @apply bg-teal-500/10 text-teal-400;
+  }
+  .chip-wind-light {
+    @apply bg-gray-700 text-gray-400;
+  }
+  .chip-solar-sunny {
+    @apply bg-yellow-500/20 text-yellow-300;
+  }
+  .chip-solar-partly-cloudy {
+    @apply bg-yellow-500/10 text-yellow-400;
+  }
+  .chip-solar-overcast {
+    @apply bg-gray-700 text-gray-400;
+  }
+  .chip-rain-dry {
+    @apply bg-gray-700 text-gray-400;
+  }
+  .chip-rain-light {
+    @apply bg-blue-500/10 text-blue-300;
+  }
+  .chip-rain-moderate {
+    @apply bg-blue-500/20 text-blue-300;
+  }
+  .chip-rain-heavy {
+    @apply bg-blue-500/30 text-blue-200;
+  }
+  .chip-wind-unknown,
+  .chip-solar-unknown,
+  .chip-rain-unknown {
+    @apply bg-gray-700 text-gray-500;
+  }
+}
+
+@keyframes price-spike-flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
 }

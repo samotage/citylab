@@ -1,0 +1,42 @@
+{% set trend_icon = {"up": "&#9650;", "down": "&#9660;", "flat": "&#9644;"} %}
+<div class="flex flex-wrap items-center gap-8">
+    <!-- Spot price (prominent) -->
+    <div>
+        <div class="text-xs uppercase tracking-wider text-gray-400 mb-1">VIC1 Spot Price</div>
+        <div class="flex items-baseline gap-3">
+            <span class="price-display price-{{ vm.colour_state }}">
+                {% if vm.price is not none %}${{ '%.2f' | format(vm.price) }}{% else %}&mdash;{% endif %}
+            </span>
+            <span class="text-lg text-gray-400">/MWh</span>
+            <span class="text-2xl
+                {% if vm.trend == 'up' %}text-red-400{% elif vm.trend == 'down' %}text-green-400{% else %}text-gray-500{% endif %}">
+                {{ trend_icon[vm.trend] | safe }}
+            </span>
+        </div>
+        <div class="text-xs text-gray-500 mt-1">
+            {% if vm.trend == 'up' %}rising{% elif vm.trend == 'down' %}falling{% else %}steady{% endif %} vs ~1h ago
+            {% if vm.prev_price is not none %}(was ${{ '%.0f' | format(vm.prev_price) }}){% endif %}
+        </div>
+    </div>
+
+    <!-- Demand -->
+    <div class="border-l border-gray-700 pl-8">
+        <div class="text-xs uppercase tracking-wider text-gray-400 mb-1">Demand</div>
+        <div class="text-3xl font-semibold text-gray-100">
+            {% if vm.demand_mw is not none %}{{ '{:,.0f}'.format(vm.demand_mw) }}{% else %}&mdash;{% endif %}
+            <span class="text-base text-gray-400 font-normal">MW</span>
+        </div>
+    </div>
+
+    <!-- Next forecast -->
+    <div class="border-l border-gray-700 pl-8">
+        <div class="text-xs uppercase tracking-wider text-gray-400 mb-1">Next Forecast</div>
+        <div class="text-3xl font-semibold text-gray-100">
+            {% if vm.next_price is not none %}${{ '%.0f' | format(vm.next_price) }}{% else %}&mdash;{% endif %}
+            <span class="text-xl
+                {% if vm.next_direction == 'up' %}text-red-400{% elif vm.next_direction == 'down' %}text-green-400{% else %}text-gray-500{% endif %}">
+                {{ trend_icon[vm.next_direction] | safe }}
+            </span>
+        </div>
+    </div>
+</div>

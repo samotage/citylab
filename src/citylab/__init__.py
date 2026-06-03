@@ -78,10 +78,12 @@ def create_app(testing: bool = False) -> Flask:
 
     # --- Blueprints ---
     from citylab.routes.auth import auth_bp
+    from citylab.routes.energy import energy_bp
     from citylab.routes.health import health_bp
     from citylab.routes.main import main_bp
 
     app.register_blueprint(auth_bp)
+    app.register_blueprint(energy_bp)
     app.register_blueprint(health_bp)
     app.register_blueprint(main_bp)
 
