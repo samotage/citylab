@@ -140,3 +140,13 @@ package is pip-installed. Run the CLI via
 3. `cli-citylab solar outlook` — see multi-day view: "strong solar forecast across NW Vic for next 3 days, cloud band approaching from west on day 4"
 4. `cli-citylab solar forecasts --location mildura` — see detailed hourly GHI/DNI/DHI forecast for the Mildura solar corridor
 5. The key proof: an agent reads solar outlook → correlates with energy generation data → reasons about renewable supply impact on price
+
+## Ship Status
+
+- Build: complete
+- Tests: passed (48/48 tests, no regressions)
+- Smoke: passed (5/5 demo steps + 3 API endpoints)
+
+### Known Issues
+- Non-blocking: `cli-citylab` not on PATH; run via `PYTHONPATH=src python -m citylab.cli_wrapper`.
+- Non-blocking: Solcast runs keyless on synthetic fallback (no `SOLCAST_API_KEY` needed for demo).
