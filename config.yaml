@@ -48,3 +48,13 @@ data_sources:
     # Forecasts every 3 hours; observations fetched within the same run.
     cron_expression: "0 */3 * * *"
     timeout_seconds: 8
+  solcast:
+    name: "Solcast Solar Forecasts"
+    base_url: https://api.solcast.com.au
+    # Solcast requires an API key (free tier has a daily call budget).
+    # Without a key the fetcher falls back to a synthetic diurnal forecast so
+    # the demo always has solar data. Hourly fetch per Solcast update cadence.
+    api_key: ${SOLCAST_API_KEY}
+    cron_expression: "0 * * * *"
+    timeout_seconds: 8
+    daily_call_budget: 10

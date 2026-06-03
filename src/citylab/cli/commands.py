@@ -37,6 +37,7 @@ def register_cli_commands(app):
         """Seed DataSource rows + weather locations from config.yaml."""
         from citylab.services.ingestion.seed import (
             seed_data_sources,
+            seed_solar_locations,
             seed_weather_locations,
         )
 
@@ -52,3 +53,8 @@ def register_cli_commands(app):
         for loc in locations:
             click.echo(f"  {loc['name']} [{loc['state']}] ({loc['region_relevance']})")
         click.echo(f"Seeded/updated {len(locations)} weather location(s).")
+
+        solar_locations = seed_solar_locations()
+        for loc in solar_locations:
+            click.echo(f"  {loc['name']} [{loc['state']}] ({loc['region_relevance']})")
+        click.echo(f"Seeded/updated {len(solar_locations)} solar location(s).")

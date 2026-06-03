@@ -141,6 +141,87 @@ def seed_weather_locations() -> list[dict]:
     return results
 
 
+# The 6 solar forecast points selected for their influence on Vic/SA supply.
+# region_relevance: utility_solar | rooftop_aggregate | hybrid_zone
+_SOLAR_LOCATIONS = [
+    # Victoria
+    {
+        "name": "North-West Victoria (Mildura-Swan Hill)",
+        "latitude": -34.1855,
+        "longitude": 142.1625,
+        "state": "VIC",
+        "region_relevance": "utility_solar",
+        "reference_pv_capacity_kw": 250000.0,  # utility-scale corridor
+    },
+    {
+        "name": "Western Victoria (Ballarat-Bendigo)",
+        "latitude": -36.7570,
+        "longitude": 144.2780,
+        "state": "VIC",
+        "region_relevance": "hybrid_zone",
+        "reference_pv_capacity_kw": 120000.0,
+    },
+    {
+        "name": "Melbourne Metro (rooftop PV)",
+        "latitude": -37.8136,
+        "longitude": 144.9631,
+        "state": "VIC",
+        "region_relevance": "rooftop_aggregate",
+        "reference_pv_capacity_kw": 1800000.0,  # aggregate rooftop fleet
+    },
+    {
+        "name": "Gippsland",
+        "latitude": -38.1800,
+        "longitude": 146.5400,
+        "state": "VIC",
+        "region_relevance": "utility_solar",
+        "reference_pv_capacity_kw": 90000.0,
+    },
+    # South Australia (interconnector influence)
+    {
+        "name": "Northern SA (Port Augusta)",
+        "latitude": -32.4900,
+        "longitude": 137.7600,
+        "state": "SA",
+        "region_relevance": "hybrid_zone",
+        "reference_pv_capacity_kw": 220000.0,
+    },
+    {
+        "name": "Riverland (Renmark-Berri)",
+        "latitude": -34.1740,
+        "longitude": 140.7460,
+        "state": "SA",
+        "region_relevance": "utility_solar",
+        "reference_pv_capacity_kw": 140000.0,
+    },
+]
+
+
+def seed_solar_locations() -> list[dict]:
+    """Create the tracked solar locations. Idempotent (matched by name)."""
+    from citylab.extensions import db
+    from citylab.models.solar import SolarLocation
+
+    results = []
+    for spec in _SOLAR_LOCATIONS:
+        existing = (
+            db.session.query(SolarLocation).filter_by(name=spec["name"]).first()
+        )
+        if existing:
+            for k, v in spec.items():
+                setattr(existing, k, v)
+            db.session.commit()
+            results.append(existing.to_dict())
+        else:
+            loc = SolarLocation(**spec)
+            db.session.add(loc)
+            db.session.commit()
+            logger.info("Seeded solar location: %s", spec["name"])
+            results.append(loc.to_dict())
+
+    return results
+
+
 def seed_data_sources(config: dict | None = None) -> list[dict]:
     """Create/update DataSource rows from config. Returns list of to_dict()."""
     from citylab.config import load_config
