@@ -50,7 +50,7 @@ package is pip-installed. Run the CLI via
 
 ### Level 1: Fetcher Contract Tests (unit, offline)
 
-- [ ] 4. Write `tests/data/test_opennem_fetcher.py`: assert `transform()` maps the
+- [x] 4. Write `tests/data/test_opennem_fetcher.py`: assert `transform()` maps the
   captured OpenNEM fixture into the correct ORM instances with correct field
   mapping; assert null/missing-field handling; assert every generated fuel_type
   is in the known enum (OPENNEM_FUEL_MAP values); assert the live path raises on
