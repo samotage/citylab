@@ -1,0 +1,6 @@
+{
+  "capture_date": "2026-06-03",
+  "source": "opennem",
+  "shape": "raw live payload missing the 'data' key",
+  "case": "_fetch_live must raise on this -> synthetic fallback"
+}

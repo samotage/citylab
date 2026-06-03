@@ -1,0 +1,6 @@
+{
+  "capture_date": "2026-06-03",
+  "source": "bom",
+  "shape": "location with null observation + forecast null optionals",
+  "case": "missing-field tolerance"
+}

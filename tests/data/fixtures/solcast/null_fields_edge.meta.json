@@ -1,0 +1,6 @@
+{
+  "capture_date": "2026-06-03",
+  "source": "solcast",
+  "shape": "forecast with GHI populated but DNI/DHI/PV null",
+  "case": "null derived-field tolerance"
+}

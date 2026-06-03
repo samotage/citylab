@@ -1,0 +1,171 @@
+{
+  "source": "synthetic",
+  "as_of": "2026-06-03T02:00:00+00:00",
+  "prices": [
+    {
+      "region": "VIC1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "interval_end": "2026-06-03T02:05:00+00:00",
+      "interval_type": "5min",
+      "price_aud_mwh": 92.5
+    },
+    {
+      "region": "VIC1",
+      "interval_start": "2026-06-03T01:55:00+00:00",
+      "interval_end": "2026-06-03T02:00:00+00:00",
+      "interval_type": "5min",
+      "price_aud_mwh": 88.1
+    }
+  ],
+  "demand": [
+    {
+      "region": "VIC1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "demand_mw": 6100.4,
+      "demand_type": "actual"
+    }
+  ],
+  "generation": [
+    {
+      "region": "VIC1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "fuel_type": "brown_coal",
+      "output_mw": 3200.0,
+      "capacity_mw": null
+    },
+    {
+      "region": "VIC1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "fuel_type": "wind",
+      "output_mw": 1500.0,
+      "capacity_mw": null
+    },
+    {
+      "region": "VIC1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "fuel_type": "solar_utility",
+      "output_mw": 800.0,
+      "capacity_mw": null
+    },
+    {
+      "region": "VIC1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "fuel_type": "solar_rooftop",
+      "output_mw": 1200.0,
+      "capacity_mw": null
+    },
+    {
+      "region": "VIC1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "fuel_type": "hydro",
+      "output_mw": 350.0,
+      "capacity_mw": null
+    },
+    {
+      "region": "VIC1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "fuel_type": "battery_discharging",
+      "output_mw": 120.0,
+      "capacity_mw": null
+    },
+    {
+      "region": "VIC1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "fuel_type": "battery_charging",
+      "output_mw": -90.0,
+      "capacity_mw": null
+    },
+    {
+      "region": "VIC1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "fuel_type": "gas_ccgt",
+      "output_mw": 400.0,
+      "capacity_mw": null
+    }
+  ],
+  "interconnectors": [
+    {
+      "interconnector_id": "T-V-MNSP1",
+      "from_region": "TAS1",
+      "to_region": "VIC1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "flow_mw": 300.0,
+      "capacity_mw": 478.0,
+      "limit_mw": 478.0
+    },
+    {
+      "interconnector_id": "V-SA",
+      "from_region": "VIC1",
+      "to_region": "SA1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "flow_mw": -200.0,
+      "capacity_mw": 650.0,
+      "limit_mw": 650.0
+    },
+    {
+      "interconnector_id": "V-S-MNSP1",
+      "from_region": "VIC1",
+      "to_region": "SA1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "flow_mw": -50.0,
+      "capacity_mw": 220.0,
+      "limit_mw": 220.0
+    },
+    {
+      "interconnector_id": "VIC1-NSW1",
+      "from_region": "NSW1",
+      "to_region": "VIC1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "flow_mw": 900.0,
+      "capacity_mw": 1900.0,
+      "limit_mw": 1900.0
+    },
+    {
+      "interconnector_id": "VNI-WEST",
+      "from_region": "NSW1",
+      "to_region": "VIC1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "flow_mw": 600.0,
+      "capacity_mw": 1900.0,
+      "limit_mw": 1900.0
+    }
+  ],
+  "submissions": [
+    {
+      "station_name": "Loy Yang A",
+      "unit_id": "LYA1",
+      "fuel_type": "brown_coal",
+      "region": "VIC1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "bid_band": 1,
+      "price_aud_mwh": -50.0,
+      "volume_mw": 500.0
+    },
+    {
+      "station_name": "Mortlake",
+      "unit_id": "MORTLK11",
+      "fuel_type": "gas_ocgt",
+      "region": "VIC1",
+      "interval_start": "2026-06-03T02:00:00+00:00",
+      "bid_band": 2,
+      "price_aud_mwh": 120.0,
+      "volume_mw": 280.0
+    }
+  ],
+  "forecasts": [
+    {
+      "region": "VIC1",
+      "forecast_issued_at": "2026-06-03T02:00:00+00:00",
+      "forecast_for": "2026-06-03T02:30:00+00:00",
+      "price_aud_mwh": 95.0,
+      "forecast_type": "predispatch_30min"
+    },
+    {
+      "region": "VIC1",
+      "forecast_issued_at": "2026-06-03T02:00:00+00:00",
+      "forecast_for": "2026-06-03T03:00:00+00:00",
+      "price_aud_mwh": 110.0,
+      "forecast_type": "predispatch_30min"
+    }
+  ]
+}

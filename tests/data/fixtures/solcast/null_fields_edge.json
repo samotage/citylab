@@ -1,0 +1,23 @@
+{
+  "source": "synthetic",
+  "as_of": "2026-06-03T02:00:00+00:00",
+  "locations": [
+    {
+      "location_id": 1,
+      "forecasts": [
+        {
+          "location_id": 1,
+          "issued_at": "2026-06-03T02:00:00+00:00",
+          "forecast_for": "2026-06-03T02:00:00+00:00",
+          "forecast_period": "30min",
+          "ghi_wm2": 600.0,
+          "dni_wm2": null,
+          "dhi_wm2": null,
+          "cloud_opacity_pct": null,
+          "air_temp_c": null,
+          "estimated_pv_output_kw": null
+        }
+      ]
+    }
+  ]
+}

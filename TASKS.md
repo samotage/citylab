@@ -27,13 +27,13 @@ package is pip-installed. Run the CLI via
 
 ### Scaffolding & Fixtures (foundation)
 
-- [ ] 1. Create the `tests/data/` package: `tests/data/__init__.py` and the
+- [x] 1. Create the `tests/data/` package: `tests/data/__init__.py` and the
   `tests/data/fixtures/{opennem,bom,solcast}/` directories (with `.gitkeep` so
   empty dirs are tracked). The PRD references both `tests/fixtures/data/` and
   `tests/data/fixtures/` — standardise on `tests/data/fixtures/` per the Test
   File Structure section and use it consistently.
 
-- [ ] 2. Capture API response fixtures. Generate representative JSON fixtures that
+- [x] 2. Capture API response fixtures. Generate representative JSON fixtures that
   mirror the snapshot-dict shapes each fetcher's `transform()` consumes — one
   good-case fixture per source plus the null/missing-field and error/unexpected
   -payload edge cases Level 1 needs. Save each as `<name>.json` with a companion
@@ -41,7 +41,7 @@ package is pip-installed. Run the CLI via
   Coverage: opennem (prices, generation, interconnectors, submissions,
   forecasts), bom (forecasts, observations), solcast (irradiance forecasts).
 
-- [ ] 3. Write `tests/data/conftest.py`: shared fixtures — a fixture-loading
+- [x] 3. Write `tests/data/conftest.py`: shared fixtures — a fixture-loading
   helper (`load_fixture(source, name)`), test-DB seeding helpers that create
   DataSource rows plus the WeatherLocation / SolarLocation rows the BOM/Solcast
   fetchers query, and a helper to run a fetcher end-to-end against the seeded DB.

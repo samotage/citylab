@@ -1,0 +1,115 @@
+{
+  "source": "synthetic",
+  "as_of": "2026-06-03T02:00:00+00:00",
+  "locations": [
+    {
+      "location_id": 1,
+      "forecasts": [
+        {
+          "location_id": 1,
+          "issued_at": "2026-06-03T02:00:00+00:00",
+          "forecast_for": "2026-06-03T02:00:00+00:00",
+          "forecast_period": "3hourly",
+          "temperature_c": 12.5,
+          "wind_speed_kmh": 38.0,
+          "wind_direction": "SW",
+          "wind_gust_kmh": 55.0,
+          "rainfall_mm": 3.2,
+          "rainfall_probability_pct": 70.0,
+          "cloud_cover_pct": 80.0,
+          "humidity_pct": 75.0,
+          "weather_description": "Rain likely, breezy"
+        },
+        {
+          "location_id": 1,
+          "issued_at": "2026-06-03T02:00:00+00:00",
+          "forecast_for": "2026-06-03T05:00:00+00:00",
+          "forecast_period": "3hourly",
+          "temperature_c": 12.5,
+          "wind_speed_kmh": 38.0,
+          "wind_direction": "SW",
+          "wind_gust_kmh": 55.0,
+          "rainfall_mm": 3.2,
+          "rainfall_probability_pct": 70.0,
+          "cloud_cover_pct": 80.0,
+          "humidity_pct": 75.0,
+          "weather_description": "Rain likely, breezy"
+        },
+        {
+          "location_id": 1,
+          "issued_at": "2026-06-03T02:00:00+00:00",
+          "forecast_for": "2026-06-04T00:00:00+00:00",
+          "forecast_period": "daily",
+          "temperature_min_c": 6.0,
+          "temperature_max_c": 15.0,
+          "wind_speed_kmh": 30.0,
+          "wind_direction": "W",
+          "wind_gust_kmh": 45.0,
+          "rainfall_mm": 8.0,
+          "rainfall_probability_pct": 80.0,
+          "cloud_cover_pct": 85.0,
+          "humidity_pct": 78.0,
+          "weather_description": "Rain likely"
+        },
+        {
+          "location_id": 1,
+          "issued_at": "2026-06-03T02:00:00+00:00",
+          "forecast_for": "2026-06-05T00:00:00+00:00",
+          "forecast_period": "daily",
+          "temperature_min_c": 6.0,
+          "temperature_max_c": 15.0,
+          "wind_speed_kmh": 30.0,
+          "wind_direction": "W",
+          "wind_gust_kmh": 45.0,
+          "rainfall_mm": 8.0,
+          "rainfall_probability_pct": 80.0,
+          "cloud_cover_pct": 85.0,
+          "humidity_pct": 78.0,
+          "weather_description": "Rain likely"
+        }
+      ],
+      "observation": {
+        "location_id": 1,
+        "observed_at": "2026-06-03T02:00:00+00:00",
+        "temperature_c": 11.0,
+        "wind_speed_kmh": 35.0,
+        "wind_direction": "SW",
+        "wind_gust_kmh": 50.0,
+        "rainfall_since_9am_mm": 4.5,
+        "humidity_pct": 80.0,
+        "pressure_hpa": 1008.0
+      }
+    },
+    {
+      "location_id": 2,
+      "forecasts": [
+        {
+          "location_id": 2,
+          "issued_at": "2026-06-03T02:00:00+00:00",
+          "forecast_for": "2026-06-03T02:00:00+00:00",
+          "forecast_period": "3hourly",
+          "temperature_c": 12.5,
+          "wind_speed_kmh": 38.0,
+          "wind_direction": "SW",
+          "wind_gust_kmh": 55.0,
+          "rainfall_mm": 3.2,
+          "rainfall_probability_pct": 70.0,
+          "cloud_cover_pct": 80.0,
+          "humidity_pct": 75.0,
+          "weather_description": "Rain likely, breezy"
+        }
+      ],
+      "observation": {
+        "location_id": 2,
+        "observed_at": "2026-06-03T02:00:00+00:00",
+        "temperature_c": 11.0,
+        "wind_speed_kmh": 35.0,
+        "wind_direction": "SW",
+        "wind_gust_kmh": 50.0,
+        "rainfall_since_9am_mm": 4.5,
+        "humidity_pct": 80.0,
+        "pressure_hpa": 1008.0
+      }
+    }
+  ]
+}

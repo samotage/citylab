@@ -1,0 +1,6 @@
+{
+  "capture_date": "2026-06-03",
+  "source": "solcast",
+  "shape": "SolcastFetcher.transform() snapshot-dict (locations[].forecasts 30min intraday + hourly short-range)",
+  "endpoint": "synthetic snapshot mirroring api.solcast.com.au"
+}
