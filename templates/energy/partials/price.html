@@ -19,15 +19,15 @@
         {% endif %}
     </div>
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-5 pt-4 border-t border-zinc-200">
-        <div>
+    <div class="grid grid-cols-3 gap-4 mt-5 pt-4 border-t border-zinc-200">
+        <div class="text-center">
             <div class="text-[10px] uppercase tracking-wider text-zinc-400 mb-1 font-medium">Demand</div>
             <div class="font-mono text-lg font-semibold text-zinc-900">
                 {% if vm.demand_mw is not none %}{{ '{:,.0f}'.format(vm.demand_mw) }}{% else %}&mdash;{% endif %}
                 <span class="text-xs text-zinc-400 font-normal">MW</span>
             </div>
         </div>
-        <div>
+        <div class="text-center">
             <div class="text-[10px] uppercase tracking-wider text-zinc-400 mb-1 font-medium">Forecast</div>
             <div class="font-mono text-lg font-semibold text-zinc-900">
                 {% if vm.next_price is not none %}${{ '%.0f' | format(vm.next_price) }}{% else %}&mdash;{% endif %}
@@ -36,6 +36,12 @@
                 {% elif vm.next_direction == 'down' %}
                 <span class="text-green-600 text-sm">&#9660;</span>
                 {% endif %}
+            </div>
+        </div>
+        <div class="text-center">
+            <div class="text-[10px] uppercase tracking-wider text-zinc-400 mb-1 font-medium">24h Range</div>
+            <div class="font-mono text-lg font-semibold text-zinc-900">
+                {% if vm.range_low is not none and vm.range_high is not none %}${{ '%.0f' | format(vm.range_low) }}&ndash;{{ '%.0f' | format(vm.range_high) }}{% else %}&mdash;{% endif %}
             </div>
         </div>
     </div>

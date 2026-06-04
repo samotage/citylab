@@ -151,6 +151,18 @@ def _price_view_model() -> dict:
         elif next_price < current_price * 0.98:
             next_dir = "down"
 
+    range_low = None
+    range_high = None
+    recent_24h = eq.query_prices(
+        REGION, dt_from=datetime.now(timezone.utc) - timedelta(hours=24), limit=500
+    )
+    prices_24h = [
+        r["price_aud_mwh"] for r in recent_24h if r.get("price_aud_mwh") is not None
+    ]
+    if prices_24h:
+        range_low = round(min(prices_24h), 0)
+        range_high = round(max(prices_24h), 0)
+
     return {
         "price": current_price,
         "colour_state": _price_colour_state(current_price),
@@ -161,6 +173,8 @@ def _price_view_model() -> dict:
         "next_price": next_price,
         "next_direction": next_dir,
         "next_forecast_for": nearest.get("forecast_for") if nearest else None,
+        "range_low": range_low,
+        "range_high": range_high,
     }
 
 
