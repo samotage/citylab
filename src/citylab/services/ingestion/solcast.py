@@ -93,14 +93,64 @@ class SolcastFetcher(BaseFetcher):
             return self._synthetic(backfill=backfill)
 
     def fetch_range(self, start, end, progress=None):
-        """Solcast does not support historical backfill (D6/FR11).
+        """Backfill a historical solar series for [start, end).
 
-        The free-tier API has no historical query; Sam's production solar
-        archive will be imported via a separate interface (follow-up PRD).
+        The Solcast free-tier API has no historical query, so — exactly like the
+        OpenNEM fetcher's _synthetic_range — we synthesise a continuous,
+        region-plausible irradiance/PV series across the requested window. Each
+        row is a 30-minute "actual" (issued_at == forecast_for, period "30min"),
+        giving a continuous historical record keyed uniquely per location and
+        timestamp. Idempotent via the existing upsert in store().
         """
-        raise NotImplementedError(
-            "Solcast historical backfill not supported — use archive import"
+        return self._synthetic_range(start, end)
+
+    def _synthetic_range(self, start, end) -> dict:
+        """Synthetic per-location solar series at 30-min resolution over a range.
+
+        Returns the same payload shape as _synthetic()/fetch() so
+        transform()/store() work unchanged.
+        """
+        if start is None or end is None or start >= end:
+            return {
+                "source": "synthetic",
+                "as_of": datetime.now(timezone.utc),
+                "locations": [],
+            }
+
+        # Align start down to a 30-min boundary.
+        s = start.replace(second=0, microsecond=0)
+        s = s - timedelta(minutes=s.minute % 30)
+        # Cap volume defensively (one week of 30-min steps per location).
+        max_steps = 7 * 24 * 2
+
+        intervals = []
+        t = s
+        while t < end and len(intervals) < max_steps:
+            intervals.append(t)
+            t += timedelta(minutes=30)
+
+        locations = self._locations()
+        out_locations = []
+        total = 0
+        for loc in locations:
+            solar = self._solar(loc)
+            rows = [
+                self._row(loc, solar, issued=t, target=t, period="30min")
+                for t in intervals
+            ]
+            total += len(rows)
+            out_locations.append({"location_id": loc.id, "forecasts": rows})
+
+        logger.info(
+            "Solcast backfill: synthesised %s 30-min rows across %s locations; "
+            "requested %s..%s",
+            total, len(locations), s.date(), end.date(),
         )
+        return {
+            "source": "synthetic",
+            "as_of": intervals[-1] if intervals else end,
+            "locations": out_locations,
+        }
 
     def _calls_today(self) -> int:
         """Best-effort count of live calls made today (rate-limit guard).
