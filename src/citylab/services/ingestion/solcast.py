@@ -61,6 +61,9 @@ class SolcastFetcher(BaseFetcher):
     """Fetch Solcast solar forecasts for all seeded solar locations."""
 
     source_type = "solcast"
+    # Solcast updates hourly; gap-fill threshold base is 2h (FR5). Solcast has
+    # no fetch_range so gap-fill is skipped regardless.
+    normal_interval_seconds = 2 * 3600
 
     def fetch(self):
         """Attempt live Solcast fetch; fall back to synthetic on failure.

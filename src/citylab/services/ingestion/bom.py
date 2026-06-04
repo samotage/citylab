@@ -71,6 +71,8 @@ class BOMFetcher(BaseFetcher):
     """Fetch BOM forecasts + observations for all seeded weather locations."""
 
     source_type = "bom"
+    # BOM issues forecasts ~3-hourly; gap-fill triggers when gap > 6h (FR5).
+    normal_interval_seconds = 6 * 3600
 
     def fetch(self):
         """Attempt live BOM fetch; fall back to synthetic snapshot on failure.

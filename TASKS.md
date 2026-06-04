@@ -15,9 +15,9 @@ Branch: feature/hack-historical-backfill-continuous-collection
 
 ### Base infrastructure — fetch_range + gap-fill
 
-- [ ] 4. **`fetch_range()` on BaseFetcher (FR6).** Add a `fetch_range(start, end)` method to `BaseFetcher` (default raising `NotImplementedError`) returning the same payload shape as `fetch()`. Add a progress callback hook so callers can report per-chunk progress.
+- [x] 4. **`fetch_range()` on BaseFetcher (FR6).** Add a `fetch_range(start, end)` method to `BaseFetcher` (default raising `NotImplementedError`) returning the same payload shape as `fetch()`. Add a progress callback hook so callers can report per-chunk progress.
 
-- [ ] 5. **Gap-fill in run cycle (FR5).** Modify `BaseFetcher.run()` to: read `self.data_source.last_fetch_at`; compute gap = now − last_fetch_at; if gap > (2 × normal interval) and ≤ 7 days, call `fetch_range(last_fetch_at, now)` → transform → store before the normal `fetch()`; if gap > 7 days, log a warning and skip auto-fill. Per-source normal-interval thresholds (OpenNEM 10min, BOM 6hr, Solcast 2hr) configurable per fetcher (class attr or `config`). Guard so fetchers that don't implement `fetch_range` (Solcast) just skip gap-fill.
+- [x] 5. **Gap-fill in run cycle (FR5).** Modify `BaseFetcher.run()` to: read `self.data_source.last_fetch_at`; compute gap = now − last_fetch_at; if gap > (2 × normal interval) and ≤ 7 days, call `fetch_range(last_fetch_at, now)` → transform → store before the normal `fetch()`; if gap > 7 days, log a warning and skip auto-fill. Per-source normal-interval thresholds (OpenNEM 10min, BOM 6hr, Solcast 2hr) configurable per fetcher (class attr or `config`). Guard so fetchers that don't implement `fetch_range` (Solcast) just skip gap-fill.
 
 ### Per-source: store() upserts
 

@@ -73,6 +73,8 @@ class OpenNEMFetcher(BaseFetcher):
     """Fetch Victorian market data from OpenNEM (+ AEMO for forecasts/bids)."""
 
     source_type = "opennem"
+    # Gap-fill threshold base: NEM dispatch is 5-min; gap-fill triggers >10min.
+    normal_interval_seconds = 600
 
     def fetch(self):
         """Attempt live OpenNEM fetch; fall back to synthetic data on failure.
