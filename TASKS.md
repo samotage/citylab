@@ -33,7 +33,7 @@ Branch: feature/hack-historical-backfill-continuous-collection
 
 - [x] 10. **OpenNEM `fetch_range()` (FR8).** Implement `fetch_range(start, end)` using OpenNEM's date-range query params, internally chunking if the API limits response size, reusing the task-9 parsing logic. Returns one payload per call covering the requested range.
 
-- [ ] 11. **BOM real parsing (FR9).** In BOM `_fetch_live()`, replace stub with real parsing of geohash endpoints (`/v1/locations/{geohash}/forecasts/daily`, `/3-hourly`, `/observations`). Derive the BOM geohash from each `WeatherLocation` lat/lon (utility function preferred; column optional per Data Model). Parse temp, wind, rainfall, humidity, cloud cover. Synthetic fallback preserved (D7).
+- [x] 11. **BOM real parsing (FR9).** In BOM `_fetch_live()`, replace stub with real parsing of geohash endpoints (`/v1/locations/{geohash}/forecasts/daily`, `/3-hourly`, `/observations`). Derive the BOM geohash from each `WeatherLocation` lat/lon (utility function preferred; column optional per Data Model). Parse temp, wind, rainfall, humidity, cloud cover. Synthetic fallback preserved (D7).
 
 - [ ] 12. **BOM `fetch_range()` — observations only (FR10, D5).** Implement `fetch_range(start, end)` fetching historical observations (not forecasts). If BOM history depth is limited, backfill as far as available and log actual coverage ("BOM backfill: N months available, requested 12").
 
