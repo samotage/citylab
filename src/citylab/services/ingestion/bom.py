@@ -331,6 +331,51 @@ class BOMFetcher(BaseFetcher):
         }
 
     # ------------------------------------------------------------------
+    # Historical observation backfill (FR10, D5 — observations only)
+    # ------------------------------------------------------------------
+
+    def fetch_range(self, start, end, progress=None):
+        """Backfill historical observations for [start, end) (D5: obs only).
+
+        BOM's public v1 observations endpoint returns only recent observations,
+        so deep history isn't reachable live. We synthesise hourly observations
+        across the requested range (region-plausible) so the demo has a
+        continuous observation series, and log the coverage produced. Forecasts
+        are NOT backfilled (you can't retrieve a stale forecast).
+        """
+        start = _bom_parse_time(start)
+        end = _bom_parse_time(end)
+        if start is None or end is None or start >= end:
+            return {"source": "synthetic", "as_of": datetime.now(timezone.utc),
+                    "locations": []}
+
+        locations = self._locations()
+        # Cap volume: hourly steps, max ~ 12 months.
+        max_steps = 366 * 24
+        out_locations = []
+        total_obs = 0
+        for loc in locations:
+            obs_rows = []
+            t = start.replace(minute=0, second=0, microsecond=0)
+            steps = 0
+            while t < end and steps < max_steps:
+                obs_rows.append(self._observation_for(loc, t))
+                t += timedelta(hours=1)
+                steps += 1
+            total_obs += len(obs_rows)
+            out_locations.append(
+                {"location_id": loc.id, "forecasts": [], "observations": obs_rows}
+            )
+
+        months = round((end - start).days / 30.0, 1)
+        logger.info(
+            "BOM backfill: synthesised %s months of hourly observations "
+            "(%s rows across %s locations); requested %s..%s",
+            months, total_obs, len(locations), start.date(), end.date(),
+        )
+        return {"source": "synthetic", "as_of": end, "locations": out_locations}
+
+    # ------------------------------------------------------------------
     # Synthetic snapshot — realistic per-location weather
     # ------------------------------------------------------------------
 
@@ -544,11 +589,15 @@ class BOMFetcher(BaseFetcher):
 
         records = []
         for loc_block in raw["locations"]:
-            for f in loc_block["forecasts"]:
+            for f in loc_block.get("forecasts", []):
                 records.append(WeatherForecast(**f))
+            # Single current observation (forward path) ...
             obs = loc_block.get("observation")
             if obs:
                 records.append(WeatherObservation(**obs))
+            # ... or a list of backfilled observations (fetch_range path).
+            for o in loc_block.get("observations", []) or []:
+                records.append(WeatherObservation(**o))
         return records
 
     # Natural-key conflict targets (must match migration eb3b9c51c3f5).
