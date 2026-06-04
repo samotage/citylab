@@ -278,6 +278,103 @@ class OpenNEMFetcher(BaseFetcher):
         }
 
     # ------------------------------------------------------------------
+    # Historical date-range fetching (FR8)
+    # ------------------------------------------------------------------
+
+    def fetch_range(self, start, end, progress=None):
+        """Fetch VIC1 data for [start, end).
+
+        Tries the OpenNEM date-range query; on any HTTP/parse failure falls back
+        to a synthetic snapshot covering the range so backfill/gap-fill still
+        produce continuous data for the demo (D7). Returns one snapshot payload
+        covering the whole range.
+        """
+        start = _parse_iso(start)
+        end = _parse_iso(end)
+        if start is None or end is None or start >= end:
+            return self._synthetic_range(start, end)
+
+        try:
+            return self._fetch_range_live(start, end)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "OpenNEM range fetch unavailable (%s); using synthetic range "
+                "%s..%s", exc, start.date(), end.date(),
+            )
+            return self._synthetic_range(start, end)
+
+    def _fetch_range_live(self, start, end):
+        """Live date-range query against OpenNEM, parsed via _parse_payload."""
+        import requests
+
+        url = f"{self._api_base()}/stats/power/network/NEM/{REGION}"
+        timeout = self.config.get("timeout_seconds", 12)
+        params = {
+            "date_start": start.date().isoformat(),
+            "date_end": end.date().isoformat(),
+        }
+        resp = requests.get(
+            url, headers=self._api_headers(), params=params, timeout=timeout
+        )
+        resp.raise_for_status()
+        snap = self._parse_payload(resp.json())
+        # Clip to the requested window.
+        snap = self._clip_range(snap, start, end)
+        snap["source"] = "live"
+        return snap
+
+    @staticmethod
+    def _clip_range(snap: dict, start, end) -> dict:
+        def keep(ts):
+            return start <= ts < end
+
+        snap["prices"] = [p for p in snap["prices"] if keep(p["interval_start"])]
+        snap["demand"] = [d for d in snap["demand"] if keep(d["interval_start"])]
+        snap["generation"] = [
+            g for g in snap["generation"] if keep(g["interval_start"])
+        ]
+        return snap
+
+    def _synthetic_range(self, start, end) -> dict:
+        """Synthetic VIC1 snapshot covering [start, end) at 5-min resolution."""
+        if start is None or end is None or start >= end:
+            return {
+                "source": "synthetic",
+                "as_of": datetime.now(timezone.utc),
+                "prices": [], "demand": [], "generation": [],
+                "interconnectors": [], "submissions": [], "forecasts": [],
+            }
+        # Align start to 5-min boundary.
+        s = start.replace(second=0, microsecond=0)
+        s = s - timedelta(minutes=s.minute % 5)
+        intervals = []
+        t = s
+        # Cap volume defensively (e.g. one day = 288 intervals).
+        max_intervals = 7 * 24 * 12
+        while t < end and len(intervals) < max_intervals:
+            intervals.append(t)
+            t += timedelta(minutes=5)
+
+        prices = [self._price_at(t) for t in intervals]
+        demand = [self._demand_at(t) for t in intervals]
+        generation = []
+        interconnectors = []
+        for t in intervals:
+            generation.extend(self._generation_at(t))
+            interconnectors.extend(self._interconnectors_at(t))
+
+        return {
+            "source": "synthetic",
+            "as_of": intervals[-1] if intervals else end,
+            "prices": prices,
+            "demand": demand,
+            "generation": generation,
+            "interconnectors": interconnectors,
+            "submissions": [],
+            "forecasts": [],
+        }
+
+    # ------------------------------------------------------------------
     # Synthetic snapshot — realistic Victorian market data
     # ------------------------------------------------------------------
 

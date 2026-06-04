@@ -31,7 +31,7 @@ Branch: feature/hack-historical-backfill-continuous-collection
 
 - [x] 9. **OpenNEM real parsing (FR7).** In `_fetch_live()`, replace the synthetic-after-probe stub with real parsing of the `/stats/power/network/NEM/VIC1` JSON `history`/`forecast` sections into the existing payload shape (prices, demand, generation, interconnectors), mapping fuel types via `OPENNEM_FUEL_MAP`. Set `source: "live"` on success. Preserve synthetic fallback on any parse/HTTP failure (D7), clearly logged.
 
-- [ ] 10. **OpenNEM `fetch_range()` (FR8).** Implement `fetch_range(start, end)` using OpenNEM's date-range query params, internally chunking if the API limits response size, reusing the task-9 parsing logic. Returns one payload per call covering the requested range.
+- [x] 10. **OpenNEM `fetch_range()` (FR8).** Implement `fetch_range(start, end)` using OpenNEM's date-range query params, internally chunking if the API limits response size, reusing the task-9 parsing logic. Returns one payload per call covering the requested range.
 
 - [ ] 11. **BOM real parsing (FR9).** In BOM `_fetch_live()`, replace stub with real parsing of geohash endpoints (`/v1/locations/{geohash}/forecasts/daily`, `/3-hourly`, `/observations`). Derive the BOM geohash from each `WeatherLocation` lat/lon (utility function preferred; column optional per Data Model). Parse temp, wind, rainfall, humidity, cloud cover. Synthetic fallback preserved (D7).
 
