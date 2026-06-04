@@ -22,16 +22,16 @@ REGION = "VIC1"
 
 # Buckets shown on the chart, in stacking order, with brand colours.
 _FUEL_BUCKETS = [
-    ("brown_coal", "Brown Coal", "#8B5A2B"),
-    ("gas", "Gas", "#F59E0B"),
-    ("hydro", "Hydro", "#3B82F6"),
-    ("wind", "Wind", "#14B8A6"),
-    ("solar", "Solar", "#FACC15"),
-    ("battery_discharging", "Battery (discharge)", "#A855F7"),
+    ("brown_coal", "Brown Coal", "#6366f1"),
+    ("gas", "Gas", "#a855f7"),
+    ("hydro", "Hydro", "#14b8a6"),
+    ("wind", "Wind", "#0ea5e9"),
+    ("solar", "Solar", "#eab308"),
+    ("battery_discharging", "Battery (discharge)", "#f472b6"),
     ("battery_charging", "Battery (charge)", "#6B21A8"),
     ("biomass", "Biomass", "#65A30D"),
     ("distillate", "Distillate", "#DC2626"),
-    ("other", "Other", "#9CA3AF"),
+    ("other", "Other", "#94a3b8"),
 ]
 
 _GAS_TYPES = {"gas_ccgt", "gas_ocgt", "gas_recip", "gas_steam"}

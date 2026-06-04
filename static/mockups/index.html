@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CityLab — Theme Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: #09090b;
+    color: #e4e4e7;
+    min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: #71717a;
+    margin-bottom: 32px;
+    line-height: 1.5;
+  }
+  .theme-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .theme-card:active {
+    transform: scale(0.98);
+    border-color: #3f3f46;
+  }
+  .theme-number {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #52525b;
+    margin-bottom: 8px;
+  }
+  .theme-title {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .theme-desc {
+    font-size: 13px;
+    color: #a1a1aa;
+    line-height: 1.5;
+  }
+  .theme-tags {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .t1 .theme-title { color: #D4A853; }
+  .t1 .tag { background: rgba(212,168,83,0.12); color: #D4A853; }
+  .t2 .theme-title { color: #7c3aed; }
+  .t2 .tag { background: rgba(124,58,237,0.12); color: #a78bfa; }
+  .t3 .theme-title { color: #06b6d4; }
+  .t3 .tag { background: rgba(6,182,212,0.12); color: #22d3ee; }
+  .footer {
+    margin-top: 28px;
+    text-align: center;
+    font-size: 11px;
+    color: #3f3f46;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>CityLab Themes</h1>
+  <div class="subtitle">Three design directions for the energy dashboard refresh. Tap to preview each on your device.</div>
+
+  <a href="theme-1-grid-noir.html" class="theme-card t1">
+    <div class="theme-number">Theme 1</div>
+    <div class="theme-title">Grid Noir</div>
+    <div class="theme-desc">Cinematic dark mode. Amber electricity accent. Monospace precision. The aesthetic of infrastructure that matters.</div>
+    <div class="theme-tags">
+      <span class="tag">Dark</span>
+      <span class="tag">Amber accent</span>
+      <span class="tag">Industrial</span>
+    </div>
+  </a>
+
+  <a href="theme-2-volt.html" class="theme-card t2">
+    <div class="theme-number">Theme 2</div>
+    <div class="theme-title">Volt</div>
+    <div class="theme-desc">Light mode, Swiss-design precision. Clean white canvas, violet accent, editorial clarity. Feels like a premium SaaS product.</div>
+    <div class="theme-tags">
+      <span class="tag">Light</span>
+      <span class="tag">Violet accent</span>
+      <span class="tag">Editorial</span>
+    </div>
+  </a>
+
+  <a href="theme-3-thermal.html" class="theme-card t3">
+    <div class="theme-number">Theme 3</div>
+    <div class="theme-title">Thermal</div>
+    <div class="theme-desc">Deep navy with glassmorphism. Cyan-to-amber heat gradient. Data as spectacle — infrastructure monitoring as science fiction.</div>
+    <div class="theme-tags">
+      <span class="tag">Dark</span>
+      <span class="tag">Glassmorphism</span>
+      <span class="tag">Gradient</span>
+    </div>
+  </a>
+
+  <div class="footer">
+    CityLab · Victorian Energy Market<br>
+    What the Hack 2026
+  </div>
+</div>
+</body>
+</html>

@@ -1,41 +1,41 @@
-<h3 class="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">Weather &amp; Renewable Outlook</h3>
+<div class="card-label">Renewable Outlook</div>
 
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-2">
     <!-- Wind -->
-    <div class="p-4 rounded-lg bg-gray-900/40">
-        <div class="text-xs uppercase tracking-wider text-gray-500 mb-1">Wind (SA + Vic)</div>
+    <div class="p-3.5 rounded-lg bg-zinc-100 border border-zinc-200">
+        <div class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium mb-2">Wind</div>
         <div class="chip chip-wind-{{ vm.wind.band | replace(' ', '-') }}">{{ vm.wind.band }}</div>
         {% if vm.wind.peak_kmh is not none %}
-        <div class="text-xs text-gray-500 mt-2">peak {{ '%.0f' | format(vm.wind.peak_kmh) }} km/h</div>
+        <div class="font-mono text-sm font-semibold text-zinc-900 mt-2">{{ '%.0f' | format(vm.wind.peak_kmh) }} <span class="text-zinc-400 text-xs font-normal">km/h</span></div>
         {% endif %}
     </div>
 
     <!-- Solar -->
-    <div class="p-4 rounded-lg bg-gray-900/40">
-        <div class="text-xs uppercase tracking-wider text-gray-500 mb-1">Solar (Vic)</div>
+    <div class="p-3.5 rounded-lg bg-zinc-100 border border-zinc-200">
+        <div class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium mb-2">Solar</div>
         <div class="chip chip-solar-{{ vm.solar.band | replace(' ', '-') }}">{{ vm.solar.band }}</div>
         {% if vm.solar.peak_ghi is not none %}
-        <div class="text-xs text-gray-500 mt-2">peak {{ '%.0f' | format(vm.solar.peak_ghi) }} W/m&sup2;</div>
+        <div class="font-mono text-sm font-semibold text-zinc-900 mt-2">{{ '%.0f' | format(vm.solar.peak_ghi) }} <span class="text-zinc-400 text-xs font-normal">W/m&sup2;</span></div>
         {% endif %}
     </div>
 
     <!-- Rain -->
-    <div class="p-4 rounded-lg bg-gray-900/40">
-        <div class="text-xs uppercase tracking-wider text-gray-500 mb-1">Rain (Tas + Snowy)</div>
+    <div class="p-3.5 rounded-lg bg-zinc-100 border border-zinc-200">
+        <div class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium mb-2">Rain</div>
         <div class="chip chip-rain-{{ vm.rain.band | replace(' ', '-') }}">{{ vm.rain.band }}</div>
         {% if vm.rain.total_mm is not none %}
-        <div class="text-xs text-gray-500 mt-2">{{ '%.1f' | format(vm.rain.total_mm) }} mm fcst</div>
+        <div class="font-mono text-sm font-semibold text-zinc-900 mt-2">{{ '%.1f' | format(vm.rain.total_mm) }} <span class="text-zinc-400 text-xs font-normal">mm</span></div>
         {% endif %}
     </div>
 
     <!-- Temperature -->
-    <div class="p-4 rounded-lg bg-gray-900/40">
-        <div class="text-xs uppercase tracking-wider text-gray-500 mb-1">Melbourne Temp</div>
-        <div class="text-2xl font-semibold text-gray-100">
+    <div class="p-3.5 rounded-lg bg-zinc-100 border border-zinc-200">
+        <div class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium mb-2">Melbourne</div>
+        <div class="font-mono text-2xl font-semibold text-zinc-900">
             {% if vm.temperature.now_c is not none %}{{ '%.0f' | format(vm.temperature.now_c) }}&deg;{% else %}&mdash;{% endif %}
         </div>
         {% if vm.temperature.max_c is not none %}
-        <div class="text-xs text-gray-500 mt-2">max {{ '%.0f' | format(vm.temperature.max_c) }}&deg;C</div>
+        <div class="text-xs text-zinc-400 mt-1">max {{ '%.0f' | format(vm.temperature.max_c) }}&deg;C</div>
         {% endif %}
     </div>
 </div>

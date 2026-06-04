@@ -4,34 +4,34 @@ module.exports = {
     "./templates/**/*.html",
     "./src/**/*.py",
   ],
-  // Energy dashboard component classes are built from dynamic Jinja values
-  // (e.g. chip-wind-{{ band }}, price-{{ state }}), so Tailwind's content
-  // scanner can't see them — safelist them explicitly.
   safelist: [
     'price-low', 'price-amber', 'price-high', 'price-spike', 'price-unknown',
     'ic-normal', 'ic-high', 'ic-constrained', 'ic-na',
-    'source-ok', 'source-bad',
+    'source-ok', 'source-bad', 'source-stale',
     'chip-wind-strong', 'chip-wind-moderate', 'chip-wind-light', 'chip-wind-unknown',
     'chip-solar-sunny', 'chip-solar-partly-cloudy', 'chip-solar-overcast', 'chip-solar-unknown',
     'chip-rain-dry', 'chip-rain-light', 'chip-rain-moderate', 'chip-rain-heavy', 'chip-rain-unknown',
   ],
-  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        citylab: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
-          950: '#082f49',
+        volt: {
+          50: '#f5f3ff',
+          100: '#ede9fe',
+          200: '#ddd6fe',
+          300: '#c4b5fd',
+          400: '#a78bfa',
+          500: '#8b5cf6',
+          600: '#7c3aed',
+          700: '#6d28d9',
+          800: '#5b21b6',
+          900: '#4c1d95',
+          950: '#2e1065',
         },
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['JetBrains Mono', 'SF Mono', 'Fira Code', 'monospace'],
       },
     },
   },

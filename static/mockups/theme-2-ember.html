@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CityLab — Ember</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #0d0a07;
+    --bg-panel: #161210;
+    --bg-card: #1c1714;
+    --bg-inset: #120f0c;
+    --copper: #e8913a;
+    --copper-dim: #e8913a30;
+    --gold: #d4a040;
+    --amber: #f5c542;
+    --cream: #f0e4d4;
+    --text-primary: #ede4d8;
+    --text-secondary: #a09080;
+    --text-dim: #5c4f42;
+    --border: #2a2018;
+    --red: #d44030;
+    --green: #5cb870;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  .header {
+    padding: 20px 20px 16px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: 'Crimson Pro', serif;
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--copper);
+    letter-spacing: -0.5px;
+  }
+
+  .logo-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-left: 8px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .header-right .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+
+  .main {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+  }
+
+  .card-warm {
+    border-left: 3px solid var(--copper);
+  }
+
+  .section-label {
+    font-family: 'Crimson Pro', serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--copper);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .section-meta {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--text-dim);
+    float: right;
+  }
+
+  /* Price hero */
+  .price-hero {
+    text-align: center;
+    padding: 28px 20px;
+    background: radial-gradient(ellipse at center top, rgba(232,145,58,0.08) 0%, transparent 70%), var(--bg-card);
+  }
+
+  .price-region {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .price-value {
+    font-family: 'Crimson Pro', serif;
+    font-size: 72px;
+    font-weight: 700;
+    color: var(--cream);
+    line-height: 1;
+    letter-spacing: -3px;
+  }
+
+  .price-unit {
+    font-size: 22px;
+    color: var(--text-dim);
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  .price-trend {
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--green);
+  }
+
+  .price-trend .prev {
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  .price-meta {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+
+  .meta-item { text-align: center; }
+
+  .meta-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .meta-value {
+    font-family: 'Crimson Pro', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .meta-value small {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+
+  /* Generation */
+  .gen-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(42,32,24,0.5);
+  }
+
+  .gen-item:last-child { border-bottom: none; }
+
+  .gen-swatch {
+    width: 4px;
+    height: 28px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .gen-info { flex: 1; }
+
+  .gen-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .gen-bar-wrap {
+    height: 4px;
+    background: var(--bg-inset);
+    border-radius: 2px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+
+  .gen-bar {
+    height: 100%;
+    border-radius: 2px;
+  }
+
+  .gen-mw {
+    font-family: 'Crimson Pro', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    width: 80px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .gen-mw small {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  /* Interconnectors */
+  .ic-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(42,32,24,0.5);
+  }
+
+  .ic-row:last-child { border-bottom: none; }
+
+  .ic-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ic-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .ic-dot-ok { background: var(--green); }
+  .ic-dot-warn { background: var(--gold); }
+
+  .ic-name { font-weight: 500; font-size: 14px; }
+  .ic-partner { font-size: 11px; color: var(--text-dim); }
+
+  .ic-right { text-align: right; }
+
+  .ic-mw {
+    font-family: 'Crimson Pro', serif;
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  .ic-dir {
+    font-size: 11px;
+    color: var(--copper);
+    font-weight: 500;
+  }
+
+  /* Weather */
+  .weather-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .wx-cell {
+    background: var(--bg-inset);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+  }
+
+  .wx-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .wx-chip {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .wx-chip-wind { background: #134e4a; color: #5eead4; }
+  .wx-chip-solar { background: #451a03; color: #fbbf24; }
+  .wx-chip-rain { background: #172554; color: #93c5fd; }
+
+  .wx-big {
+    font-family: 'Crimson Pro', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--cream);
+  }
+
+  .wx-detail {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* Forecast */
+  .forecast-area {
+    position: relative;
+    height: 100px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+
+  .forecast-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .forecast-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* Sources */
+  .sources-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .source-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .source-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+
+  .src-ok { background: var(--green); }
+  .src-stale { background: var(--gold); }
+
+  .src-time { color: var(--text-dim); font-size: 11px; }
+
+  /* Responsive */
+  @media (min-width: 768px) {
+    .main { padding: 24px; gap: 16px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .price-value { font-size: 88px; }
+    .weather-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  @media (min-width: 1024px) {
+    .main { padding: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div>
+    <span class="logo">CityLab</span>
+    <span class="logo-sub">Energy</span>
+  </div>
+  <div class="header-right">
+    <span class="dot"></span>
+    VIC1 live
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- PRICE HERO -->
+  <div class="card card-warm price-hero">
+    <div class="price-region">Victorian Spot Price</div>
+    <div class="price-value">$87<span class="price-unit">.40</span></div>
+    <div class="price-trend">&darr; Falling <span class="prev">&mdash; was $102/MWh</span></div>
+    <div class="price-meta">
+      <div class="meta-item">
+        <div class="meta-label">Demand</div>
+        <div class="meta-value">5,842 <small>MW</small></div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Forecast</div>
+        <div class="meta-value">$91 <span style="color: var(--red);">&uarr;</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+
+    <!-- GENERATION -->
+    <div class="card">
+      <div class="section-label">Generation Mix <span class="section-meta">6,210 MW total</span></div>
+      <div class="gen-item">
+        <div class="gen-swatch" style="background: #92400e;"></div>
+        <div class="gen-info">
+          <div class="gen-name">Brown Coal</div>
+          <div class="gen-bar-wrap"><div class="gen-bar" style="width: 48%; background: linear-gradient(90deg, #92400e, #b45309);"></div></div>
+        </div>
+        <div class="gen-mw">2,981 <small>MW</small></div>
+      </div>
+      <div class="gen-item">
+        <div class="gen-swatch" style="background: #7c3aed;"></div>
+        <div class="gen-info">
+          <div class="gen-name">Gas</div>
+          <div class="gen-bar-wrap"><div class="gen-bar" style="width: 18%; background: linear-gradient(90deg, #7c3aed, #a78bfa);"></div></div>
+        </div>
+        <div class="gen-mw">1,118 <small>MW</small></div>
+      </div>
+      <div class="gen-item">
+        <div class="gen-swatch" style="background: #0d9488;"></div>
+        <div class="gen-info">
+          <div class="gen-name">Wind</div>
+          <div class="gen-bar-wrap"><div class="gen-bar" style="width: 22%; background: linear-gradient(90deg, #0d9488, #2dd4bf);"></div></div>
+        </div>
+        <div class="gen-mw">1,366 <small>MW</small></div>
+      </div>
+      <div class="gen-item">
+        <div class="gen-swatch" style="background: #ca8a04;"></div>
+        <div class="gen-info">
+          <div class="gen-name">Solar</div>
+          <div class="gen-bar-wrap"><div class="gen-bar" style="width: 8%; background: linear-gradient(90deg, #ca8a04, #facc15);"></div></div>
+        </div>
+        <div class="gen-mw">497 <small>MW</small></div>
+      </div>
+      <div class="gen-item">
+        <div class="gen-swatch" style="background: #1d4ed8;"></div>
+        <div class="gen-info">
+          <div class="gen-name">Hydro</div>
+          <div class="gen-bar-wrap"><div class="gen-bar" style="width: 4%; background: linear-gradient(90deg, #1d4ed8, #60a5fa);"></div></div>
+        </div>
+        <div class="gen-mw">248 <small>MW</small></div>
+      </div>
+    </div>
+
+    <!-- INTERCONNECTORS -->
+    <div class="card">
+      <div class="section-label">Interconnectors <span class="section-meta" style="color: var(--copper);">net import 320 MW</span></div>
+      <div class="ic-row">
+        <div class="ic-left"><div class="ic-dot ic-dot-ok"></div><div><div class="ic-name">Basslink</div><div class="ic-partner">Tasmania</div></div></div>
+        <div class="ic-right"><div class="ic-mw">478 MW</div><div class="ic-dir">&rarr; VIC</div></div>
+      </div>
+      <div class="ic-row">
+        <div class="ic-left"><div class="ic-dot ic-dot-ok"></div><div><div class="ic-name">Heywood</div><div class="ic-partner">South Australia</div></div></div>
+        <div class="ic-right"><div class="ic-mw">210 MW</div><div class="ic-dir">VIC &rarr;</div></div>
+      </div>
+      <div class="ic-row">
+        <div class="ic-left"><div class="ic-dot ic-dot-warn"></div><div><div class="ic-name">Murraylink</div><div class="ic-partner">South Australia</div></div></div>
+        <div class="ic-right"><div class="ic-mw">112 MW</div><div class="ic-dir">&rarr; VIC</div></div>
+      </div>
+      <div class="ic-row">
+        <div class="ic-left"><div class="ic-dot ic-dot-ok"></div><div><div class="ic-name">VNI</div><div class="ic-partner">New South Wales</div></div></div>
+        <div class="ic-right"><div class="ic-mw">58 MW</div><div class="ic-dir">VIC &rarr;</div></div>
+      </div>
+      <div class="ic-row">
+        <div class="ic-left"><div class="ic-dot ic-dot-ok"></div><div><div class="ic-name">VNI West</div><div class="ic-partner">New South Wales</div></div></div>
+        <div class="ic-right"><div class="ic-mw">2 MW</div><div class="ic-dir">&rarr; VIC</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEATHER -->
+  <div class="card">
+    <div class="section-label">Weather &amp; Renewable Outlook</div>
+    <div class="weather-grid">
+      <div class="wx-cell">
+        <div class="wx-label">Wind</div>
+        <div class="wx-chip wx-chip-wind">Strong</div>
+        <div class="wx-detail">peak 62 km/h</div>
+      </div>
+      <div class="wx-cell">
+        <div class="wx-label">Solar</div>
+        <div class="wx-chip wx-chip-solar">Partly Cloudy</div>
+        <div class="wx-detail">peak 680 W/m&sup2;</div>
+      </div>
+      <div class="wx-cell">
+        <div class="wx-label">Rain</div>
+        <div class="wx-chip wx-chip-rain">Light</div>
+        <div class="wx-detail">2.4 mm forecast</div>
+      </div>
+      <div class="wx-cell">
+        <div class="wx-label">Melbourne</div>
+        <div class="wx-big">14&deg;</div>
+        <div class="wx-detail">max 18&deg;C</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORECAST -->
+  <div class="card">
+    <div class="section-label">Price Forecast &mdash; 24 Hours</div>
+    <div class="forecast-area">
+      <svg class="forecast-svg" viewBox="0 0 480 100" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="fg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#e8913a" stop-opacity="0.4"/>
+            <stop offset="100%" stop-color="#e8913a" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path d="M0,60 Q20,55 40,58 T80,50 T120,40 T160,25 T200,15 T240,10 T280,18 T320,35 T360,50 T400,55 T440,52 T480,58 L480,100 L0,100 Z" fill="url(#fg)"/>
+        <path d="M0,60 Q20,55 40,58 T80,50 T120,40 T160,25 T200,15 T240,10 T280,18 T320,35 T360,50 T400,55 T440,52 T480,58" fill="none" stroke="#e8913a" stroke-width="2"/>
+        <path d="M0,65 Q40,60 80,55 T160,35 T240,20 L240,20" fill="none" stroke="#f5c542" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6"/>
+      </svg>
+    </div>
+    <div class="forecast-labels">
+      <span>Now</span>
+      <span>+6h</span>
+      <span>+12h</span>
+      <span>+18h</span>
+      <span>+24h</span>
+    </div>
+  </div>
+
+  <!-- SOURCES -->
+  <div class="card">
+    <div class="section-label">Data Sources</div>
+    <div class="sources-row">
+      <div class="source-item"><span class="source-dot src-ok"></span> OpenNEM <span class="src-time">2m ago</span></div>
+      <div class="source-item"><span class="source-dot src-ok"></span> BOM <span class="src-time">18m ago</span></div>
+      <div class="source-item"><span class="source-dot src-stale"></span> Solcast <span class="src-time" style="color: var(--gold);">47m ago</span></div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

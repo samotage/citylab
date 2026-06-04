@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CityLab — Volt Theme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafafa;
+    --bg-card: #ffffff;
+    --bg-surface: #f4f4f5;
+    --border: #e4e4e7;
+    --border-strong: #d4d4d8;
+    --violet: #7c3aed;
+    --violet-light: #ede9fe;
+    --violet-mid: #c4b5fd;
+    --violet-bg: rgba(124, 58, 237, 0.06);
+    --text-primary: #09090b;
+    --text-secondary: #52525b;
+    --text-tertiary: #a1a1aa;
+    --green: #16a34a;
+    --green-bg: #f0fdf4;
+    --red: #dc2626;
+    --red-bg: #fef2f2;
+    --amber: #d97706;
+    --amber-bg: #fffbeb;
+    --teal: #0d9488;
+    --teal-bg: #f0fdfa;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* --- Theme intro --- */
+  .theme-label {
+    text-align: center;
+    padding: 24px 20px 8px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+  .theme-name {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--violet);
+    letter-spacing: -0.02em;
+    padding-bottom: 8px;
+  }
+  .theme-desc {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 0 24px 20px;
+    line-height: 1.5;
+  }
+
+  /* --- Header --- */
+  .header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: var(--violet);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    color: white;
+  }
+  .brand-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.03em;
+  }
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--violet-bg);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--violet);
+    letter-spacing: 0.02em;
+  }
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--violet);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* --- Region pill --- */
+  .region-bar {
+    margin: 12px 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .region-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 12px;
+  }
+
+  /* --- Content --- */
+  .content {
+    padding: 12px 20px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* --- Cards --- */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .card-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+
+  /* --- Price Hero --- */
+  .price-hero {
+    text-align: center;
+    padding: 24px 18px 20px;
+    border: 2px solid var(--violet-mid);
+    background: linear-gradient(180deg, var(--violet-bg) 0%, var(--bg-card) 100%);
+  }
+  .price-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 56px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .price-unit {
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text-tertiary);
+  }
+  .price-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--green-bg);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--green);
+  }
+  .price-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .price-meta-item {
+    text-align: center;
+  }
+  .price-meta-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .price-meta-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .price-meta-unit {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: 400;
+  }
+
+  /* --- Forecast --- */
+  .spark-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .spark-canvas {
+    width: 100%;
+    height: 90px;
+    background: var(--bg-surface);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .spark-svg { width: 100%; height: 100%; }
+
+  /* --- Gen mix --- */
+  .gen-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .gen-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .gen-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .gen-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    flex: 1;
+  }
+  .gen-bar-container {
+    width: 100px;
+    height: 6px;
+    background: var(--bg-surface);
+    border-radius: 3px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .gen-bar {
+    height: 100%;
+    border-radius: 3px;
+  }
+  .gen-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    width: 65px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .gen-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0 0;
+    margin-top: 6px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .gen-total-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  /* --- Interconnectors --- */
+  .ic-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--violet-bg);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+  .ic-summary-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--violet);
+  }
+  .ic-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .ic-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--bg-surface);
+    font-size: 13px;
+  }
+  .ic-row:last-child { border-bottom: none; }
+  .ic-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ic-status {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+  .ic-name { font-weight: 500; }
+  .ic-partner {
+    color: var(--text-tertiary);
+    font-size: 11px;
+    margin-left: 3px;
+  }
+  .ic-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+  .ic-direction {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-family: 'Inter', sans-serif;
+  }
+  .ic-flow { font-weight: 500; }
+
+  /* --- Weather --- */
+  .weather-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .weather-item {
+    padding: 14px;
+    background: var(--bg-surface);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .weather-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .weather-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+  .weather-unit {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-weight: 400;
+  }
+  .weather-band {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  /* --- Source Health --- */
+  .sources {
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0 2px;
+  }
+  .source-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .source-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  @media (min-width: 768px) {
+    body { max-width: 480px; margin: 0 auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="theme-label">Theme 2 of 3</div>
+<div class="theme-name">Volt</div>
+<div class="theme-desc">Light, precise, electric. Swiss-design clarity meets premium SaaS. Clean geometry, monospace data, violet accent.</div>
+
+<div class="header">
+  <div class="brand">
+    <div class="brand-mark">CL</div>
+    <div class="brand-name">CityLab</div>
+  </div>
+  <div class="live-badge">
+    <div class="live-dot"></div>
+    LIVE
+  </div>
+</div>
+
+<div class="region-bar">
+  <div class="region-pill">
+    <span>⚡</span>
+    VIC1
+  </div>
+  <span class="mono" style="font-size: 11px; color: var(--text-tertiary);">14:46 AEST</span>
+</div>
+
+<div class="content">
+
+  <!-- Price Hero -->
+  <div class="card price-hero">
+    <div class="card-label">Spot Price · $/MWh</div>
+    <div class="price-value">$87<span class="price-unit">.42</span></div>
+    <div class="price-trend">↑ +$12.30</div>
+    <div class="price-meta">
+      <div class="price-meta-item">
+        <div class="price-meta-label">Demand</div>
+        <div class="price-meta-value">5,842<span class="price-meta-unit"> MW</span></div>
+      </div>
+      <div class="price-meta-item">
+        <div class="price-meta-label">Forecast</div>
+        <div class="price-meta-value">$92<span class="price-meta-unit">.10</span></div>
+      </div>
+      <div class="price-meta-item">
+        <div class="price-meta-label">24h Range</div>
+        <div class="price-meta-value">$48–142</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forecast -->
+  <div class="card">
+    <div class="spark-header">
+      <div class="card-label" style="margin-bottom:0;">24h Price Forecast</div>
+      <span style="font-size: 10px; color: var(--text-tertiary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em;">Pre-dispatch</span>
+    </div>
+    <div class="spark-canvas">
+      <svg class="spark-svg" viewBox="0 0 400 90" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="sparkFillV" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="rgba(124,58,237,0.12)"/>
+            <stop offset="100%" stop-color="rgba(124,58,237,0)"/>
+          </linearGradient>
+        </defs>
+        <path d="M0,60 Q30,55 60,50 T120,42 T180,48 T240,35 T300,38 T360,28 T400,25 L400,90 L0,90 Z" fill="url(#sparkFillV)"/>
+        <path d="M0,60 Q30,55 60,50 T120,42 T180,48 T240,35 T300,38 T360,28 T400,25" stroke="var(--violet)" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M0,62 Q30,58 60,48 T120,44 T160,50" stroke="var(--text-tertiary)" stroke-width="1.5" fill="none" stroke-dasharray="4,3"/>
+        <line x1="160" y1="0" x2="160" y2="90" stroke="var(--violet-mid)" stroke-width="1" stroke-dasharray="3,3"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Generation -->
+  <div class="card">
+    <div class="card-label">Generation Mix</div>
+    <div class="gen-list">
+      <div class="gen-row">
+        <div class="gen-dot" style="background: #6366f1;"></div>
+        <span class="gen-label">Brown Coal</span>
+        <div class="gen-bar-container"><div class="gen-bar" style="width: 76%; background: #6366f1;"></div></div>
+        <span class="gen-value">2,140 MW</span>
+      </div>
+      <div class="gen-row">
+        <div class="gen-dot" style="background: #0ea5e9;"></div>
+        <span class="gen-label">Wind</span>
+        <div class="gen-bar-container"><div class="gen-bar" style="width: 50%; background: #0ea5e9;"></div></div>
+        <span class="gen-value">1,420 MW</span>
+      </div>
+      <div class="gen-row">
+        <div class="gen-dot" style="background: #eab308;"></div>
+        <span class="gen-label">Solar</span>
+        <div class="gen-bar-container"><div class="gen-bar" style="width: 31%; background: #eab308;"></div></div>
+        <span class="gen-value">890 MW</span>
+      </div>
+      <div class="gen-row">
+        <div class="gen-dot" style="background: #a855f7;"></div>
+        <span class="gen-label">Gas</span>
+        <div class="gen-bar-container"><div class="gen-bar" style="width: 22%; background: #a855f7;"></div></div>
+        <span class="gen-value">620 MW</span>
+      </div>
+      <div class="gen-row">
+        <div class="gen-dot" style="background: #14b8a6;"></div>
+        <span class="gen-label">Hydro</span>
+        <div class="gen-bar-container"><div class="gen-bar" style="width: 17%; background: #14b8a6;"></div></div>
+        <span class="gen-value">480 MW</span>
+      </div>
+      <div class="gen-row">
+        <div class="gen-dot" style="background: #f472b6;"></div>
+        <span class="gen-label">Battery</span>
+        <div class="gen-bar-container"><div class="gen-bar" style="width: 7%; background: #f472b6;"></div></div>
+        <span class="gen-value">210 MW</span>
+      </div>
+      <div class="gen-total">
+        <span>Total output</span>
+        <span class="gen-total-value">5,760 MW</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interconnectors -->
+  <div class="card">
+    <div class="card-label">Interconnectors</div>
+    <div class="ic-summary">
+      <span>VIC net import</span>
+      <span class="ic-summary-value">+82 MW</span>
+    </div>
+    <div class="ic-list">
+      <div class="ic-row">
+        <div class="ic-left">
+          <div class="ic-status" style="background: var(--green);"></div>
+          <span class="ic-name">Basslink</span>
+          <span class="ic-partner">TAS</span>
+        </div>
+        <div class="ic-right">
+          <span class="ic-direction">→ VIC</span>
+          <span class="ic-flow">+220 MW</span>
+        </div>
+      </div>
+      <div class="ic-row">
+        <div class="ic-left">
+          <div class="ic-status" style="background: var(--green);"></div>
+          <span class="ic-name">Heywood</span>
+          <span class="ic-partner">SA</span>
+        </div>
+        <div class="ic-right">
+          <span class="ic-direction">VIC →</span>
+          <span class="ic-flow">-180 MW</span>
+        </div>
+      </div>
+      <div class="ic-row">
+        <div class="ic-left">
+          <div class="ic-status" style="background: var(--amber);"></div>
+          <span class="ic-name">Murraylink</span>
+          <span class="ic-partner">SA</span>
+        </div>
+        <div class="ic-right">
+          <span class="ic-direction">→ VIC</span>
+          <span class="ic-flow">+42 MW</span>
+        </div>
+      </div>
+      <div class="ic-row">
+        <div class="ic-left">
+          <div class="ic-status" style="background: var(--green);"></div>
+          <span class="ic-name">VNI</span>
+          <span class="ic-partner">NSW</span>
+        </div>
+        <div class="ic-right">
+          <span class="ic-direction">VIC →</span>
+          <span class="ic-flow">-310 MW</span>
+        </div>
+      </div>
+      <div class="ic-row">
+        <div class="ic-left">
+          <div class="ic-status" style="background: var(--red);"></div>
+          <span class="ic-name">VNI West</span>
+          <span class="ic-partner">NSW</span>
+        </div>
+        <div class="ic-right">
+          <span class="ic-direction">→ VIC</span>
+          <span class="ic-flow">+310 MW</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Weather -->
+  <div class="card">
+    <div class="card-label">Renewable Outlook</div>
+    <div class="weather-grid">
+      <div class="weather-item">
+        <div class="weather-label">Wind</div>
+        <div class="weather-value">34<span class="weather-unit"> km/h</span></div>
+        <div class="weather-band" style="background: var(--teal-bg); color: var(--teal);">Strong</div>
+      </div>
+      <div class="weather-item">
+        <div class="weather-label">Solar GHI</div>
+        <div class="weather-value">680<span class="weather-unit"> W/m²</span></div>
+        <div class="weather-band" style="background: var(--amber-bg); color: var(--amber);">Sunny</div>
+      </div>
+      <div class="weather-item">
+        <div class="weather-label">Rain</div>
+        <div class="weather-value">0.2<span class="weather-unit"> mm</span></div>
+        <div class="weather-band" style="background: var(--bg-surface); color: var(--text-tertiary);">Dry</div>
+      </div>
+      <div class="weather-item">
+        <div class="weather-label">Melbourne</div>
+        <div class="weather-value">14<span class="weather-unit">°C</span></div>
+        <div class="weather-band" style="background: var(--bg-surface); color: var(--text-secondary);">Max 17°</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sources -->
+  <div class="card" style="padding: 12px 18px;">
+    <div class="sources">
+      <div class="source-item">
+        <div class="source-dot" style="background: var(--green);"></div>
+        OpenNEM
+      </div>
+      <div class="source-item">
+        <div class="source-dot" style="background: var(--green);"></div>
+        BOM
+      </div>
+      <div class="source-item">
+        <div class="source-dot" style="background: var(--amber);"></div>
+        Solcast
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

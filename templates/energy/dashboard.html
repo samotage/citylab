@@ -7,28 +7,31 @@
 
 {% block content %}
 <div class="energy-dashboard">
-    <div class="flex items-baseline justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-100">Victorian Energy Market</h2>
-        <span class="text-sm text-gray-500">VIC1 &middot; live</span>
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-zinc-900">Victorian Energy Market</h2>
+        <div class="flex items-center gap-3">
+            <div class="region-pill">&#9889; VIC1</div>
+        </div>
     </div>
 
     <!-- Top strip: market snapshot -->
     <div id="panel-price"
-         class="card mb-6"
+         class="card mb-4 !border-2 !border-violet-300"
+         style="background: linear-gradient(180deg, rgba(124,58,237,0.04) 0%, white 100%);"
          hx-get="{{ url_for('energy.partial_price') }}"
          hx-trigger="load, every 30s"
          hx-swap="innerHTML">
-        <div class="text-gray-500">Loading market snapshot&hellip;</div>
+        <div class="text-zinc-400 text-sm">Loading market snapshot&hellip;</div>
     </div>
 
     <!-- 2-col panel grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <div id="panel-generation"
              class="card"
              hx-get="{{ url_for('energy.partial_generation') }}"
              hx-trigger="load, every 60s"
              hx-swap="innerHTML">
-            <div class="text-gray-500">Loading generation mix&hellip;</div>
+            <div class="text-zinc-400 text-sm">Loading generation mix&hellip;</div>
         </div>
 
         <div id="panel-interconnectors"
@@ -36,7 +39,7 @@
              hx-get="{{ url_for('energy.partial_interconnectors') }}"
              hx-trigger="load, every 60s"
              hx-swap="innerHTML">
-            <div class="text-gray-500">Loading interconnectors&hellip;</div>
+            <div class="text-zinc-400 text-sm">Loading interconnectors&hellip;</div>
         </div>
 
         <div id="panel-weather"
@@ -44,17 +47,17 @@
              hx-get="{{ url_for('energy.partial_weather') }}"
              hx-trigger="load, every 120s"
              hx-swap="innerHTML">
-            <div class="text-gray-500">Loading weather &amp; renewable outlook&hellip;</div>
+            <div class="text-zinc-400 text-sm">Loading weather &amp; renewable outlook&hellip;</div>
         </div>
     </div>
 
     <!-- Price forecast strip -->
     <div id="panel-forecast"
-         class="card mb-6"
+         class="card mb-4"
          hx-get="{{ url_for('energy.partial_forecast') }}"
          hx-trigger="load, every 60s"
          hx-swap="innerHTML">
-        <div class="text-gray-500">Loading price forecast&hellip;</div>
+        <div class="text-zinc-400 text-sm">Loading price forecast&hellip;</div>
     </div>
 
     <!-- Source health strip -->
@@ -63,7 +66,7 @@
          hx-get="{{ url_for('energy.partial_sources') }}"
          hx-trigger="load, every 60s"
          hx-swap="innerHTML">
-        <div class="text-gray-500">Loading data source health&hellip;</div>
+        <div class="text-zinc-400 text-sm">Loading data source health&hellip;</div>
     </div>
 </div>
 {% endblock %}

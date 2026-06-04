@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CityLab — Volt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000000;
+    --bg-card: #0a0a0a;
+    --bg-inset: #050505;
+    --volt: #c8ff00;
+    --volt-dim: #c8ff0030;
+    --volt-glow: #c8ff0015;
+    --white: #ffffff;
+    --text-primary: #e4e4e7;
+    --text-secondary: #71717a;
+    --text-dim: #3f3f46;
+    --border: #1c1c1e;
+    --border-strong: #27272a;
+    --red: #ef4444;
+    --green: #22c55e;
+    --amber: #f59e0b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Instrument Sans', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  .header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--volt);
+  }
+
+  .logo {
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--white);
+    letter-spacing: -1px;
+    text-transform: uppercase;
+  }
+
+  .logo .accent {
+    color: var(--volt);
+  }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 1px solid var(--volt);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--volt);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .status-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--volt);
+    animation: blink 1.5s steps(1) infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .main {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 20px;
+  }
+
+  .card-highlight {
+    border-left: 3px solid var(--volt);
+  }
+
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--volt);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .section-label .meta {
+    color: var(--text-dim);
+    font-weight: 400;
+    letter-spacing: 1px;
+  }
+
+  /* Price hero */
+  .price-hero {
+    text-align: center;
+    padding: 32px 20px;
+    border-bottom: 2px solid var(--border-strong);
+  }
+
+  .price-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .price-value {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 80px;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 0.9;
+    letter-spacing: -4px;
+  }
+
+  .price-unit {
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text-dim);
+    letter-spacing: 0;
+  }
+
+  .price-trend {
+    margin-top: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .trend-arrow {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--green);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .price-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+    margin-top: 20px;
+  }
+
+  .stat-box {
+    background: var(--bg-inset);
+    border: 1px solid var(--border);
+    padding: 14px 24px;
+    text-align: center;
+    flex: 1;
+    max-width: 180px;
+  }
+
+  .stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--white);
+  }
+
+  .stat-value small {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+
+  /* Generation */
+  .gen-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .gen-table tr {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .gen-table tr:last-child { border-bottom: none; }
+
+  .gen-table td {
+    padding: 10px 0;
+    vertical-align: middle;
+  }
+
+  .gen-fuel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .gen-block {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+  }
+
+  .gen-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .gen-pct {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--volt);
+    font-weight: 600;
+    text-align: right;
+    width: 45px;
+  }
+
+  .gen-bar-cell { width: 40%; padding-left: 12px; padding-right: 12px; }
+
+  .gen-bar-track {
+    height: 6px;
+    background: var(--bg-inset);
+    border: 1px solid var(--border);
+  }
+
+  .gen-bar-fill {
+    height: 100%;
+  }
+
+  .gen-mw {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  /* Interconnectors */
+  .ic-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .ic-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--bg-inset);
+    border: 1px solid var(--border);
+  }
+
+  .ic-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ic-indicator {
+    width: 3px;
+    height: 24px;
+  }
+
+  .ic-ok { background: var(--green); }
+  .ic-warn { background: var(--amber); }
+
+  .ic-name {
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .ic-partner {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .ic-right { text-align: right; }
+
+  .ic-mw {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--white);
+  }
+
+  .ic-dir {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--volt);
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+
+  /* Weather */
+  .weather-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+  }
+
+  .wx-cell {
+    background: var(--bg-inset);
+    border: 1px solid var(--border);
+    padding: 14px;
+  }
+
+  .wx-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .wx-reading {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--white);
+  }
+
+  .wx-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  .wx-tag-wind { border: 1px solid #14b8a6; color: #14b8a6; }
+  .wx-tag-solar { border: 1px solid #f59e0b; color: #f59e0b; }
+  .wx-tag-rain { border: 1px solid #60a5fa; color: #60a5fa; }
+
+  .wx-detail {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* Forecast */
+  .forecast-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    height: 100px;
+    margin-top: 8px;
+  }
+
+  .f-bar {
+    flex: 1;
+    min-width: 6px;
+  }
+
+  .f-bar-low { background: var(--volt); }
+  .f-bar-med { background: var(--amber); }
+  .f-bar-high { background: var(--red); }
+
+  .forecast-axis {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  /* Sources */
+  .sources-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .source-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .source-bar {
+    width: 3px;
+    height: 14px;
+  }
+
+  .sb-ok { background: var(--green); }
+  .sb-stale { background: var(--amber); }
+
+  .src-time { color: var(--text-dim); }
+
+  /* Responsive */
+  @media (min-width: 768px) {
+    .main { padding: 16px; gap: 2px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+    .price-value { font-size: 96px; }
+    .weather-grid { grid-template-columns: repeat(4, 1fr); }
+    .stat-box { padding: 14px 32px; }
+  }
+
+  @media (min-width: 1024px) {
+    .main { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">City<span class="accent">Lab</span></div>
+  <div class="status-badge">VIC1 Live</div>
+</header>
+
+<div class="main">
+
+  <!-- PRICE -->
+  <div class="card card-highlight price-hero">
+    <div class="price-tag">Spot Price &mdash; VIC1</div>
+    <div class="price-value">$87<span class="price-unit">/MWh</span></div>
+    <div class="price-trend">
+      <span class="trend-arrow">&darr;</span>
+      FALLING &mdash; <span style="color: var(--text-dim);">was $102</span>
+    </div>
+    <div class="price-stats">
+      <div class="stat-box">
+        <div class="stat-label">Demand</div>
+        <div class="stat-value">5,842 <small>MW</small></div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Next</div>
+        <div class="stat-value">$91 <span style="color: var(--red);">&uarr;</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+
+    <!-- GENERATION -->
+    <div class="card">
+      <div class="section-label">Generation <span class="meta">6,210 MW</span></div>
+      <table class="gen-table">
+        <tr>
+          <td><div class="gen-fuel"><div class="gen-block" style="background: #92400e;"></div><div class="gen-name">Brown Coal</div></div></td>
+          <td class="gen-pct">48%</td>
+          <td class="gen-bar-cell"><div class="gen-bar-track"><div class="gen-bar-fill" style="width: 48%; background: #b45309;"></div></div></td>
+          <td class="gen-mw">2,981</td>
+        </tr>
+        <tr>
+          <td><div class="gen-fuel"><div class="gen-block" style="background: #7c3aed;"></div><div class="gen-name">Gas</div></div></td>
+          <td class="gen-pct">18%</td>
+          <td class="gen-bar-cell"><div class="gen-bar-track"><div class="gen-bar-fill" style="width: 18%; background: #a78bfa;"></div></div></td>
+          <td class="gen-mw">1,118</td>
+        </tr>
+        <tr>
+          <td><div class="gen-fuel"><div class="gen-block" style="background: #0d9488;"></div><div class="gen-name">Wind</div></div></td>
+          <td class="gen-pct">22%</td>
+          <td class="gen-bar-cell"><div class="gen-bar-track"><div class="gen-bar-fill" style="width: 22%; background: #2dd4bf;"></div></div></td>
+          <td class="gen-mw">1,366</td>
+        </tr>
+        <tr>
+          <td><div class="gen-fuel"><div class="gen-block" style="background: #ca8a04;"></div><div class="gen-name">Solar</div></div></td>
+          <td class="gen-pct">8%</td>
+          <td class="gen-bar-cell"><div class="gen-bar-track"><div class="gen-bar-fill" style="width: 8%; background: #facc15;"></div></div></td>
+          <td class="gen-mw">497</td>
+        </tr>
+        <tr>
+          <td><div class="gen-fuel"><div class="gen-block" style="background: #1d4ed8;"></div><div class="gen-name">Hydro</div></div></td>
+          <td class="gen-pct">4%</td>
+          <td class="gen-bar-cell"><div class="gen-bar-track"><div class="gen-bar-fill" style="width: 4%; background: #60a5fa;"></div></div></td>
+          <td class="gen-mw">248</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- INTERCONNECTORS -->
+    <div class="card">
+      <div class="section-label">Interconnectors <span class="meta">NET IMPORT 320 MW</span></div>
+      <div class="ic-grid">
+        <div class="ic-row">
+          <div class="ic-left"><div class="ic-indicator ic-ok"></div><div><div class="ic-name">Basslink</div><div class="ic-partner">TAS</div></div></div>
+          <div class="ic-right"><div class="ic-mw">478 MW</div><div class="ic-dir">&rarr; VIC</div></div>
+        </div>
+        <div class="ic-row">
+          <div class="ic-left"><div class="ic-indicator ic-ok"></div><div><div class="ic-name">Heywood</div><div class="ic-partner">SA</div></div></div>
+          <div class="ic-right"><div class="ic-mw">210 MW</div><div class="ic-dir">VIC &rarr;</div></div>
+        </div>
+        <div class="ic-row">
+          <div class="ic-left"><div class="ic-indicator ic-warn"></div><div><div class="ic-name">Murraylink</div><div class="ic-partner">SA</div></div></div>
+          <div class="ic-right"><div class="ic-mw">112 MW</div><div class="ic-dir">&rarr; VIC</div></div>
+        </div>
+        <div class="ic-row">
+          <div class="ic-left"><div class="ic-indicator ic-ok"></div><div><div class="ic-name">VNI</div><div class="ic-partner">NSW</div></div></div>
+          <div class="ic-right"><div class="ic-mw">58 MW</div><div class="ic-dir">VIC &rarr;</div></div>
+        </div>
+        <div class="ic-row">
+          <div class="ic-left"><div class="ic-indicator ic-ok"></div><div><div class="ic-name">VNI West</div><div class="ic-partner">NSW</div></div></div>
+          <div class="ic-right"><div class="ic-mw">2 MW</div><div class="ic-dir">&rarr; VIC</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEATHER -->
+  <div class="card">
+    <div class="section-label">Weather &amp; Renewables</div>
+    <div class="weather-grid">
+      <div class="wx-cell">
+        <div class="wx-label">Wind</div>
+        <div class="wx-tag wx-tag-wind">STRONG</div>
+        <div class="wx-detail">peak 62 km/h</div>
+      </div>
+      <div class="wx-cell">
+        <div class="wx-label">Solar</div>
+        <div class="wx-tag wx-tag-solar">PARTLY CLOUDY</div>
+        <div class="wx-detail">peak 680 W/m&sup2;</div>
+      </div>
+      <div class="wx-cell">
+        <div class="wx-label">Rain</div>
+        <div class="wx-tag wx-tag-rain">LIGHT</div>
+        <div class="wx-detail">2.4 mm fcst</div>
+      </div>
+      <div class="wx-cell">
+        <div class="wx-label">Melbourne</div>
+        <div class="wx-reading">14&deg;</div>
+        <div class="wx-detail">max 18&deg;C</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORECAST -->
+  <div class="card">
+    <div class="section-label">Price Forecast &mdash; 24h</div>
+    <div class="forecast-row">
+      <div class="f-bar f-bar-low" style="height: 45%;"></div>
+      <div class="f-bar f-bar-low" style="height: 40%;"></div>
+      <div class="f-bar f-bar-low" style="height: 38%;"></div>
+      <div class="f-bar f-bar-low" style="height: 35%;"></div>
+      <div class="f-bar f-bar-low" style="height: 42%;"></div>
+      <div class="f-bar f-bar-low" style="height: 55%;"></div>
+      <div class="f-bar f-bar-med" style="height: 70%;"></div>
+      <div class="f-bar f-bar-med" style="height: 85%;"></div>
+      <div class="f-bar f-bar-high" style="height: 100%;"></div>
+      <div class="f-bar f-bar-high" style="height: 92%;"></div>
+      <div class="f-bar f-bar-med" style="height: 78%;"></div>
+      <div class="f-bar f-bar-low" style="height: 60%;"></div>
+      <div class="f-bar f-bar-low" style="height: 48%;"></div>
+      <div class="f-bar f-bar-low" style="height: 42%;"></div>
+      <div class="f-bar f-bar-low" style="height: 40%;"></div>
+      <div class="f-bar f-bar-low" style="height: 38%;"></div>
+      <div class="f-bar f-bar-low" style="height: 50%;"></div>
+      <div class="f-bar f-bar-med" style="height: 65%;"></div>
+      <div class="f-bar f-bar-med" style="height: 80%;"></div>
+      <div class="f-bar f-bar-med" style="height: 75%;"></div>
+      <div class="f-bar f-bar-low" style="height: 55%;"></div>
+      <div class="f-bar f-bar-low" style="height: 45%;"></div>
+      <div class="f-bar f-bar-low" style="height: 42%;"></div>
+      <div class="f-bar f-bar-low" style="height: 40%;"></div>
+    </div>
+    <div class="forecast-axis">
+      <span>NOW</span>
+      <span>+6H</span>
+      <span>+12H</span>
+      <span>+18H</span>
+      <span>+24H</span>
+    </div>
+  </div>
+
+  <!-- SOURCES -->
+  <div class="card">
+    <div class="section-label">Sources</div>
+    <div class="sources-row">
+      <div class="source-item"><span class="source-bar sb-ok"></span> OpenNEM <span class="src-time">2m</span></div>
+      <div class="source-item"><span class="source-bar sb-ok"></span> BOM <span class="src-time">18m</span></div>
+      <div class="source-item"><span class="source-bar sb-stale"></span> Solcast <span class="src-time" style="color: var(--amber);">47m stale</span></div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

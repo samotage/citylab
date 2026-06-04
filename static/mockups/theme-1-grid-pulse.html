@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CityLab — Grid Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #060a12;
+    --bg-panel: #0c1120;
+    --bg-card: #111827;
+    --cyan: #00e5ff;
+    --cyan-dim: #00e5ff40;
+    --cyan-glow: #00e5ff22;
+    --magenta: #ff2d6a;
+    --green: #00e896;
+    --amber: #ffb020;
+    --text-primary: #e8edf5;
+    --text-secondary: #7a8ba8;
+    --text-dim: #4a5568;
+    --border: #1a2540;
+    --grid-line: #0f1a2e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,229,255,0.015) 2px,
+      rgba(0,229,255,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  .header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-deep) 100%);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+    color: var(--cyan);
+    text-shadow: 0 0 20px var(--cyan-dim);
+  }
+
+  .logo span {
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  .status-live {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .pulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--green); }
+    50% { opacity: 0.4; box-shadow: 0 0 2px var(--green); }
+  }
+
+  .main {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan-dim), transparent);
+  }
+
+  /* Grid pattern on cards */
+  .card-grid::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::before {
+    content: '//';
+    color: var(--text-dim);
+  }
+
+  /* Price hero */
+  .price-hero {
+    text-align: center;
+    padding: 24px 20px;
+  }
+
+  .price-region {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .price-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 64px;
+    font-weight: 700;
+    color: var(--amber);
+    text-shadow: 0 0 40px rgba(255,176,32,0.3);
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+
+  .price-unit {
+    font-size: 20px;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  .price-trend {
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .price-meta {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .meta-item {
+    text-align: center;
+  }
+
+  .meta-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .meta-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .meta-value small {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+
+  /* Generation mix */
+  .gen-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .gen-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .gen-label {
+    width: 70px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .gen-bar-track {
+    flex: 1;
+    height: 20px;
+    background: var(--bg-deep);
+    border-radius: 2px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .gen-bar-fill {
+    height: 100%;
+    border-radius: 1px;
+    transition: width 0.6s ease;
+  }
+
+  .gen-value {
+    width: 60px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Interconnectors */
+  .ic-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ic-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+
+  .ic-name-block {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ic-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .ic-dot-ok { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .ic-dot-warn { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+
+  .ic-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .ic-partner {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .ic-flow {
+    text-align: right;
+  }
+
+  .ic-flow-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .ic-flow-dir {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--cyan);
+    letter-spacing: 1px;
+  }
+
+  /* Weather grid */
+  .weather-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .wx-cell {
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .wx-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .wx-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .wx-chip {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+
+  .wx-chip-wind { background: #0d9488; color: #5eead4; }
+  .wx-chip-solar { background: #854d0e; color: #fde047; }
+  .wx-chip-rain { background: #1e3a5f; color: #93c5fd; }
+  .wx-chip-temp { background: transparent; }
+
+  .wx-detail {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* Forecast bar chart */
+  .forecast-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 120px;
+    padding-top: 8px;
+  }
+
+  .forecast-bar {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    min-width: 8px;
+    position: relative;
+  }
+
+  .forecast-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+  }
+
+  /* Source health footer */
+  .sources-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .source-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .source-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .source-ok { background: var(--green); box-shadow: 0 0 4px var(--green); }
+  .source-stale { background: var(--amber); box-shadow: 0 0 4px var(--amber); }
+
+  /* Responsive: tablet+ */
+  @media (min-width: 768px) {
+    .main { padding: 24px; gap: 16px; }
+    .card { padding: 24px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .price-value { font-size: 80px; }
+    .weather-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  /* Desktop */
+  @media (min-width: 1024px) {
+    .main { padding: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">CITY<span>LAB</span></div>
+  <div class="status-live">
+    <span class="pulse"></span>
+    VIC1 LIVE
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- PRICE HERO -->
+  <div class="card card-grid price-hero">
+    <div class="price-region">VIC1 &middot; Spot Price</div>
+    <div class="price-value">$87<span class="price-unit">.40/MWh</span></div>
+    <div class="price-trend">&darr; falling <span style="color: var(--text-dim);">&mdash; was $102</span></div>
+    <div class="price-meta">
+      <div class="meta-item">
+        <div class="meta-label">Demand</div>
+        <div class="meta-value">5,842 <small>MW</small></div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Next Forecast</div>
+        <div class="meta-value">$91 <span style="color: var(--magenta);">&uarr;</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+
+    <!-- GENERATION MIX -->
+    <div class="card card-grid">
+      <div class="section-label">Generation Mix <span style="color: var(--text-dim); margin-left: auto; font-weight: 400;">6,210 MW total</span></div>
+      <div class="gen-bars">
+        <div class="gen-row">
+          <div class="gen-label">Brown Coal</div>
+          <div class="gen-bar-track"><div class="gen-bar-fill" style="width: 48%; background: linear-gradient(90deg, #92400e, #b45309);"></div></div>
+          <div class="gen-value">2,981 MW</div>
+        </div>
+        <div class="gen-row">
+          <div class="gen-label">Gas</div>
+          <div class="gen-bar-track"><div class="gen-bar-fill" style="width: 18%; background: linear-gradient(90deg, #7c3aed, #a78bfa);"></div></div>
+          <div class="gen-value">1,118 MW</div>
+        </div>
+        <div class="gen-row">
+          <div class="gen-label">Wind</div>
+          <div class="gen-bar-track"><div class="gen-bar-fill" style="width: 22%; background: linear-gradient(90deg, #0d9488, #2dd4bf);"></div></div>
+          <div class="gen-value">1,366 MW</div>
+        </div>
+        <div class="gen-row">
+          <div class="gen-label">Solar</div>
+          <div class="gen-bar-track"><div class="gen-bar-fill" style="width: 8%; background: linear-gradient(90deg, #ca8a04, #facc15);"></div></div>
+          <div class="gen-value">497 MW</div>
+        </div>
+        <div class="gen-row">
+          <div class="gen-label">Hydro</div>
+          <div class="gen-bar-track"><div class="gen-bar-fill" style="width: 4%; background: linear-gradient(90deg, #1d4ed8, #60a5fa);"></div></div>
+          <div class="gen-value">248 MW</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERCONNECTORS -->
+    <div class="card">
+      <div class="section-label">Interconnectors <span style="color: var(--cyan); margin-left: auto; font-weight: 400;">net import 320 MW</span></div>
+      <div class="ic-list">
+        <div class="ic-row">
+          <div class="ic-name-block">
+            <div class="ic-dot ic-dot-ok"></div>
+            <div><div class="ic-name">Basslink</div><div class="ic-partner">TAS</div></div>
+          </div>
+          <div class="ic-flow">
+            <div class="ic-flow-value">478 MW</div>
+            <div class="ic-flow-dir">&rarr; VIC</div>
+          </div>
+        </div>
+        <div class="ic-row">
+          <div class="ic-name-block">
+            <div class="ic-dot ic-dot-ok"></div>
+            <div><div class="ic-name">Heywood</div><div class="ic-partner">SA</div></div>
+          </div>
+          <div class="ic-flow">
+            <div class="ic-flow-value">210 MW</div>
+            <div class="ic-flow-dir">VIC &rarr;</div>
+          </div>
+        </div>
+        <div class="ic-row">
+          <div class="ic-name-block">
+            <div class="ic-dot ic-dot-warn"></div>
+            <div><div class="ic-name">Murraylink</div><div class="ic-partner">SA</div></div>
+          </div>
+          <div class="ic-flow">
+            <div class="ic-flow-value">112 MW</div>
+            <div class="ic-flow-dir">&rarr; VIC</div>
+          </div>
+        </div>
+        <div class="ic-row">
+          <div class="ic-name-block">
+            <div class="ic-dot ic-dot-ok"></div>
+            <div><div class="ic-name">VNI</div><div class="ic-partner">NSW</div></div>
+          </div>
+          <div class="ic-flow">
+            <div class="ic-flow-value">58 MW</div>
+            <div class="ic-flow-dir">VIC &rarr;</div>
+          </div>
+        </div>
+        <div class="ic-row">
+          <div class="ic-name-block">
+            <div class="ic-dot ic-dot-ok"></div>
+            <div><div class="ic-name">VNI West</div><div class="ic-partner">NSW</div></div>
+          </div>
+          <div class="ic-flow">
+            <div class="ic-flow-value">2 MW</div>
+            <div class="ic-flow-dir">&rarr; VIC</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEATHER -->
+  <div class="card">
+    <div class="section-label">Weather &amp; Renewable Outlook</div>
+    <div class="weather-grid">
+      <div class="wx-cell">
+        <div class="wx-label">Wind</div>
+        <div class="wx-chip wx-chip-wind">STRONG</div>
+        <div class="wx-detail">peak 62 km/h</div>
+      </div>
+      <div class="wx-cell">
+        <div class="wx-label">Solar</div>
+        <div class="wx-chip wx-chip-solar">PARTLY CLOUDY</div>
+        <div class="wx-detail">peak 680 W/m&sup2;</div>
+      </div>
+      <div class="wx-cell">
+        <div class="wx-label">Rain</div>
+        <div class="wx-chip wx-chip-rain">LIGHT</div>
+        <div class="wx-detail">2.4 mm fcst</div>
+      </div>
+      <div class="wx-cell">
+        <div class="wx-label">Melbourne</div>
+        <div class="wx-value">14&deg;</div>
+        <div class="wx-detail">max 18&deg;C</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORECAST -->
+  <div class="card card-grid">
+    <div class="section-label">Price Forecast &mdash; 24h</div>
+    <div class="forecast-bars">
+      <div class="forecast-bar" style="height: 45%; background: var(--cyan);"></div>
+      <div class="forecast-bar" style="height: 40%; background: var(--cyan);"></div>
+      <div class="forecast-bar" style="height: 38%; background: var(--cyan);"></div>
+      <div class="forecast-bar" style="height: 35%; background: var(--cyan);"></div>
+      <div class="forecast-bar" style="height: 42%; background: var(--cyan);"></div>
+      <div class="forecast-bar" style="height: 55%; background: var(--cyan);"></div>
+      <div class="forecast-bar" style="height: 70%; background: var(--amber);"></div>
+      <div class="forecast-bar" style="height: 85%; background: var(--amber);"></div>
+      <div class="forecast-bar" style="height: 100%; background: var(--magenta);"></div>
+      <div class="forecast-bar" style="height: 92%; background: var(--magenta);"></div>
+      <div class="forecast-bar" style="height: 78%; background: var(--amber);"></div>
+      <div class="forecast-bar" style="height: 60%; background: var(--cyan);"></div>
+      <div class="forecast-bar" style="height: 48%; background: var(--cyan);"></div>
+      <div class="forecast-bar" style="height: 42%; background: var(--cyan);"></div>
+      <div class="forecast-bar" style="height: 40%; background: var(--cyan);"></div>
+      <div class="forecast-bar" style="height: 38%; background: var(--cyan);"></div>
+      <div class="forecast-bar" style="height: 50%; background: var(--cyan);"></div>
+      <div class="forecast-bar" style="height: 65%; background: var(--amber);"></div>
+      <div class="forecast-bar" style="height: 80%; background: var(--amber);"></div>
+      <div class="forecast-bar" style="height: 75%; background: var(--amber);"></div>
+      <div class="forecast-bar" style="height: 55%; background: var(--cyan);"></div>
+      <div class="forecast-bar" style="height: 45%; background: var(--cyan);"></div>
+      <div class="forecast-bar" style="height: 42%; background: var(--cyan);"></div>
+      <div class="forecast-bar" style="height: 40%; background: var(--cyan);"></div>
+    </div>
+    <div class="forecast-labels">
+      <span>Now</span>
+      <span>+6h</span>
+      <span>+12h</span>
+      <span>+18h</span>
+      <span>+24h</span>
+    </div>
+  </div>
+
+  <!-- SOURCE HEALTH -->
+  <div class="card">
+    <div class="section-label">Data Sources</div>
+    <div class="sources-strip">
+      <div class="source-item"><span class="source-dot source-ok"></span> OpenNEM <span style="color: var(--text-dim);">2m ago</span></div>
+      <div class="source-item"><span class="source-dot source-ok"></span> BOM <span style="color: var(--text-dim);">18m ago</span></div>
+      <div class="source-item"><span class="source-dot source-stale"></span> Solcast <span style="color: var(--amber);">47m ago (stale)</span></div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

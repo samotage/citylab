@@ -3,27 +3,24 @@
 
 {% block content %}
 <div>
-    <h2 class="text-2xl font-bold text-gray-100 mb-6">Dashboard</h2>
+    <h2 class="text-xl font-bold text-zinc-900 mb-6">Dashboard</h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- App Status Card -->
-        <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
-            <h3 class="text-sm font-medium text-gray-400 uppercase tracking-wider mb-3">App Status</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="card">
+            <h3 class="card-label">App Status</h3>
             <div id="app-status" hx-get="/health" hx-trigger="load, every 30s" hx-swap="innerHTML">
-                <div class="text-gray-500">Loading...</div>
+                <div class="text-zinc-400 text-sm">Loading...</div>
             </div>
         </div>
 
-        <!-- Scheduled Tasks Card -->
-        <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
-            <h3 class="text-sm font-medium text-gray-400 uppercase tracking-wider mb-3">Scheduled Tasks</h3>
-            <p class="text-gray-500 text-sm">Manage via CLI: <code class="text-citylab-400">cli-citylab schedules list</code></p>
+        <div class="card">
+            <h3 class="card-label">Scheduled Tasks</h3>
+            <p class="text-zinc-500 text-sm">Manage via CLI: <code class="font-mono text-volt-600 text-xs">cli-citylab schedules list</code></p>
         </div>
 
-        <!-- Quick Start Card -->
-        <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
-            <h3 class="text-sm font-medium text-gray-400 uppercase tracking-wider mb-3">Quick Start</h3>
-            <p class="text-gray-500 text-sm">CityLab is running. Use the CLI or API to manage agent operations.</p>
+        <div class="card">
+            <h3 class="card-label">Quick Start</h3>
+            <p class="text-zinc-500 text-sm">CityLab is running. Use the CLI or API to manage agent operations.</p>
         </div>
     </div>
 </div>
