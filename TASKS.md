@@ -43,7 +43,7 @@ Branch: feature/hack-historical-backfill-continuous-collection
 
 - [x] 14. **`flask backfill` CLI command (FR3).** Add `flask backfill --source <opennem|bom|solcast> [--from YYYY-MM-DD] [--to YYYY-MM-DD] [--chunk-days N]` in `src/citylab/cli/commands.py`. Defaults: `--from` = 12 months ago, `--to` = now, `--chunk-days` = 1. Iterate chunk-by-chunk calling `fetcher.fetch_range()` → transform → store; print progress `[opennem] 2025-06-01 ... 42/365 days (11.5%) — 1,204 rows`; on chunk error log and continue, report failures at the end. Idempotent via upsert. Handle Solcast's `NotImplementedError` with a clear archive-import message.
 
-- [ ] 15. **`cli-citylab data backfill` wrapper + endpoint (FR4).** Add a `data/backfill` REST endpoint in `src/citylab/routes/api_v1/data.py` (Bearer auth) that triggers the backfill (thin wrapper shelling to the Flask CLI, or inline — builder's discretion), and a `cli-citylab data backfill --source <s> [--from] [--to]` subcommand in `src/citylab/cli_wrapper/commands_data.py` that calls it and reports progress/job status.
+- [x] 15. **`cli-citylab data backfill` wrapper + endpoint (FR4).** Add a `data/backfill` REST endpoint in `src/citylab/routes/api_v1/data.py` (Bearer auth) that triggers the backfill (thin wrapper shelling to the Flask CLI, or inline — builder's discretion), and a `cli-citylab data backfill --source <s> [--from] [--to]` subcommand in `src/citylab/cli_wrapper/commands_data.py` that calls it and reports progress/job status.
 
 ### Tests + polish
 
