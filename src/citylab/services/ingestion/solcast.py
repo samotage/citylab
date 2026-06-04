@@ -92,6 +92,16 @@ class SolcastFetcher(BaseFetcher):
             )
             return self._synthetic(backfill=backfill)
 
+    def fetch_range(self, start, end, progress=None):
+        """Solcast does not support historical backfill (D6/FR11).
+
+        The free-tier API has no historical query; Sam's production solar
+        archive will be imported via a separate interface (follow-up PRD).
+        """
+        raise NotImplementedError(
+            "Solcast historical backfill not supported — use archive import"
+        )
+
     def _calls_today(self) -> int:
         """Best-effort count of live calls made today (rate-limit guard).
 

@@ -37,7 +37,7 @@ Branch: feature/hack-historical-backfill-continuous-collection
 
 - [x] 12. **BOM `fetch_range()` — observations only (FR10, D5).** Implement `fetch_range(start, end)` fetching historical observations (not forecasts). If BOM history depth is limited, backfill as far as available and log actual coverage ("BOM backfill: N months available, requested 12").
 
-- [ ] 13. **Solcast forward-only guard (FR11).** Leave Solcast fetch/synthetic behaviour unchanged. Implement `fetch_range()` to raise `NotImplementedError("Solcast historical backfill not supported — use archive import")`.
+- [x] 13. **Solcast forward-only guard (FR11).** Leave Solcast fetch/synthetic behaviour unchanged. Implement `fetch_range()` to raise `NotImplementedError("Solcast historical backfill not supported — use archive import")`.
 
 ### CLI + agent wrapper
 
