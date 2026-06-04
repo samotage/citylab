@@ -12,10 +12,10 @@ try:
         config = yaml.safe_load(f) or {}
     server = config.get("server", {})
     host = server.get("host", "127.0.0.1")
-    port = server.get("port", 5099)
+    port = server.get("port", 15099)
 except Exception:
     host = "127.0.0.1"
-    port = 5099
+    port = 15099
 
 bind = f"{host}:{port}"
 workers = 1  # APScheduler constraint

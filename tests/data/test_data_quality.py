@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from tests.data.conftest import run_fetcher, seed_locations, make_data_source
+from tests.data.conftest import run_fetcher, seed_locations
 
 from citylab.models.energy import (
     EnergyPrice,
@@ -24,7 +24,6 @@ from citylab.models.energy import (
 from citylab.models.solar import SolarForecast
 from citylab.models.weather import WeatherForecast
 from citylab.services import data_verify
-from citylab.services.ingestion.registry import get_fetcher
 
 pytestmark = pytest.mark.integration
 
@@ -179,8 +178,18 @@ def test_consistency_generation_sums_to_total(populated):
     # Net (charging negative) should be a plausible positive VIC1 total.
     assert net > 1000, f"implausible net generation {net}MW"
 
-    # The breakdown reconstructs the net exactly (5% tolerance for rounding).
-    breakdown = sum(r.output_mw for r in rows)
+    # Per-fuel subtotals (GROUP BY path) should reconstruct the flat net.
+    # Using a separate aggregation query so both sides are computed differently.
+    fuel_subtotals = (
+        populated.query(func.sum(GenerationOutput.output_mw))
+        .filter(
+            GenerationOutput.region == "VIC1",
+            GenerationOutput.interval_start == latest_interval,
+        )
+        .group_by(GenerationOutput.fuel_type)
+        .all()
+    )
+    breakdown = sum(s[0] for s in fuel_subtotals if s[0] is not None)
     assert abs(breakdown - net) <= abs(net) * 0.05
 
 

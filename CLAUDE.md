@@ -150,7 +150,7 @@ Test database: `citylab_test` (enforced by `_force_test_database` fixture in `te
 
 - `./restart_server.sh` is the ONLY way to start/restart the server
 - NEVER run `python run_citylab.py` directly or kill processes manually
-- Server listens on `127.0.0.1:15099` (behind nginx at `https://smac.griffin-blenny.ts.net:5059`)
+- Server listens on `127.0.0.1:15099` (behind nginx at `https://smac.griffin-blenny.ts.net:5099`)
 - Flask debug reloader handles most Python file changes automatically
 
 ## Environment Variables

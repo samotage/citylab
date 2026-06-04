@@ -14,7 +14,7 @@ import yaml
 DEFAULTS = {
     "server": {
         "host": "127.0.0.1",
-        "port": 5099,
+        "port": 15099,
         "debug": True,
     },
     "logging": {

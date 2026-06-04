@@ -44,5 +44,5 @@ def get_base_url() -> str:
     config = find_config()
     server = config.get("server", {})
     host = server.get("host", "127.0.0.1")
-    port = server.get("port", 5099)
+    port = server.get("port", 15099)
     return f"http://{host}:{port}"

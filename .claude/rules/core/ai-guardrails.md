@@ -197,7 +197,7 @@ Restart is only needed for: server crash, `config.yaml` changes, dependency chan
 
 When a restart IS required:
 - **`./restart_server.sh` is the ONLY permitted method**
-- **NEVER** run `python run.py` directly, kill processes manually, or use ad-hoc port-based process killing
+- **NEVER** run `python run_citylab.py` directly, kill processes manually, or use ad-hoc port-based process killing
 - See "CRITICAL: Server & URL Rules" in CLAUDE.md for full details
 
 ## UI Change Verification

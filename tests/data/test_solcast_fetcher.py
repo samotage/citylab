@@ -7,7 +7,7 @@ short-range (hourly) forecast_period, and that the free-tier daily_call_budget
 back-off goes straight to synthetic without a live call. No network.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 from tests.data.conftest import load_fixture
 
