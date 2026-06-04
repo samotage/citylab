@@ -51,6 +51,21 @@ Branch: feature/hack-historical-backfill-continuous-collection
 
 ## Demo Script
 
+> **Environment note (src layout + Flask app discovery).** This project uses a
+> `src/` layout and is not always installed editable. The `flask` and
+> `cli-citylab` commands below require:
+> - `PYTHONPATH=src` so the `citylab` package is importable, and
+> - the correct app target. `.flaskenv` pins `FLASK_APP=citylab:create_app`
+>   (auto-loaded when `python-dotenv` is installed — a declared dependency).
+>   If `python-dotenv` is not installed, export it explicitly:
+>   `export FLASK_APP=citylab:create_app`.
+>
+> Simplest one-time provisioning so the bare commands below "just work":
+> `pip install -e .` (installs `cli-citylab` on PATH and makes `citylab`
+> importable without `PYTHONPATH`). Otherwise prefix each `flask` command with
+> `PYTHONPATH=src` and run `cli-citylab` as
+> `PYTHONPATH=src python -c "from citylab.cli_wrapper import main; main()" ...`.
+
 ```bash
 # 0. Apply the new migration (UNIQUE constraints + dedup) against dev DB
 flask db upgrade
