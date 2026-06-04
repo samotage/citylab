@@ -11,7 +11,7 @@ Branch: feature/hack-historical-backfill-continuous-collection
 
 - [x] 2. **Reflect UNIQUE constraints in models.** Add matching `UniqueConstraint` entries to `__table_args__` on the affected models in `src/citylab/models/` (Energy*, Weather*, Solar*) so the ORM metadata matches the migration. Keep names identical to task 1.
 
-- [ ] 3. **Shared upsert helper (FR2 support).** Add a small helper (e.g. `upsert_records()` in `src/citylab/services/ingestion/base.py` or a new `upsert.py`) that takes a SQLAlchemy model, a list of row dicts, and the conflict-target column names, and issues `postgresql.insert(...).on_conflict_do_update(...)` updating only the mutable (non-natural-key) columns. Returns the count of rows processed. Used by all three fetchers' `store()`.
+- [x] 3. **Shared upsert helper (FR2 support).** Add a small helper (e.g. `upsert_records()` in `src/citylab/services/ingestion/base.py` or a new `upsert.py`) that takes a SQLAlchemy model, a list of row dicts, and the conflict-target column names, and issues `postgresql.insert(...).on_conflict_do_update(...)` updating only the mutable (non-natural-key) columns. Returns the count of rows processed. Used by all three fetchers' `store()`.
 
 ### Base infrastructure — fetch_range + gap-fill
 
