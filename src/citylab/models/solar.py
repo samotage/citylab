@@ -8,7 +8,7 @@ matters for Victorian/SA solar generation and therefore energy price.
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Index, String
+from sqlalchemy import DateTime, Float, ForeignKey, Index, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from citylab.models.base import BaseModel
@@ -49,6 +49,13 @@ class SolarForecast(BaseModel):
     __tablename__ = "solar_forecasts"
     __table_args__ = (
         Index("ix_solar_forecasts_location_for", "location_id", "forecast_for"),
+        UniqueConstraint(
+            "location_id",
+            "issued_at",
+            "forecast_for",
+            "forecast_period",
+            name="uq_solar_forecasts_loc_issued_for_period",
+        ),
     )
 
     location_id: Mapped[int] = mapped_column(
