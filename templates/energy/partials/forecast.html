@@ -27,7 +27,7 @@
                     label: "Forecast",
                     data: {{ vm.forecast_series | tojson }},
                     borderColor: "#7c3aed",
-                    backgroundColor: "rgba(124,58,237,0.08)",
+                    backgroundColor: "rgba(124,58,237,0.12)",
                     borderWidth: 2,
                     pointRadius: 0,
                     tension: 0.25,
@@ -53,7 +53,7 @@
             scales: {
                 x: {
                     ticks: { color: "#a1a1aa", font: { family: "'JetBrains Mono', monospace", size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
-                    grid: { color: "#e4e4e7" }
+                    grid: { display: false }
                 },
                 y: {
                     ticks: { color: "#a1a1aa", font: { family: "'JetBrains Mono', monospace", size: 10 }, callback: function (v) { return "$" + v; } },

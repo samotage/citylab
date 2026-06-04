@@ -1,12 +1,4 @@
-<div class="flex items-center justify-between mb-4">
-    <div class="card-label mb-0">Generation Mix</div>
-    <div class="text-right">
-        <span class="font-mono text-sm font-semibold text-zinc-900">{{ '{:,.0f}'.format(vm.total_output_mw) }} MW</span>
-        {% if vm.utilisation_pct is not none %}
-        <span class="text-xs text-zinc-400 ml-1">{{ vm.utilisation_pct }}% cap</span>
-        {% endif %}
-    </div>
-</div>
+<div class="card-label">Generation Mix</div>
 
 <div class="space-y-1.5">
     {% for label in vm.labels %}
@@ -20,4 +12,9 @@
         <span class="font-mono text-xs font-medium text-zinc-900 w-16 text-right flex-shrink-0">{{ '{:,.0f}'.format(vm.outputs[loop.index0]) }} <span class="text-zinc-400">MW</span></span>
     </div>
     {% endfor %}
+</div>
+
+<div class="flex items-center justify-between mt-3 pt-3 border-t border-zinc-200 text-[13px] text-zinc-500">
+    <span>Total output</span>
+    <span class="font-mono font-semibold text-zinc-900">{{ '{:,.0f}'.format(vm.total_output_mw) }} MW</span>
 </div>

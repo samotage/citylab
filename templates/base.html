@@ -19,8 +19,8 @@
                 <div class="brand-mark">CL</div>
                 <span class="text-lg font-bold text-zinc-900 tracking-tight">CityLab</span>
                 <nav class="ml-4 flex items-center gap-1">
-                    <a href="{{ url_for('main.index') }}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors">Dashboard</a>
-                    <a href="{{ url_for('energy.dashboard') }}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors">Energy</a>
+                    <a href="{{ url_for('main.index') }}" class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors {% if request.endpoint == 'main.index' %}bg-volt-100 text-volt-600{% else %}text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900{% endif %}">Dashboard</a>
+                    <a href="{{ url_for('energy.dashboard') }}" class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors {% if request.endpoint and request.endpoint.startswith('energy') %}bg-volt-100 text-volt-600{% else %}text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900{% endif %}">Energy</a>
                 </nav>
             </div>
             <div class="flex items-center gap-4">

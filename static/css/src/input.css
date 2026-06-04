@@ -5,7 +5,10 @@
 @layer components {
   /* ---- Layout ---- */
   .card {
-    @apply bg-white rounded-xl border border-zinc-200 p-5 shadow-sm;
+    @apply bg-white rounded-xl border border-zinc-200 p-[18px] md:p-6 shadow-sm transition-colors duration-150;
+  }
+  .card:hover {
+    @apply border-zinc-300;
   }
 
   .btn-primary {
@@ -38,7 +41,7 @@
 
   /* Spot price colour states */
   .price-display {
-    @apply text-5xl font-bold tabular-nums font-mono;
+    @apply text-[56px] md:text-[72px] font-semibold tabular-nums font-mono leading-none tracking-tighter;
   }
   .price-low {
     @apply text-green-600;
@@ -141,6 +144,21 @@
   }
 }
 
+/* HTMX swap fade-in */
+.htmx-added {
+  opacity: 0;
+}
+.htmx-added.htmx-settling {
+  opacity: 1;
+  transition: opacity 200ms ease-out;
+}
+
+/* Active nav highlight */
+.nav-active {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
@@ -149,4 +167,11 @@
 @keyframes price-spike-flash {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot,
+  .price-spike {
+    animation: none;
+  }
 }
