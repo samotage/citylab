@@ -106,3 +106,14 @@ flask backfill --source solcast
 # 8. No regressions
 pytest tests/data/
 ```
+
+## Ship Status
+
+- Build: complete (16/16 tasks)
+- Tests: passed (144/144)
+- Smoke: passed (7/7 demo steps)
+
+### Known Issues
+- None code-related. Two environment-provisioning notes for the demo (NOT code defects):
+  1. `cli-citylab` binary not on PATH unless `pip install -e .` is run; the REST endpoint it wraps works.
+  2. In a shell that exports FLASK_APP=claude_headspace, bare `flask backfill` loads the wrong app; use `PYTHONPATH=src FLASK_APP=citylab:create_app flask <cmd>`. A tracked .flaskenv is provided for clean shells.
