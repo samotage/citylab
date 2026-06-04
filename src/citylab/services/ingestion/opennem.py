@@ -23,6 +23,34 @@ logger = logging.getLogger(__name__)
 
 REGION = "VIC1"
 
+
+def _parse_iso(s):
+    """Parse an ISO-8601 timestamp (tolerant of trailing Z / offsets)."""
+    if isinstance(s, datetime):
+        return s if s.tzinfo else s.replace(tzinfo=timezone.utc)
+    if not s:
+        return None
+    txt = str(s).replace("Z", "+00:00")
+    try:
+        dt = datetime.fromisoformat(txt)
+    except ValueError:
+        return None
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+
+def _interval_seconds(interval) -> int:
+    """Map an OpenNEM interval string ('5m','30m','1h','1d') to seconds."""
+    if not interval:
+        return 300
+    txt = str(interval).strip().lower()
+    units = {"m": 60, "h": 3600, "d": 86400, "w": 604800}
+    try:
+        num = int("".join(ch for ch in txt if ch.isdigit()) or "5")
+        suffix = "".join(ch for ch in txt if ch.isalpha()) or "m"
+        return num * units.get(suffix[0], 60)
+    except Exception:  # noqa: BLE001
+        return 300
+
 # Generation fuel types tracked for VIC1. Battery charging/discharging are
 # explicit, distinct fuel types per the PRD.
 FUEL_TYPES = [
@@ -73,6 +101,8 @@ class OpenNEMFetcher(BaseFetcher):
     """Fetch Victorian market data from OpenNEM (+ AEMO for forecasts/bids)."""
 
     source_type = "opennem"
+    # Gap-fill threshold base: NEM dispatch is 5-min; gap-fill triggers >10min.
+    normal_interval_seconds = 600
 
     def fetch(self):
         """Attempt live OpenNEM fetch; fall back to synthetic data on failure.
@@ -89,30 +119,260 @@ class OpenNEMFetcher(BaseFetcher):
             )
             return self._synthetic(backfill=backfill)
 
+    def _api_base(self) -> str:
+        return (self.data_source.base_url or "https://api.opennem.org.au").rstrip("/")
+
+    def _api_headers(self) -> dict:
+        headers = {"Accept": "application/json"}
+        api_key = self.config.get("api_key")
+        if api_key and not str(api_key).startswith("${"):
+            headers["Authorization"] = f"Bearer {api_key}"
+        return headers
+
     def _fetch_live(self, backfill: bool):
-        """Live OpenNEM API call. Raises on any failure to trigger fallback."""
+        """Live OpenNEM API call + real parsing. Raises on failure -> fallback.
+
+        Hits the region power/price stats endpoint and parses the time-series
+        ``data`` array into our snapshot shape. Any HTTP or parse failure raises
+        so fetch() falls back to the synthetic snapshot (D7).
+        """
         import requests
 
-        base = (self.data_source.base_url or "https://api.opennem.org.au").rstrip("/")
-        # OpenNEM's public data endpoint for a region's power/price stats.
-        # We keep the call simple and tolerant; any failure falls through to
-        # the synthetic snapshot so the demo never breaks.
-        url = f"{base}/stats/power/network/NEM/{REGION}"
+        url = f"{self._api_base()}/stats/power/network/NEM/{REGION}"
         timeout = self.config.get("timeout_seconds", 8)
-        resp = requests.get(url, timeout=timeout)
+        resp = requests.get(url, headers=self._api_headers(), timeout=timeout)
         resp.raise_for_status()
         payload = resp.json()
-        # Parsing OpenNEM's full schema is out of scope for the hackathon demo;
-        # if the structure isn't what we expect we fall back. The synthetic path
-        # produces the same shape so downstream code is identical.
-        if not isinstance(payload, dict) or "data" not in payload:
-            raise ValueError("Unexpected OpenNEM payload shape")
-        # For hackathon scope we still derive a snapshot synthetically but stamp
-        # it as live-derived if the endpoint responded. (Full series parsing is
-        # a follow-up.)
-        snap = self._synthetic(backfill=backfill)
+        snap = self._parse_payload(payload)
+        snap["source"] = "live"
+        logger.info("OpenNEM live parse OK: %s prices, %s gen rows",
+                    len(snap["prices"]), len(snap["generation"]))
+        return snap
+
+    # ------------------------------------------------------------------
+    # Real OpenNEM response parsing
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _history_points(history: dict) -> list[tuple]:
+        """Expand an OpenNEM history block into [(timestamp, value), ...].
+
+        history = {start, last, interval, data: [v0, v1, ...]} where each value
+        is spaced ``interval`` apart starting at ``start``.
+        """
+        if not isinstance(history, dict):
+            return []
+        start = _parse_iso(history.get("start"))
+        values = history.get("data") or []
+        if start is None or not values:
+            return []
+        step = timedelta(seconds=_interval_seconds(history.get("interval")))
+        out = []
+        for i, v in enumerate(values):
+            if v is None:
+                continue
+            out.append((start + step * i, v))
+        return out
+
+    def _parse_payload(self, payload: dict) -> dict:
+        """Parse an OpenNEM stats payload into the snapshot shape.
+
+        Tolerant of the legacy OPDM stats schema: top-level ``data`` is a list
+        of series, each with a ``data_type`` / ``type`` (power|price|demand), an
+        optional ``fuel_tech``, a ``history`` block and optionally a
+        ``forecast`` block.
+        """
+        if not isinstance(payload, dict):
+            raise ValueError("Unexpected OpenNEM payload shape (not an object)")
+        series = payload.get("data")
+        if not isinstance(series, list) or not series:
+            raise ValueError("OpenNEM payload missing data series")
+
+        prices: list[dict] = []
+        demand: list[dict] = []
+        generation: list[dict] = []
+        forecasts: list[dict] = []
+
+        latest_ts = None
+        parsed_any = False
+
+        for s in series:
+            if not isinstance(s, dict):
+                continue
+            dtype = (s.get("data_type") or s.get("type") or "").lower()
+            fuel_raw = s.get("fuel_tech") or s.get("fueltech") or s.get(
+                "fueltech_group"
+            )
+            history = s.get("history") or {}
+            points = self._history_points(history)
+            if points:
+                parsed_any = True
+                latest_ts = max(latest_ts or points[-1][0], points[-1][0])
+
+            if dtype == "price":
+                for ts, v in points:
+                    prices.append(
+                        {
+                            "region": REGION,
+                            "interval_start": ts,
+                            "interval_end": ts
+                            + timedelta(
+                                seconds=_interval_seconds(history.get("interval"))
+                            ),
+                            "interval_type": "5min",
+                            "price_aud_mwh": round(float(v), 2),
+                        }
+                    )
+            elif dtype == "demand":
+                for ts, v in points:
+                    demand.append(
+                        {
+                            "region": REGION,
+                            "interval_start": ts,
+                            "demand_mw": round(float(v), 1),
+                            "demand_type": "actual",
+                        }
+                    )
+            elif dtype == "power" and fuel_raw:
+                fuel = OPENNEM_FUEL_MAP.get(str(fuel_raw).lower(), str(fuel_raw).lower())
+                for ts, v in points:
+                    generation.append(
+                        {
+                            "region": REGION,
+                            "interval_start": ts,
+                            "fuel_type": fuel,
+                            "output_mw": round(float(v), 1),
+                            "capacity_mw": None,
+                        }
+                    )
+
+            # Price forecast (pre-dispatch) if a forecast block is present.
+            forecast = s.get("forecast")
+            if dtype == "price" and isinstance(forecast, dict):
+                issued = latest_ts or datetime.now(timezone.utc)
+                for ts, v in self._history_points(forecast):
+                    forecasts.append(
+                        {
+                            "region": REGION,
+                            "forecast_issued_at": issued,
+                            "forecast_for": ts,
+                            "price_aud_mwh": round(float(v), 2),
+                            "forecast_type": "predispatch_30min",
+                        }
+                    )
+
+        if not parsed_any:
+            raise ValueError("OpenNEM payload had no parseable history")
+
+        return {
+            "source": "live",
+            "as_of": latest_ts or datetime.now(timezone.utc),
+            "prices": prices,
+            "demand": demand,
+            "generation": generation,
+            # Interconnector flows + bid submissions aren't in the power/price
+            # stats endpoint; leave empty (synthetic path covers them for demo).
+            "interconnectors": [],
+            "submissions": [],
+            "forecasts": forecasts,
+        }
+
+    # ------------------------------------------------------------------
+    # Historical date-range fetching (FR8)
+    # ------------------------------------------------------------------
+
+    def fetch_range(self, start, end, progress=None):
+        """Fetch VIC1 data for [start, end).
+
+        Tries the OpenNEM date-range query; on any HTTP/parse failure falls back
+        to a synthetic snapshot covering the range so backfill/gap-fill still
+        produce continuous data for the demo (D7). Returns one snapshot payload
+        covering the whole range.
+        """
+        start = _parse_iso(start)
+        end = _parse_iso(end)
+        if start is None or end is None or start >= end:
+            return self._synthetic_range(start, end)
+
+        try:
+            return self._fetch_range_live(start, end)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "OpenNEM range fetch unavailable (%s); using synthetic range "
+                "%s..%s", exc, start.date(), end.date(),
+            )
+            return self._synthetic_range(start, end)
+
+    def _fetch_range_live(self, start, end):
+        """Live date-range query against OpenNEM, parsed via _parse_payload."""
+        import requests
+
+        url = f"{self._api_base()}/stats/power/network/NEM/{REGION}"
+        timeout = self.config.get("timeout_seconds", 12)
+        params = {
+            "date_start": start.date().isoformat(),
+            "date_end": end.date().isoformat(),
+        }
+        resp = requests.get(
+            url, headers=self._api_headers(), params=params, timeout=timeout
+        )
+        resp.raise_for_status()
+        snap = self._parse_payload(resp.json())
+        # Clip to the requested window.
+        snap = self._clip_range(snap, start, end)
         snap["source"] = "live"
         return snap
+
+    @staticmethod
+    def _clip_range(snap: dict, start, end) -> dict:
+        def keep(ts):
+            return start <= ts < end
+
+        snap["prices"] = [p for p in snap["prices"] if keep(p["interval_start"])]
+        snap["demand"] = [d for d in snap["demand"] if keep(d["interval_start"])]
+        snap["generation"] = [
+            g for g in snap["generation"] if keep(g["interval_start"])
+        ]
+        return snap
+
+    def _synthetic_range(self, start, end) -> dict:
+        """Synthetic VIC1 snapshot covering [start, end) at 5-min resolution."""
+        if start is None or end is None or start >= end:
+            return {
+                "source": "synthetic",
+                "as_of": datetime.now(timezone.utc),
+                "prices": [], "demand": [], "generation": [],
+                "interconnectors": [], "submissions": [], "forecasts": [],
+            }
+        # Align start to 5-min boundary.
+        s = start.replace(second=0, microsecond=0)
+        s = s - timedelta(minutes=s.minute % 5)
+        intervals = []
+        t = s
+        # Cap volume defensively (e.g. one day = 288 intervals).
+        max_intervals = 7 * 24 * 12
+        while t < end and len(intervals) < max_intervals:
+            intervals.append(t)
+            t += timedelta(minutes=5)
+
+        prices = [self._price_at(t) for t in intervals]
+        demand = [self._demand_at(t) for t in intervals]
+        generation = []
+        interconnectors = []
+        for t in intervals:
+            generation.extend(self._generation_at(t))
+            interconnectors.extend(self._interconnectors_at(t))
+
+        return {
+            "source": "synthetic",
+            "as_of": intervals[-1] if intervals else end,
+            "prices": prices,
+            "demand": demand,
+            "generation": generation,
+            "interconnectors": interconnectors,
+            "submissions": [],
+            "forecasts": [],
+        }
 
     # ------------------------------------------------------------------
     # Synthetic snapshot — realistic Victorian market data
@@ -317,13 +577,48 @@ class OpenNEMFetcher(BaseFetcher):
             records.append(PriceForecast(**f))
         return records
 
-    def store(self, records) -> int:
-        from citylab.extensions import db
+    # Natural-key conflict targets per model (must match the UNIQUE constraints
+    # in migration eb3b9c51c3f5).
+    _CONFLICT_KEYS = {
+        "EnergyPrice": ["region", "interval_start", "interval_type"],
+        "EnergyDemand": ["region", "interval_start", "demand_type"],
+        "GenerationOutput": ["region", "interval_start", "fuel_type"],
+        "InterconnectorFlow": ["interconnector_id", "interval_start"],
+        "GeneratorSubmission": ["unit_id", "interval_start", "bid_band"],
+        "PriceForecast": [
+            "region",
+            "forecast_issued_at",
+            "forecast_for",
+            "forecast_type",
+        ],
+    }
 
+    def store(self, records) -> int:
+        """Upsert records grouped by model class (idempotent — FR2)."""
+        from citylab.services.ingestion.upsert import (
+            instance_to_dict,
+            upsert_records,
+        )
+
+        grouped: dict = {}
         for rec in records:
-            db.session.add(rec)
-        db.session.flush()
-        return len(records)
+            grouped.setdefault(type(rec), []).append(rec)
+
+        total = 0
+        for model, instances in grouped.items():
+            conflict = self._CONFLICT_KEYS.get(model.__name__)
+            rows = [instance_to_dict(i) for i in instances]
+            if conflict is None:
+                # Fallback (shouldn't happen): naive add.
+                from citylab.extensions import db
+
+                for inst in instances:
+                    db.session.add(inst)
+                db.session.flush()
+                total += len(instances)
+                continue
+            total += upsert_records(model, rows, conflict)
+        return total
 
 
 register_fetcher("opennem", OpenNEMFetcher)

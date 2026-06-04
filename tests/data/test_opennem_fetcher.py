@@ -143,7 +143,7 @@ def test_live_path_raises_on_unexpected_payload_then_falls_back(db_session, monk
 
     import requests
 
-    def _fake_get(url, timeout=None):
+    def _fake_get(url, timeout=None, headers=None, params=None):
         return _Resp()
 
     # _fetch_live does `import requests` locally, so patch requests.get itself.

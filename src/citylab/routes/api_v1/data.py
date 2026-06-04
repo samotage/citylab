@@ -87,6 +87,43 @@ def trigger_fetch(source_id):
     return jsonify({"ok": result["ok"], "data": result})
 
 
+@data_api_bp.route("/data/backfill", methods=["POST"])
+@require_api_token
+def backfill():
+    """Trigger a historical backfill for a source (FR4).
+
+    Body: {"source": "opennem"|"bom"|"solcast", "from": "YYYY-MM-DD"?,
+    "to": "YYYY-MM-DD"?, "chunk_days": int?}. Runs inline and returns the job
+    result (rows written, chunks, failures). For very large ranges prefer the
+    `flask backfill` CLI which streams progress and can be backgrounded.
+    """
+    from citylab.cli.commands import run_backfill
+
+    body = request.get_json(silent=True) or {}
+    source = body.get("source")
+    if source not in ("opennem", "bom", "solcast"):
+        return (
+            jsonify(
+                {
+                    "ok": False,
+                    "error": "source must be one of opennem|bom|solcast",
+                    "code": "BAD_SOURCE",
+                }
+            ),
+            400,
+        )
+
+    result = run_backfill(
+        source,
+        body.get("from"),
+        body.get("to"),
+        body.get("chunk_days", 1),
+    )
+    ok = result.get("error") is None
+    status = 200 if ok else 400
+    return jsonify({"ok": ok, "data": result}), status
+
+
 @data_api_bp.route("/data/market-intelligence", methods=["GET"])
 @require_api_token
 def market_intelligence():

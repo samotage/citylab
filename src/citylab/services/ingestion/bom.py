@@ -66,11 +66,81 @@ _WIND_DIRS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 # Backfill window for forecasts on first run (PRD: 3 days vs energy's 7).
 BACKFILL_DAYS = 3
 
+# Geohash base-32 alphabet (BOM uses 6-char geohashes to address locations).
+_GEOHASH_BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz"
+
+
+def geohash_encode(lat: float, lon: float, precision: int = 6) -> str:
+    """Encode a lat/lon to a geohash string.
+
+    BOM's v1 location endpoints are keyed by a ~6-char geohash. This is the
+    standard geohash algorithm (Niemeyer); precision 6 ~= 1.2km cell, which is
+    what BOM uses for its location ids.
+    """
+    lat_interval = [-90.0, 90.0]
+    lon_interval = [-180.0, 180.0]
+    geohash = []
+    bits = [16, 8, 4, 2, 1]
+    bit = 0
+    ch = 0
+    even = True
+    while len(geohash) < precision:
+        if even:
+            mid = (lon_interval[0] + lon_interval[1]) / 2
+            if lon > mid:
+                ch |= bits[bit]
+                lon_interval[0] = mid
+            else:
+                lon_interval[1] = mid
+        else:
+            mid = (lat_interval[0] + lat_interval[1]) / 2
+            if lat > mid:
+                ch |= bits[bit]
+                lat_interval[0] = mid
+            else:
+                lat_interval[1] = mid
+        even = not even
+        if bit < 4:
+            bit += 1
+        else:
+            geohash.append(_GEOHASH_BASE32[ch])
+            bit = 0
+            ch = 0
+    return "".join(geohash)
+
+
+def location_geohash(loc) -> str | None:
+    """Resolve the BOM geohash for a WeatherLocation.
+
+    Prefers an explicit bom_forecast_area_id (used as the geohash if set);
+    otherwise derives it from lat/lon. Returns None if neither is available.
+    """
+    explicit = getattr(loc, "bom_forecast_area_id", None)
+    if explicit:
+        return str(explicit)
+    if loc.latitude is not None and loc.longitude is not None:
+        return geohash_encode(loc.latitude, loc.longitude, precision=6)
+    return None
+
+
+def _bom_parse_time(s):
+    """Parse a BOM ISO timestamp (e.g. '2025-06-01T00:00:00Z')."""
+    if not s:
+        return None
+    txt = str(s).replace("Z", "+00:00")
+    try:
+        dt = datetime.fromisoformat(txt)
+    except ValueError:
+        return None
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
 
 class BOMFetcher(BaseFetcher):
     """Fetch BOM forecasts + observations for all seeded weather locations."""
 
     source_type = "bom"
+    # BOM issues forecasts ~3-hourly; gap-fill triggers when gap > 6h (FR5).
+    normal_interval_seconds = 6 * 3600
 
     def fetch(self):
         """Attempt live BOM fetch; fall back to synthetic snapshot on failure.
@@ -93,26 +163,217 @@ class BOMFetcher(BaseFetcher):
 
         return db.session.query(WeatherLocation).order_by(WeatherLocation.id).all()
 
-    def _fetch_live(self, backfill: bool):
-        """Live BOM API call. Raises on any failure to trigger fallback.
+    def _api_base(self) -> str:
+        return (
+            self.data_source.base_url or "https://api.weather.bom.gov.au"
+        ).rstrip("/")
 
-        BOM's geohash-based endpoints are unstable; we attempt a lightweight
-        reachability probe and, if it responds, still derive the snapshot
-        synthetically (full per-location series parsing is a follow-up) but
-        stamp it as live-derived. Any failure falls through to synthetic.
+    def _fetch_live(self, backfill: bool):
+        """Live BOM API call + real parsing. Raises on failure -> fallback.
+
+        For each seeded WeatherLocation we resolve a geohash and pull the daily
+        + 3-hourly forecasts and current observation, parsing temperature, wind,
+        rainfall, humidity, cloud cover. Any HTTP/parse failure raises so
+        fetch() falls back to the synthetic snapshot (D7).
         """
         import requests
 
-        base = (
-            self.data_source.base_url or "https://api.weather.bom.gov.au"
-        ).rstrip("/")
+        base = self._api_base()
         timeout = self.config.get("timeout_seconds", 8)
-        # Probe a known BOM API path. If unreachable, raise -> synthetic.
-        resp = requests.get(f"{base}/v1/locations", timeout=timeout)
-        resp.raise_for_status()
-        snap = self._synthetic(backfill=backfill)
-        snap["source"] = "live"
-        return snap
+        session = requests.Session()
+        locations = self._locations()
+        if not locations:
+            raise RuntimeError("no weather locations seeded")
+
+        out_locations = []
+        parsed_any = False
+        for loc in locations:
+            geohash = location_geohash(loc)
+            if not geohash:
+                continue
+            forecasts = []
+            observation = None
+            # Daily forecasts
+            try:
+                r = session.get(
+                    f"{base}/v1/locations/{geohash}/forecasts/daily",
+                    timeout=timeout,
+                )
+                r.raise_for_status()
+                forecasts.extend(self._parse_daily(loc, r.json()))
+                parsed_any = True
+            except Exception as exc:  # noqa: BLE001
+                logger.debug("BOM daily forecast failed for %s: %s", loc.name, exc)
+            # 3-hourly forecasts
+            try:
+                r = session.get(
+                    f"{base}/v1/locations/{geohash}/forecasts/3-hourly",
+                    timeout=timeout,
+                )
+                r.raise_for_status()
+                forecasts.extend(self._parse_hourly(loc, r.json()))
+                parsed_any = True
+            except Exception as exc:  # noqa: BLE001
+                logger.debug("BOM 3-hourly failed for %s: %s", loc.name, exc)
+            # Observations
+            try:
+                r = session.get(
+                    f"{base}/v1/locations/{geohash}/observations",
+                    timeout=timeout,
+                )
+                r.raise_for_status()
+                observation = self._parse_observation(loc, r.json())
+                if observation:
+                    parsed_any = True
+            except Exception as exc:  # noqa: BLE001
+                logger.debug("BOM observation failed for %s: %s", loc.name, exc)
+
+            out_locations.append(
+                {
+                    "location_id": loc.id,
+                    "forecasts": forecasts,
+                    "observation": observation,
+                }
+            )
+
+        if not parsed_any:
+            raise RuntimeError("BOM returned no parseable data for any location")
+
+        return {"source": "live", "as_of": datetime.now(timezone.utc),
+                "locations": out_locations}
+
+    # ------------------------------------------------------------------
+    # Real BOM response parsing
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _rain_amount(rain: dict):
+        """Best-effort mid-point rainfall (mm) from a BOM rain block."""
+        if not isinstance(rain, dict):
+            return None
+        amount = rain.get("amount") or {}
+        lo = amount.get("min")
+        hi = amount.get("max")
+        vals = [v for v in (lo, hi) if isinstance(v, (int, float))]
+        if not vals:
+            return None
+        return round(sum(vals) / len(vals), 1)
+
+    def _parse_daily(self, loc, payload: dict) -> list[dict]:
+        issued = datetime.now(timezone.utc)
+        rows = []
+        for d in (payload or {}).get("data", []) or []:
+            target = _bom_parse_time(d.get("date") or d.get("time"))
+            if target is None:
+                continue
+            rain = d.get("rain") or {}
+            rows.append(
+                {
+                    "location_id": loc.id,
+                    "issued_at": issued,
+                    "forecast_for": target,
+                    "forecast_period": "daily",
+                    "temperature_min_c": d.get("temp_min"),
+                    "temperature_max_c": d.get("temp_max"),
+                    "rainfall_mm": self._rain_amount(rain),
+                    "rainfall_probability_pct": rain.get("chance"),
+                    "weather_description": d.get("short_text")
+                    or d.get("extended_text"),
+                }
+            )
+        return rows
+
+    def _parse_hourly(self, loc, payload: dict) -> list[dict]:
+        issued = datetime.now(timezone.utc)
+        rows = []
+        for h in (payload or {}).get("data", []) or []:
+            target = _bom_parse_time(h.get("time"))
+            if target is None:
+                continue
+            wind = h.get("wind") or {}
+            rain = h.get("rain") or {}
+            rows.append(
+                {
+                    "location_id": loc.id,
+                    "issued_at": issued,
+                    "forecast_for": target,
+                    "forecast_period": "3hourly",
+                    "temperature_c": h.get("temp"),
+                    "wind_speed_kmh": wind.get("speed_kilometre"),
+                    "wind_direction": wind.get("direction"),
+                    "wind_gust_kmh": (h.get("wind_gust") or {}).get(
+                        "speed_kilometre"
+                    ),
+                    "rainfall_mm": self._rain_amount(rain),
+                    "rainfall_probability_pct": rain.get("chance"),
+                    "humidity_pct": h.get("relative_humidity"),
+                }
+            )
+        return rows
+
+    def _parse_observation(self, loc, payload: dict):
+        data = (payload or {}).get("data") or {}
+        if not data:
+            return None
+        observed = _bom_parse_time(data.get("time")) or datetime.now(timezone.utc)
+        wind = data.get("wind") or {}
+        gust = data.get("gust") or {}
+        return {
+            "location_id": loc.id,
+            "observed_at": observed,
+            "temperature_c": data.get("temp"),
+            "wind_speed_kmh": wind.get("speed_kilometre"),
+            "wind_direction": wind.get("direction"),
+            "wind_gust_kmh": gust.get("speed_kilometre"),
+            "rainfall_since_9am_mm": data.get("rain_since_9am"),
+            "humidity_pct": data.get("humidity"),
+            "pressure_hpa": data.get("pressure"),
+        }
+
+    # ------------------------------------------------------------------
+    # Historical observation backfill (FR10, D5 — observations only)
+    # ------------------------------------------------------------------
+
+    def fetch_range(self, start, end, progress=None):
+        """Backfill historical observations for [start, end) (D5: obs only).
+
+        BOM's public v1 observations endpoint returns only recent observations,
+        so deep history isn't reachable live. We synthesise hourly observations
+        across the requested range (region-plausible) so the demo has a
+        continuous observation series, and log the coverage produced. Forecasts
+        are NOT backfilled (you can't retrieve a stale forecast).
+        """
+        start = _bom_parse_time(start)
+        end = _bom_parse_time(end)
+        if start is None or end is None or start >= end:
+            return {"source": "synthetic", "as_of": datetime.now(timezone.utc),
+                    "locations": []}
+
+        locations = self._locations()
+        # Cap volume: hourly steps, max ~ 12 months.
+        max_steps = 366 * 24
+        out_locations = []
+        total_obs = 0
+        for loc in locations:
+            obs_rows = []
+            t = start.replace(minute=0, second=0, microsecond=0)
+            steps = 0
+            while t < end and steps < max_steps:
+                obs_rows.append(self._observation_for(loc, t))
+                t += timedelta(hours=1)
+                steps += 1
+            total_obs += len(obs_rows)
+            out_locations.append(
+                {"location_id": loc.id, "forecasts": [], "observations": obs_rows}
+            )
+
+        months = round((end - start).days / 30.0, 1)
+        logger.info(
+            "BOM backfill: synthesised %s months of hourly observations "
+            "(%s rows across %s locations); requested %s..%s",
+            months, total_obs, len(locations), start.date(), end.date(),
+        )
+        return {"source": "synthetic", "as_of": end, "locations": out_locations}
 
     # ------------------------------------------------------------------
     # Synthetic snapshot — realistic per-location weather
@@ -328,20 +589,53 @@ class BOMFetcher(BaseFetcher):
 
         records = []
         for loc_block in raw["locations"]:
-            for f in loc_block["forecasts"]:
+            for f in loc_block.get("forecasts", []):
                 records.append(WeatherForecast(**f))
+            # Single current observation (forward path) ...
             obs = loc_block.get("observation")
             if obs:
                 records.append(WeatherObservation(**obs))
+            # ... or a list of backfilled observations (fetch_range path).
+            for o in loc_block.get("observations", []) or []:
+                records.append(WeatherObservation(**o))
         return records
 
-    def store(self, records) -> int:
-        from citylab.extensions import db
+    # Natural-key conflict targets (must match migration eb3b9c51c3f5).
+    _CONFLICT_KEYS = {
+        "WeatherForecast": [
+            "location_id",
+            "issued_at",
+            "forecast_for",
+            "forecast_period",
+        ],
+        "WeatherObservation": ["location_id", "observed_at"],
+    }
 
+    def store(self, records) -> int:
+        """Upsert weather forecasts + observations (idempotent — FR2)."""
+        from citylab.services.ingestion.upsert import (
+            instance_to_dict,
+            upsert_records,
+        )
+
+        grouped: dict = {}
         for rec in records:
-            db.session.add(rec)
-        db.session.flush()
-        return len(records)
+            grouped.setdefault(type(rec), []).append(rec)
+
+        total = 0
+        for model, instances in grouped.items():
+            conflict = self._CONFLICT_KEYS.get(model.__name__)
+            rows = [instance_to_dict(i) for i in instances]
+            if conflict is None:
+                from citylab.extensions import db
+
+                for inst in instances:
+                    db.session.add(inst)
+                db.session.flush()
+                total += len(instances)
+                continue
+            total += upsert_records(model, rows, conflict)
+        return total
 
 
 register_fetcher("bom", BOMFetcher)

@@ -40,6 +40,32 @@ def trigger_fetch(source_id):
     print(json.dumps(result, indent=2))
 
 
+@data_group.command("backfill")
+@click.option(
+    "--source",
+    required=True,
+    type=click.Choice(["opennem", "bom", "solcast"]),
+    help="Data source to backfill.",
+)
+@click.option("--from", "from_date", default=None, help="Start date YYYY-MM-DD.")
+@click.option("--to", "to_date", default=None, help="End date YYYY-MM-DD.")
+@click.option("--chunk-days", default=1, type=int, help="Chunk size in days.")
+def backfill(source, from_date, to_date, chunk_days):
+    """Trigger a historical backfill for a data source (agent-facing).
+
+    Calls the data/backfill endpoint and prints the job result. For very large
+    ranges, run `flask backfill` directly on the server for streamed progress.
+    """
+    client = APIClient()
+    payload = {"source": source, "chunk_days": chunk_days}
+    if from_date:
+        payload["from"] = from_date
+    if to_date:
+        payload["to"] = to_date
+    result = client.post("/api/v1/data/backfill", payload)
+    print(json.dumps(result, indent=2))
+
+
 @data_group.command("market-intelligence")
 @click.option("--region", default="VIC1", help="Region (default VIC1)")
 def market_intelligence(region):

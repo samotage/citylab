@@ -7,7 +7,7 @@ plus a composite (region, interval_start, fuel_type) on GenerationOutput.
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, Index, String
+from sqlalchemy import DateTime, Float, Index, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from citylab.models.base import BaseModel
@@ -19,6 +19,12 @@ class EnergyPrice(BaseModel):
     __tablename__ = "energy_prices"
     __table_args__ = (
         Index("ix_energy_prices_region_interval", "region", "interval_start"),
+        UniqueConstraint(
+            "region",
+            "interval_start",
+            "interval_type",
+            name="uq_energy_prices_region_interval_type",
+        ),
     )
 
     region: Mapped[str] = mapped_column(String(20), nullable=False)
@@ -51,6 +57,12 @@ class EnergyDemand(BaseModel):
     __tablename__ = "energy_demand"
     __table_args__ = (
         Index("ix_energy_demand_region_interval", "region", "interval_start"),
+        UniqueConstraint(
+            "region",
+            "interval_start",
+            "demand_type",
+            name="uq_energy_demand_region_interval_type",
+        ),
     )
 
     region: Mapped[str] = mapped_column(String(20), nullable=False)
@@ -85,6 +97,12 @@ class GenerationOutput(BaseModel):
             "interval_start",
             "fuel_type",
         ),
+        UniqueConstraint(
+            "region",
+            "interval_start",
+            "fuel_type",
+            name="uq_generation_output_region_interval_fuel",
+        ),
     )
 
     region: Mapped[str] = mapped_column(String(20), nullable=False)
@@ -118,6 +136,11 @@ class InterconnectorFlow(BaseModel):
             "ix_interconnector_flows_from_interval", "from_region", "interval_start"
         ),
         Index("ix_interconnector_flows_id_interval", "interconnector_id", "interval_start"),
+        UniqueConstraint(
+            "interconnector_id",
+            "interval_start",
+            name="uq_interconnector_flows_id_interval",
+        ),
     )
 
     interconnector_id: Mapped[str] = mapped_column(String(40), nullable=False)
@@ -153,6 +176,12 @@ class GeneratorSubmission(BaseModel):
     __table_args__ = (
         Index(
             "ix_generator_submissions_region_interval", "region", "interval_start"
+        ),
+        UniqueConstraint(
+            "unit_id",
+            "interval_start",
+            "bid_band",
+            name="uq_generator_submissions_unit_interval_band",
         ),
     )
 
@@ -190,6 +219,13 @@ class PriceForecast(BaseModel):
     __tablename__ = "price_forecasts"
     __table_args__ = (
         Index("ix_price_forecasts_region_for", "region", "forecast_for"),
+        UniqueConstraint(
+            "region",
+            "forecast_issued_at",
+            "forecast_for",
+            "forecast_type",
+            name="uq_price_forecasts_region_issued_for_type",
+        ),
     )
 
     region: Mapped[str] = mapped_column(String(20), nullable=False)

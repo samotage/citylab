@@ -61,6 +61,9 @@ class SolcastFetcher(BaseFetcher):
     """Fetch Solcast solar forecasts for all seeded solar locations."""
 
     source_type = "solcast"
+    # Solcast updates hourly; gap-fill threshold base is 2h (FR5). Solcast has
+    # no fetch_range so gap-fill is skipped regardless.
+    normal_interval_seconds = 2 * 3600
 
     def fetch(self):
         """Attempt live Solcast fetch; fall back to synthetic on failure.
@@ -88,6 +91,16 @@ class SolcastFetcher(BaseFetcher):
                 exc,
             )
             return self._synthetic(backfill=backfill)
+
+    def fetch_range(self, start, end, progress=None):
+        """Solcast does not support historical backfill (D6/FR11).
+
+        The free-tier API has no historical query; Sam's production solar
+        archive will be imported via a separate interface (follow-up PRD).
+        """
+        raise NotImplementedError(
+            "Solcast historical backfill not supported — use archive import"
+        )
 
     def _calls_today(self) -> int:
         """Best-effort count of live calls made today (rate-limit guard).
@@ -274,13 +287,21 @@ class SolcastFetcher(BaseFetcher):
                 records.append(SolarForecast(**f))
         return records
 
-    def store(self, records) -> int:
-        from citylab.extensions import db
+    # Natural-key conflict target (must match migration eb3b9c51c3f5).
+    _CONFLICT_KEYS = ["location_id", "issued_at", "forecast_for", "forecast_period"]
 
-        for rec in records:
-            db.session.add(rec)
-        db.session.flush()
-        return len(records)
+    def store(self, records) -> int:
+        """Upsert solar forecasts (idempotent — FR2)."""
+        from citylab.services.ingestion.upsert import (
+            instance_to_dict,
+            upsert_records,
+        )
+
+        if not records:
+            return 0
+        model = type(records[0])
+        rows = [instance_to_dict(r) for r in records]
+        return upsert_records(model, rows, self._CONFLICT_KEYS)
 
 
 register_fetcher("solcast", SolcastFetcher)

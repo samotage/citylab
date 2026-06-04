@@ -8,7 +8,7 @@ region_relevance ("hydro_catchment", "wind_corridor", "demand_centre",
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Index, String, Text
+from sqlalchemy import DateTime, Float, ForeignKey, Index, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from citylab.models.base import BaseModel
@@ -49,6 +49,13 @@ class WeatherForecast(BaseModel):
     __tablename__ = "weather_forecasts"
     __table_args__ = (
         Index("ix_weather_forecasts_location_for", "location_id", "forecast_for"),
+        UniqueConstraint(
+            "location_id",
+            "issued_at",
+            "forecast_for",
+            "forecast_period",
+            name="uq_weather_forecasts_loc_issued_for_period",
+        ),
     )
 
     location_id: Mapped[int] = mapped_column(
@@ -108,6 +115,11 @@ class WeatherObservation(BaseModel):
             "ix_weather_observations_location_observed",
             "location_id",
             "observed_at",
+        ),
+        UniqueConstraint(
+            "location_id",
+            "observed_at",
+            name="uq_weather_observations_loc_observed",
         ),
     )
 
