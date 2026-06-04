@@ -337,13 +337,42 @@ class BOMFetcher(BaseFetcher):
                 records.append(WeatherObservation(**obs))
         return records
 
-    def store(self, records) -> int:
-        from citylab.extensions import db
+    # Natural-key conflict targets (must match migration eb3b9c51c3f5).
+    _CONFLICT_KEYS = {
+        "WeatherForecast": [
+            "location_id",
+            "issued_at",
+            "forecast_for",
+            "forecast_period",
+        ],
+        "WeatherObservation": ["location_id", "observed_at"],
+    }
 
+    def store(self, records) -> int:
+        """Upsert weather forecasts + observations (idempotent — FR2)."""
+        from citylab.services.ingestion.upsert import (
+            instance_to_dict,
+            upsert_records,
+        )
+
+        grouped: dict = {}
         for rec in records:
-            db.session.add(rec)
-        db.session.flush()
-        return len(records)
+            grouped.setdefault(type(rec), []).append(rec)
+
+        total = 0
+        for model, instances in grouped.items():
+            conflict = self._CONFLICT_KEYS.get(model.__name__)
+            rows = [instance_to_dict(i) for i in instances]
+            if conflict is None:
+                from citylab.extensions import db
+
+                for inst in instances:
+                    db.session.add(inst)
+                db.session.flush()
+                total += len(instances)
+                continue
+            total += upsert_records(model, rows, conflict)
+        return total
 
 
 register_fetcher("bom", BOMFetcher)

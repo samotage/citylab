@@ -277,13 +277,21 @@ class SolcastFetcher(BaseFetcher):
                 records.append(SolarForecast(**f))
         return records
 
-    def store(self, records) -> int:
-        from citylab.extensions import db
+    # Natural-key conflict target (must match migration eb3b9c51c3f5).
+    _CONFLICT_KEYS = ["location_id", "issued_at", "forecast_for", "forecast_period"]
 
-        for rec in records:
-            db.session.add(rec)
-        db.session.flush()
-        return len(records)
+    def store(self, records) -> int:
+        """Upsert solar forecasts (idempotent — FR2)."""
+        from citylab.services.ingestion.upsert import (
+            instance_to_dict,
+            upsert_records,
+        )
+
+        if not records:
+            return 0
+        model = type(records[0])
+        rows = [instance_to_dict(r) for r in records]
+        return upsert_records(model, rows, self._CONFLICT_KEYS)
 
 
 register_fetcher("solcast", SolcastFetcher)

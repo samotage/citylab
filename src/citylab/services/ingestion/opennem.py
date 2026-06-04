@@ -319,13 +319,48 @@ class OpenNEMFetcher(BaseFetcher):
             records.append(PriceForecast(**f))
         return records
 
-    def store(self, records) -> int:
-        from citylab.extensions import db
+    # Natural-key conflict targets per model (must match the UNIQUE constraints
+    # in migration eb3b9c51c3f5).
+    _CONFLICT_KEYS = {
+        "EnergyPrice": ["region", "interval_start", "interval_type"],
+        "EnergyDemand": ["region", "interval_start", "demand_type"],
+        "GenerationOutput": ["region", "interval_start", "fuel_type"],
+        "InterconnectorFlow": ["interconnector_id", "interval_start"],
+        "GeneratorSubmission": ["unit_id", "interval_start", "bid_band"],
+        "PriceForecast": [
+            "region",
+            "forecast_issued_at",
+            "forecast_for",
+            "forecast_type",
+        ],
+    }
 
+    def store(self, records) -> int:
+        """Upsert records grouped by model class (idempotent — FR2)."""
+        from citylab.services.ingestion.upsert import (
+            instance_to_dict,
+            upsert_records,
+        )
+
+        grouped: dict = {}
         for rec in records:
-            db.session.add(rec)
-        db.session.flush()
-        return len(records)
+            grouped.setdefault(type(rec), []).append(rec)
+
+        total = 0
+        for model, instances in grouped.items():
+            conflict = self._CONFLICT_KEYS.get(model.__name__)
+            rows = [instance_to_dict(i) for i in instances]
+            if conflict is None:
+                # Fallback (shouldn't happen): naive add.
+                from citylab.extensions import db
+
+                for inst in instances:
+                    db.session.add(inst)
+                db.session.flush()
+                total += len(instances)
+                continue
+            total += upsert_records(model, rows, conflict)
+        return total
 
 
 register_fetcher("opennem", OpenNEMFetcher)

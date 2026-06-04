@@ -21,11 +21,11 @@ Branch: feature/hack-historical-backfill-continuous-collection
 
 ### Per-source: store() upserts
 
-- [ ] 6. **OpenNEM store() upsert (FR2).** Replace the `db.session.add(rec)` loop in `OpenNEMFetcher.store()` (opennem.py ~line 320) with the task-3 upsert helper, keyed per target table. Verify re-running the same interval does not double row counts.
+- [x] 6. **OpenNEM store() upsert (FR2).** Replace the `db.session.add(rec)` loop in `OpenNEMFetcher.store()` (opennem.py ~line 320) with the task-3 upsert helper, keyed per target table. Verify re-running the same interval does not double row counts.
 
-- [ ] 7. **BOM store() upsert (FR2).** Same refactor for `BOMFetcher.store()` in `bom.py` — weather_forecasts and weather_observations.
+- [x] 7. **BOM store() upsert (FR2).** Same refactor for `BOMFetcher.store()` in `bom.py` — weather_forecasts and weather_observations.
 
-- [ ] 8. **Solcast store() upsert (FR2).** Same refactor for `SolcastFetcher.store()` in `solcast.py` — solar_forecasts.
+- [x] 8. **Solcast store() upsert (FR2).** Same refactor for `SolcastFetcher.store()` in `solcast.py` — solar_forecasts.
 
 ### Per-source: real API parsing + fetch_range
 

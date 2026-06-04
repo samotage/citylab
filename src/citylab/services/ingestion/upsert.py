@@ -18,6 +18,26 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 logger = logging.getLogger(__name__)
 
 
+def instance_to_dict(instance) -> dict:
+    """Extract a column->value dict from an unpersisted model instance.
+
+    Skips the auto-managed id (None before insert) and lets created_at/updated_at
+    defaults apply at insert time, so only meaningful set columns are included.
+    """
+    out = {}
+    for col in instance.__table__.columns:
+        name = col.name
+        if name == "id":
+            continue
+        val = getattr(instance, name, None)
+        # created_at/updated_at are typically unset on fresh instances — let the
+        # column defaults populate them. If explicitly set, keep the value.
+        if name in ("created_at", "updated_at") and val is None:
+            continue
+        out[name] = val
+    return out
+
+
 def upsert_records(model, rows: list[dict], conflict_cols: list[str]) -> int:
     """Bulk-upsert ``rows`` into ``model``'s table.
 
