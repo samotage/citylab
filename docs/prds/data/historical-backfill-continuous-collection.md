@@ -1,3 +1,9 @@
+---
+validation:
+  status: valid
+  validated_at: '2026-06-04T13:29:57+10:00'
+---
+
 # Historical Backfill & Continuous Collection
 
 ## Problem
