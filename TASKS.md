@@ -47,7 +47,7 @@ Branch: feature/hack-historical-backfill-continuous-collection
 
 ### Tests + polish
 
-- [ ] 16. **Tests.** Add/extend tests in `tests/data/` for: upsert idempotency (run fetcher twice, row count stable), gap-fill (last_fetch_at gap triggers fetch_range), backfill CLI happy path, Solcast fetch_range raises, synthetic fallback still fires on API failure. Run `pytest tests/data/` and confirm no regressions in the broader suite.
+- [x] 16. **Tests.** Add/extend tests in `tests/data/` for: upsert idempotency (run fetcher twice, row count stable), gap-fill (last_fetch_at gap triggers fetch_range), backfill CLI happy path, Solcast fetch_range raises, synthetic fallback still fires on API failure. Run `pytest tests/data/` and confirm no regressions in the broader suite.
 
 ## Demo Script
 
