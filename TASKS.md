@@ -1,78 +1,93 @@
-# Tasks: Energy Market Dashboard
+# Tasks: Historical Backfill & Continuous Collection
 
-Source PRD: docs/prds/ui/energy-dashboard.md
-Branch: feature/hack-energy-dashboard
-
-A single-page, login-required dashboard at `/energy` that visualises the current
-Victorian energy market state over the three ingestion pipelines now on master
-(OpenNEM energy, BOM weather, Solcast solar). Server-rendered Jinja2 + HTMX
-auto-refresh + Chart.js, consistent with the existing `base.html` / Tailwind
-(dark) architecture.
-
-## Architecture notes (for the build worker)
-
-- **Routes:** new `energy_bp` blueprint in `src/citylab/routes/energy.py`, registered
-  in `src/citylab/__init__.py` alongside `main_bp`. All routes `@login_required`
-  (session auth, like `main.index`) — NOT the API-token auth used by `api_v1`.
-- **Data:** the dashboard routes consume the existing query SERVICES directly
-  (`energy_query`, `weather_query`, `solar_query`) — same data the agent API
-  serves, but in-process (no token, no HTTP round-trip). Reuse:
-  - `energy_query.current_snapshot("VIC1")` → price, demand, generation_mix,
-    battery_state, interconnectors, nearest_forecast
-  - `energy_query.query_prices` (for trend vs last hour), `query_forecasts`
-  - `weather_query.summary()` / `weather_query.outlook("wind"|"rain"|"temperature")`
-  - `solar_query.summary()`
-  - `energy_query.latest_fetch_timestamp()` and the `DataSource` model
-    (`name`, `last_fetch_at`, `last_fetch_status`) for the source-health strip.
-- **Fuel aggregation:** map generation_mix fuel_types in the route/template:
-  gas_ccgt+gas_ocgt+gas_recip+gas_steam→"Gas"; solar_utility+solar_rooftop→
-  "Solar"; battery_charging & battery_discharging shown separately; all others 1:1.
-- **CSS:** Tailwind v3. `static/css/main.css` is COMPILED from
-  `static/css/src/input.css` — never edit main.css directly. Add any custom
-  classes (price colour states, panel styling) to `input.css` `@layer components`,
-  then rebuild with `npx tailwindcss -i static/css/src/input.css -o static/css/main.css`.
-- **Chart.js:** must be vendored to `static/vendor/chart.min.js` (not yet present).
-  Load it in the dashboard page `{% block head %}`. HTMX is already vendored.
-- **HTMX refresh:** each panel is a `hx-get` partial with `hx-trigger="load, every Ns"`
-  (5min market, 30min weather, 1hr solar — use shorter intervals if helpful for demo).
-  Charts re-init on swap via inline `<script>` in the partial, or an `htmx:afterSwap` hook.
-- **Nav:** add an "Energy" sidebar link in `templates/base.html`.
+Source PRD: docs/prds/data/historical-backfill-continuous-collection.md
+Branch: feature/hack-historical-backfill-continuous-collection
 
 ## Task List
 
-- [x] 1. Create `energy_bp` blueprint (`src/citylab/routes/energy.py`) with `GET /energy` stub returning a placeholder template; register it in `src/citylab/__init__.py`; add the "Energy" sidebar link in `base.html`. Verify `/energy` loads when logged in.
-- [x] 2. Scaffold `templates/energy/dashboard.html` extending `base.html`: page title, panel grid layout (top snapshot strip, then 2-col panel grid, then forecast strip, then source-health strip), each panel an empty container wired with its `hx-get` partial endpoint + `hx-trigger`. Add `{% block head %}` to load `static/vendor/chart.min.js`.
-- [x] 3. Vendor Chart.js to `static/vendor/chart.min.js` (download the UMD build of Chart.js v4, e.g. `chart.umd.min.js`). Confirm it is served and the page's head loads it without 404.
-- [x] 4. Price snapshot: route `GET /energy/partials/price` + `templates/energy/partials/price.html`. Build a view-model from `current_snapshot` + recent prices: current VIC1 spot price (large), colour state (green <$50, amber $50–150, red >$150, flashing red >$300), trend arrow vs ~1h ago, current demand MW, next forecast price + direction. Add the price colour-state classes to `input.css`.
-- [x] 5. Generation mix: route `GET /energy/partials/generation` + partial template. Aggregate `generation_mix` per the fuel mapping into labelled+coloured buckets (brown coal=brown, gas=orange, solar=yellow, wind=teal, hydro=blue, battery discharge=purple, battery charge=purple outline). Render a Chart.js donut/stacked bar with the brand colours; show total output and a utilisation indicator. Re-init chart on HTMX swap.
-- [x] 6. Interconnector panel: route `GET /energy/partials/interconnectors` + partial. For each of the 5 corridors (Basslink, Heywood, Murraylink, VNI, VNI West) show flow direction arrow, flow volume MW, % capacity utilisation, colour (green normal / amber >75% / red constrained). Compute and show Victoria net import/export summary.
-- [x] 7. Weather & renewable outlook: route `GET /energy/partials/weather` + partial. From `weather_query.outlook("wind"/"rain"/"temperature")` and `solar_query.summary()` derive: wind strong/moderate/light, solar sunny/partly cloudy/overcast, rain dry/light/moderate/heavy (Tas+Snowy catchments), Melbourne temp current+forecast. Show as labelled indicator chips.
-- [x] 8. Price forecast strip: route `GET /energy/partials/forecast` + partial. From `query_forecasts("VIC1")` build the forward price curve for the next 12–24h as a Chart.js line; overlay recent actual prices to show forecast accuracy. Re-init chart on HTMX swap.
-- [x] 9. Data source health strip: route `GET /energy/partials/sources` + partial. From the `DataSource` model show OpenNEM / BOM / Solcast status (✓/✗), last fetch time (display in local/clear format), and a stale indicator when `last_fetch_at` is older than 2x the expected interval.
-- [x] 10. Styling & polish: ensure panels are visually consistent with the dark theme (reuse `.card`), tune the panel grid for desktop-first responsiveness, finalise the flashing-red price-spike animation, verify no flicker on HTMX swaps. Rebuild Tailwind and spot-check custom selectors survive the build.
-- [x] 11. Real-time refresh & full-page verification: confirm every panel auto-refreshes on its interval without full-page reload, the page loads in under 3s, and the whole dashboard renders end-to-end with seeded/real pipeline data while logged in.
+### Foundation — DB + upsert infrastructure
+
+- [ ] 1. **Dedup + UNIQUE constraints migration (FR1, Data Model).** Create a new Alembic migration in `migrations/versions/` that, for each of the 9 time-series tables, (a) deletes duplicate rows keeping the latest `updated_at` per natural-key group, then (b) adds a UNIQUE constraint on the natural key. Natural keys per D1: `energy_prices(region, interval_start, interval_type)`, `energy_demand(region, interval_start, demand_type)`, `generation_output(region, interval_start, fuel_type)`, `interconnector_flows(interconnector_id, interval_start)`, `generator_submissions(unit_id, interval_start, bid_band)`, `price_forecasts(region, forecast_issued_at, forecast_for, forecast_type)`, `weather_forecasts(location_id, issued_at, forecast_for, forecast_period)`, `weather_observations(location_id, observed_at)`, `solar_forecasts(location_id, issued_at, forecast_for, forecast_period)`. Name constraints `uq_<table>_<natkey>`. Run `flask db upgrade` against the dev DB to confirm it applies.
+
+- [ ] 2. **Reflect UNIQUE constraints in models.** Add matching `UniqueConstraint` entries to `__table_args__` on the affected models in `src/citylab/models/` (Energy*, Weather*, Solar*) so the ORM metadata matches the migration. Keep names identical to task 1.
+
+- [ ] 3. **Shared upsert helper (FR2 support).** Add a small helper (e.g. `upsert_records()` in `src/citylab/services/ingestion/base.py` or a new `upsert.py`) that takes a SQLAlchemy model, a list of row dicts, and the conflict-target column names, and issues `postgresql.insert(...).on_conflict_do_update(...)` updating only the mutable (non-natural-key) columns. Returns the count of rows processed. Used by all three fetchers' `store()`.
+
+### Base infrastructure — fetch_range + gap-fill
+
+- [ ] 4. **`fetch_range()` on BaseFetcher (FR6).** Add a `fetch_range(start, end)` method to `BaseFetcher` (default raising `NotImplementedError`) returning the same payload shape as `fetch()`. Add a progress callback hook so callers can report per-chunk progress.
+
+- [ ] 5. **Gap-fill in run cycle (FR5).** Modify `BaseFetcher.run()` to: read `self.data_source.last_fetch_at`; compute gap = now − last_fetch_at; if gap > (2 × normal interval) and ≤ 7 days, call `fetch_range(last_fetch_at, now)` → transform → store before the normal `fetch()`; if gap > 7 days, log a warning and skip auto-fill. Per-source normal-interval thresholds (OpenNEM 10min, BOM 6hr, Solcast 2hr) configurable per fetcher (class attr or `config`). Guard so fetchers that don't implement `fetch_range` (Solcast) just skip gap-fill.
+
+### Per-source: store() upserts
+
+- [ ] 6. **OpenNEM store() upsert (FR2).** Replace the `db.session.add(rec)` loop in `OpenNEMFetcher.store()` (opennem.py ~line 320) with the task-3 upsert helper, keyed per target table. Verify re-running the same interval does not double row counts.
+
+- [ ] 7. **BOM store() upsert (FR2).** Same refactor for `BOMFetcher.store()` in `bom.py` — weather_forecasts and weather_observations.
+
+- [ ] 8. **Solcast store() upsert (FR2).** Same refactor for `SolcastFetcher.store()` in `solcast.py` — solar_forecasts.
+
+### Per-source: real API parsing + fetch_range
+
+- [ ] 9. **OpenNEM real parsing (FR7).** In `_fetch_live()`, replace the synthetic-after-probe stub with real parsing of the `/stats/power/network/NEM/VIC1` JSON `history`/`forecast` sections into the existing payload shape (prices, demand, generation, interconnectors), mapping fuel types via `OPENNEM_FUEL_MAP`. Set `source: "live"` on success. Preserve synthetic fallback on any parse/HTTP failure (D7), clearly logged.
+
+- [ ] 10. **OpenNEM `fetch_range()` (FR8).** Implement `fetch_range(start, end)` using OpenNEM's date-range query params, internally chunking if the API limits response size, reusing the task-9 parsing logic. Returns one payload per call covering the requested range.
+
+- [ ] 11. **BOM real parsing (FR9).** In BOM `_fetch_live()`, replace stub with real parsing of geohash endpoints (`/v1/locations/{geohash}/forecasts/daily`, `/3-hourly`, `/observations`). Derive the BOM geohash from each `WeatherLocation` lat/lon (utility function preferred; column optional per Data Model). Parse temp, wind, rainfall, humidity, cloud cover. Synthetic fallback preserved (D7).
+
+- [ ] 12. **BOM `fetch_range()` — observations only (FR10, D5).** Implement `fetch_range(start, end)` fetching historical observations (not forecasts). If BOM history depth is limited, backfill as far as available and log actual coverage ("BOM backfill: N months available, requested 12").
+
+- [ ] 13. **Solcast forward-only guard (FR11).** Leave Solcast fetch/synthetic behaviour unchanged. Implement `fetch_range()` to raise `NotImplementedError("Solcast historical backfill not supported — use archive import")`.
+
+### CLI + agent wrapper
+
+- [ ] 14. **`flask backfill` CLI command (FR3).** Add `flask backfill --source <opennem|bom|solcast> [--from YYYY-MM-DD] [--to YYYY-MM-DD] [--chunk-days N]` in `src/citylab/cli/commands.py`. Defaults: `--from` = 12 months ago, `--to` = now, `--chunk-days` = 1. Iterate chunk-by-chunk calling `fetcher.fetch_range()` → transform → store; print progress `[opennem] 2025-06-01 ... 42/365 days (11.5%) — 1,204 rows`; on chunk error log and continue, report failures at the end. Idempotent via upsert. Handle Solcast's `NotImplementedError` with a clear archive-import message.
+
+- [ ] 15. **`cli-citylab data backfill` wrapper + endpoint (FR4).** Add a `data/backfill` REST endpoint in `src/citylab/routes/api_v1/data.py` (Bearer auth) that triggers the backfill (thin wrapper shelling to the Flask CLI, or inline — builder's discretion), and a `cli-citylab data backfill --source <s> [--from] [--to]` subcommand in `src/citylab/cli_wrapper/commands_data.py` that calls it and reports progress/job status.
+
+### Tests + polish
+
+- [ ] 16. **Tests.** Add/extend tests in `tests/data/` for: upsert idempotency (run fetcher twice, row count stable), gap-fill (last_fetch_at gap triggers fetch_range), backfill CLI happy path, Solcast fetch_range raises, synthetic fallback still fires on API failure. Run `pytest tests/data/` and confirm no regressions in the broader suite.
 
 ## Demo Script
 
-1. Log in to CityLab at `http://127.0.0.1:5099`
-2. Click "Energy" in the sidebar → see the full market dashboard
-3. Current VIC1 spot price displayed prominently — green at $45/MWh
-4. Generation mix shows brown coal baseload, wind contributing 20%, solar at midday peak, gas filling gaps
-5. Interconnectors: Basslink importing from Tas, Heywood importing from SA, VNI exporting to NSW — arrows and flow volumes visible
-6. Weather panel: strong wind in SA corridors, sunny across Vic solar regions, rain forecast for Tas catchments
-7. Price forecast: pre-dispatch shows prices softening over next 6 hours as solar ramps up
-8. Data source health: all three green, last fetch within expected intervals
-9. Wait 5 minutes — watch the price and generation panels auto-update via HTMX
-10. The key proof: a human and an agent see the same market picture — the dashboard visualises exactly what `cli-citylab energy summary` + `weather summary` + `solar summary` return
+```bash
+# 0. Apply the new migration (UNIQUE constraints + dedup) against dev DB
+flask db upgrade
+psql citylab -c "\d+ energy_prices" | grep -i unique   # constraint present
 
-## Ship Status
+# 1. Backfill 12 months of real OpenNEM data
+flask backfill --source opennem --from 2025-06-04 --to 2026-06-04
+#   -> progress lines per chunk, e.g. "[opennem] 2025-06-04 ... 1/365 days (0.3%) — N rows"
 
-- Build: complete
-- Tests: passed (135/135 full suite; 12 new dashboard tests)
-- Smoke: passed (10/10 demo steps; 41/41 in-process render assertions + full-page browser screenshot; all 6 panels render with real data; no console/Jinja errors)
+# 2. Idempotency: capture row count, re-run, confirm unchanged
+psql citylab -c "SELECT count(*) FROM energy_prices;"      # note count
+flask backfill --source opennem --from 2025-06-04 --to 2026-06-04
+psql citylab -c "SELECT count(*) FROM energy_prices;"      # SAME count (upsert, no dupes)
 
-### Known Issues
+# 3. BOM historical observation backfill (coverage logged)
+flask backfill --source bom
+#   -> logs actual coverage depth, e.g. "BOM backfill: 3 months available, requested 12"
 
-- cli-citylab not on PATH (non-blocking).
-- Generation utilisation_pct hidden because capacity_mw not seeded (template-guarded, non-blocking).
-- Live-browser walkthrough behind login gate not possible without dev password (auth front door verified).
+# 4. Gap-fill check: disable a source, wait, re-enable, confirm continuous data
+cli-citylab data sources                                   # find opennem source id / status
+# (disable opennem, wait > gap threshold, re-enable, trigger a run)
+cli-citylab data verify --region VIC1                      # no missing intervals reported
+psql citylab -c "SELECT interval_start FROM energy_prices WHERE region='VIC1' ORDER BY interval_start DESC LIMIT 20;"  # continuous, no gap
+
+# 5. Agent-facing wrapper triggers backfill
+cli-citylab data backfill --source opennem --from 2026-05-01 --to 2026-06-01
+
+# 6. Synthetic fallback still works (APIs unreachable):
+#    with no network / bad endpoint, a normal fetch falls back to synthetic and
+#    payloads show source != "live". Confirm via:
+cli-citylab energy summary --region VIC1                   # still returns data
+#    and existing dashboard at /energy renders unchanged with real data.
+
+# 7. Solcast backfill exits with archive-import message
+flask backfill --source solcast
+#   -> "Solcast historical backfill not supported — use archive import"
+
+# 8. No regressions
+pytest tests/data/
+```
