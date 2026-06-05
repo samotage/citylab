@@ -21,3 +21,8 @@ from citylab.models.solar import (  # noqa: F401
     SolarLocation,
     SolarForecast,
 )
+from citylab.models.agent import (  # noqa: F401
+    AgentConfig,
+    AgentSession,
+    SessionStatus,
+)

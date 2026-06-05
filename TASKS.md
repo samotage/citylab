@@ -5,7 +5,7 @@ Branch: feature/hack-remote-agent-interface-prd
 
 ## Task List
 
-- [ ] 1. **Config: headspace section** — Update `config.yaml` headspace section with `url`, `api_token`, `project_name`, and a `personas` list (each with `slug`, `name`, `role`); seed Ray (energy-market-analyst-ray-50) as default. Add the corresponding DEFAULTS / ENV_MAPPINGS entries in `src/citylab/config.py` (FR25, FR26). (Config change — show diff before applying.)
+- [x] 1. **Config: headspace section** — Update `config.yaml` headspace section with `url`, `api_token`, `project_name`, and a `personas` list (each with `slug`, `name`, `role`); seed Ray (energy-market-analyst-ray-50) as default. Add the corresponding DEFAULTS / ENV_MAPPINGS entries in `src/citylab/config.py` (FR25, FR26). (Config change — show diff before applying.)
 
 - [ ] 2. **Models: agent config + session** — Add `AgentConfig` model (name, persona_slug unique, description, is_active, is_default) and `AgentSession` model (FK to config, headspace_agent_id, embed_url, session_token, status, timestamps) under `src/citylab/models/agent.py`; register in `models/__init__.py`. Provide for one default config and at-most-one active session per config (FR1, FR2, FR5, FR9).
 
