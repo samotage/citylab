@@ -33,6 +33,11 @@
     @apply text-[11px] font-semibold uppercase tracking-wide text-zinc-400 mb-3;
   }
 
+  /* Chart empty-state overlay (centred over the canvas) */
+  .chart-empty {
+    @apply absolute inset-0 flex items-center justify-center text-sm text-zinc-400;
+  }
+
   .region-pill {
     @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-100 border border-zinc-200 text-xs font-semibold text-zinc-900;
   }

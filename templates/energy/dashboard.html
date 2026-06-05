@@ -60,6 +60,16 @@
         <div class="text-zinc-400 text-sm">Loading price forecast&hellip;</div>
     </div>
 
+    <!-- Interactive market trend charts -->
+    <div id="panel-charts"
+         hx-get="{{ url_for('energy.partial_charts') }}"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+        <div class="card mb-4">
+            <div class="text-zinc-400 text-sm">Loading market trend charts&hellip;</div>
+        </div>
+    </div>
+
     <!-- Source health strip -->
     <div id="panel-sources"
          class="card"
