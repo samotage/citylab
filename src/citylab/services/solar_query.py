@@ -64,10 +64,20 @@ def _resolve_locations(selector: str | None):
 
 
 def _latest_issue_for(location_id: int):
-    """Most recent issued_at for a location's forecasts."""
+    """Most recent forecast issue for a location.
+
+    Considers FORECAST rows only (issued_at < forecast_for). "Actual" rows —
+    real measured/estimated history where issued_at == forecast_for (ICU
+    backfill, Solcast live) — are not forecast issues and must not hijack the
+    latest-issue selection. ICU actuals in particular can carry future-dated
+    timestamps, which would otherwise mask the real forecast series.
+    """
     return (
         db.session.query(func.max(SolarForecast.issued_at))
-        .filter(SolarForecast.location_id == location_id)
+        .filter(
+            SolarForecast.location_id == location_id,
+            SolarForecast.issued_at < SolarForecast.forecast_for,
+        )
         .scalar()
     )
 
