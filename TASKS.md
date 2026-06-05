@@ -17,9 +17,9 @@ Branch: feature/hack-remote-agent-interface-prd
 
 - [x] 6. **Agent API routes** — Add `src/citylab/routes/api_v1/agent.py` with: POST init (resume-or-create -> session id, persona, embed_url, status), POST shutdown, GET status (live liveness check for active sessions), POST send-message. Register blueprint. Never return session_token; embed_url only (FR13, FR14, FR15, FR16, NFR1, NFR3).
 
-- [ ] 7. **CLI seed + config commands** — Add Flask CLI `seed-agents` (or extend existing seeding) to seed AgentConfig from config.yaml (FR3, FR4). Add `cli-citylab` agent config commands: list, add-config, set-default (FR23). Uses cli_wrapper REST/Bearer pattern.
+- [x] 7. **CLI seed + config commands** — Add Flask CLI `seed-agents` (or extend existing seeding) to seed AgentConfig from config.yaml (FR3, FR4). Add `cli-citylab` agent config commands: list, add-config, set-default (FR23). Uses cli_wrapper REST/Bearer pattern.
 
-- [ ] 8. **CLI session commands** — Add `src/citylab/cli_wrapper/commands_agent.py` with `cli-citylab agent` group: start (--persona), stop, status, check, message — hitting the agent API routes via the Bearer-auth client; register the group in `__main__.py` (FR22, FR24, NFR4).
+- [x] 8. **CLI session commands** — Add `src/citylab/cli_wrapper/commands_agent.py` with `cli-citylab agent` group: start (--persona), stop, status, check, message — hitting the agent API routes via the Bearer-auth client; register the group in `__main__.py` (FR22, FR24, NFR4).
 
 - [ ] 9. **Chat panel UI** — Add the chat panel to the `/energy` dashboard (right ~33%, dashboard left ~67%, Kenwood Mission Control layout): status indicator (name + badge), Start/Stop button, Headspace iframe, empty state with "Start Agent". Wire start/stop/status to the agent API routes; resume active session on page load. Conversation-first startup — Ray greets and waits for questions, no orientation data wall (FR17, FR18, FR19, FR20, FR21).
 
