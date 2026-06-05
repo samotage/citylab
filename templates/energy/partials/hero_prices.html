@@ -1,0 +1,62 @@
+{% set trend_icon = {"up": "&#9650;", "down": "&#9660;", "flat": "&#9644;"} %}
+<div class="hero-compact text-center">
+    <div class="card-label">Market Snapshot &middot; $/MWh</div>
+    <div class="flex items-baseline justify-center gap-1">
+        <span class="price-display price-{{ vm.colour_state }}">
+            {% if vm.price is not none %}${{ '%.2f' | format(vm.price) }}{% else %}&mdash;{% endif %}
+        </span>
+    </div>
+    {% if vm.price_band_label %}
+    <div class="mt-1">
+        <span class="trend-pill hero-band hero-band-{{ vm.price_band }}">{{ vm.price_band_label }}</span>
+    </div>
+    {% endif %}
+    {% if vm.price_status == 'preliminary' %}
+    <div class="mt-1">
+        <span class="trend-pill bg-amber-50 text-amber-600" title="Current dispatch interval — the market may still revise this price for a few minutes before it settles.">&#9679; preliminary</span>
+    </div>
+    {% elif vm.price_status == 'settled' %}
+    <div class="mt-1">
+        <span class="trend-pill bg-emerald-50 text-emerald-600" title="Settled dispatch price — no longer subject to revision.">&#10003; settled</span>
+    </div>
+    {% endif %}
+    <div class="mt-2">
+        {% if vm.trend == 'down' %}
+        <span class="trend-pill bg-green-50 text-green-600">&#9660; falling</span>
+        {% elif vm.trend == 'up' %}
+        <span class="trend-pill bg-red-50 text-red-600">&#9650; rising</span>
+        {% else %}
+        <span class="trend-pill bg-zinc-100 text-zinc-500">&#9644; steady</span>
+        {% endif %}
+        {% if vm.prev_price is not none %}
+        <span class="text-xs text-zinc-400 ml-1">was ${{ '%.0f' | format(vm.prev_price) }}</span>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mt-5 pt-4 border-t border-zinc-200">
+        <div class="text-center">
+            <div class="text-[10px] uppercase tracking-wider text-zinc-400 mb-1 font-medium">Demand</div>
+            <div class="font-mono text-lg font-semibold text-zinc-900">
+                {% if vm.demand_mw is not none %}{{ '{:,.0f}'.format(vm.demand_mw) }}{% else %}&mdash;{% endif %}
+                <span class="text-xs text-zinc-400 font-normal">MW</span>
+            </div>
+        </div>
+        <div class="text-center">
+            <div class="text-[10px] uppercase tracking-wider text-zinc-400 mb-1 font-medium">Forecast</div>
+            <div class="font-mono text-lg font-semibold text-zinc-900">
+                {% if vm.next_price is not none %}${{ '%.0f' | format(vm.next_price) }}{% else %}&mdash;{% endif %}
+                {% if vm.next_direction == 'up' %}
+                <span class="text-red-600 text-sm">&#9650;</span>
+                {% elif vm.next_direction == 'down' %}
+                <span class="text-green-600 text-sm">&#9660;</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="text-center">
+            <div class="text-[10px] uppercase tracking-wider text-zinc-400 mb-1 font-medium">24h Range</div>
+            <div class="font-mono text-lg font-semibold text-zinc-900">
+                {% if vm.range_low is not none and vm.range_high is not none %}${{ '%.0f' | format(vm.range_low) }}&ndash;{{ '%.0f' | format(vm.range_high) }}{% else %}&mdash;{% endif %}
+            </div>
+        </div>
+    </div>
+</div>

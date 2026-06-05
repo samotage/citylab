@@ -1,0 +1,45 @@
+{% if not content %}
+<div class="hero-medium text-center py-8">
+    <div class="text-zinc-400 text-sm">No custom content &mdash; ask Ray a question.</div>
+</div>
+{% else %}
+<div class="hero-{{ size }}">
+    {% if title %}
+    <div class="card-label">{{ title }}</div>
+    {% endif %}
+
+    {% if content.type == 'mermaid' %}
+    <div class="mermaid">{{ content.diagram }}</div>
+    <script>
+    (function() {
+        if (window.mermaid) {
+            mermaid.run();
+            return;
+        }
+        var s = document.createElement('script');
+        s.src = '{{ url_for("static", filename="vendor/mermaid.min.js") }}';
+        s.onload = function() {
+            mermaid.initialize({startOnLoad: false, theme: 'neutral', fontFamily: 'ui-monospace, monospace'});
+            mermaid.run();
+        };
+        document.head.appendChild(s);
+    })();
+    </script>
+
+    {% elif content.type == 'chart' %}
+    <canvas id="hero-freeform-chart" style="width:100%; max-height:400px;"></canvas>
+    <script>
+    (function() {
+        var ctx = document.getElementById('hero-freeform-chart');
+        if (!ctx) return;
+        var cfg = {{ content.config | tojson }};
+        cfg.type = cfg.type || '{{ content.chart_type | default("bar") }}';
+        new Chart(ctx, cfg);
+    })();
+    </script>
+
+    {% elif content.type == 'html' %}
+    <div class="hero-freeform-html">{{ content.body | safe }}</div>
+    {% endif %}
+</div>
+{% endif %}

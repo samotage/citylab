@@ -316,6 +316,49 @@
     @apply bg-zinc-200;
   }
 
+  /* ---- Dynamic hero panel ---- */
+
+  #hero-content {
+    transition: opacity 150ms ease;
+  }
+
+  .hero-compact {
+    min-height: 120px;
+  }
+  .hero-medium {
+    min-height: 300px;
+  }
+  .hero-large {
+    min-height: 500px;
+  }
+
+  .hero-freeform-html {
+    @apply text-sm text-zinc-800 leading-relaxed;
+  }
+
+  .hero-band {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+  .hero-band-negative {
+    @apply bg-violet-50 text-violet-600;
+  }
+  .hero-band-low {
+    @apply bg-emerald-50 text-emerald-600;
+  }
+  .hero-band-normal {
+    @apply bg-zinc-100 text-zinc-600;
+  }
+  .hero-band-elevated {
+    background: #fef3c7;
+    color: #b45309;
+  }
+  .hero-band-stress {
+    @apply bg-red-50 text-red-600;
+  }
+  .hero-band-mpc {
+    @apply bg-red-100 text-red-700;
+  }
+
   /* ---- Grid inertia panel ---- */
 
   .inertia-state {

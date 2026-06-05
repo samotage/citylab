@@ -13,6 +13,7 @@ from flask_login import login_required
 from citylab.extensions import db
 from citylab.models.battery import BatteryAsset, DispatchEvent
 from citylab.models.demand_response import ControllableLoad, DemandResponseEvent
+from citylab.services import carbon as carbon_svc
 from citylab.services import energy_query as eq
 from citylab.services import inertia as inertia_svc
 from citylab.services import solar_query as sq
@@ -700,6 +701,74 @@ def partial_inertia_chart():
         api_token=api_token,
         region=_get_region(),
     )
+
+
+@energy_bp.route("/hero/partial")
+@login_required
+def hero_partial():
+    from citylab.routes.api_v1.hero import get_hero_state
+
+    state = get_hero_state()
+    module = state["module"]
+    region = _get_region()
+
+    if module == "prices":
+        vm = _price_view_model(region)
+        snap = eq.current_snapshot(region)
+        vm["price_band"] = snap.get("price_band")
+        vm["price_band_label"] = snap.get("price_band_label")
+        return render_template("energy/partials/hero_prices.html", vm=vm)
+
+    if module == "grid":
+        snap = inertia_svc.current_inertia(region)
+        sync_pct = round(snap["sync_fraction"] * 100, 1)
+        vm = {
+            "state": snap["inertia_state"],
+            "state_lower": snap["inertia_state"].lower(),
+            "sync_pct": sync_pct,
+            "sync_mw": snap["sync_mw"],
+            "total_mw": snap["total_mw"],
+            "rocof": snap["rocof_hz_s"],
+            "rocof_label": snap["rocof_label"],
+            "contingency_label": snap["contingency_label"],
+            "contingency_mw": snap["contingency_mw"],
+        }
+        return render_template("energy/partials/hero_grid.html", vm=vm)
+
+    if module == "carbon":
+        vm = carbon_svc.current_carbon(region)
+        return render_template("energy/partials/hero_carbon.html", vm=vm)
+
+    if module == "weather":
+        vm = _weather_view_model()
+        return render_template("energy/partials/hero_weather.html", vm=vm)
+
+    if module == "freeform":
+        title = state.get("title")
+        content = state.get("content")
+        size = "medium"
+        if content and isinstance(content, dict):
+            size = content.get("size", "medium")
+        return render_template(
+            "energy/partials/hero_freeform.html",
+            title=title,
+            content=content,
+            size=size,
+        )
+
+    vm = _price_view_model(region)
+    snap = eq.current_snapshot(region)
+    vm["price_band"] = snap.get("price_band")
+    vm["price_band_label"] = snap.get("price_band_label")
+    return render_template("energy/partials/hero_prices.html", vm=vm)
+
+
+@energy_bp.route("/hero/active")
+@login_required
+def hero_active():
+    from citylab.routes.api_v1.hero import get_hero_module
+
+    return {"module": get_hero_module()}
 
 
 @energy_bp.route("/partials/charts")
