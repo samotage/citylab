@@ -35,6 +35,12 @@ class BaseFetcher(ABC):
     #: (OpenNEM 10min, BOM 6hr, Solcast 2hr per FR5.)
     normal_interval_seconds: int = 600
 
+    #: max fetch attempts before recording an error. None -> module default
+    #: (MAX_ATTEMPTS). Set to 1 on fetchers with a metered request budget
+    #: (e.g. Solcast) so a failed fetch is NOT retried and never multiplies
+    #: real, budget-consuming API calls.
+    max_attempts: int | None = None
+
     def __init__(self, data_source):
         """data_source: a DataSource ORM instance."""
         self.data_source = data_source
@@ -85,12 +91,13 @@ class BaseFetcher(ABC):
         attempts = 0
         last_exc = None
         rows = 0
+        max_attempts = self.max_attempts or MAX_ATTEMPTS
 
         # Gap-fill: if the source was disabled/missed runs, fill the gap before
         # the normal current-interval fetch so the dataset stays continuous.
         rows += self._gap_fill()
 
-        while attempts < MAX_ATTEMPTS:
+        while attempts < max_attempts:
             attempts += 1
             try:
                 raw = self.fetch()
@@ -103,11 +110,11 @@ class BaseFetcher(ABC):
                 logger.warning(
                     "Fetch attempt %s/%s failed for %s: %s",
                     attempts,
-                    MAX_ATTEMPTS,
+                    max_attempts,
                     self.data_source.name,
                     exc,
                 )
-                if attempts < MAX_ATTEMPTS:
+                if attempts < max_attempts:
                     time.sleep(BASE_BACKOFF_SECONDS * (2 ** (attempts - 1)))
 
         now = datetime.now(timezone.utc)

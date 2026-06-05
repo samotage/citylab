@@ -141,58 +141,19 @@ def seed_weather_locations() -> list[dict]:
     return results
 
 
-# The 6 solar forecast points selected for their influence on Vic/SA supply.
-# region_relevance: utility_solar | rooftop_aggregate | hybrid_zone
+# Single tracked solar point: Melbourne CBD. Real data only — historical
+# irradiance backfilled from the ICU SolarCam, live + forecast from Solcast.
+# (The 5 synthetic regional points were removed; this is a demo, one real point.)
+# NOTE: keep the name exactly as-is — re-seeding matches by name, and changing
+# it would orphan the existing location row + its real ICU history.
 _SOLAR_LOCATIONS = [
-    # Victoria
-    {
-        "name": "North-West Victoria (Mildura-Swan Hill)",
-        "latitude": -34.1855,
-        "longitude": 142.1625,
-        "state": "VIC",
-        "region_relevance": "utility_solar",
-        "reference_pv_capacity_kw": 250000.0,  # utility-scale corridor
-    },
-    {
-        "name": "Western Victoria (Ballarat-Bendigo)",
-        "latitude": -36.7570,
-        "longitude": 144.2780,
-        "state": "VIC",
-        "region_relevance": "hybrid_zone",
-        "reference_pv_capacity_kw": 120000.0,
-    },
     {
         "name": "Melbourne Metro (rooftop PV)",
-        "latitude": -37.8136,
+        "latitude": -37.8136,  # Melbourne CBD
         "longitude": 144.9631,
         "state": "VIC",
         "region_relevance": "rooftop_aggregate",
         "reference_pv_capacity_kw": 1800000.0,  # aggregate rooftop fleet
-    },
-    {
-        "name": "Gippsland",
-        "latitude": -38.1800,
-        "longitude": 146.5400,
-        "state": "VIC",
-        "region_relevance": "utility_solar",
-        "reference_pv_capacity_kw": 90000.0,
-    },
-    # South Australia (interconnector influence)
-    {
-        "name": "Northern SA (Port Augusta)",
-        "latitude": -32.4900,
-        "longitude": 137.7600,
-        "state": "SA",
-        "region_relevance": "hybrid_zone",
-        "reference_pv_capacity_kw": 220000.0,
-    },
-    {
-        "name": "Riverland (Renmark-Berri)",
-        "latitude": -34.1740,
-        "longitude": 140.7460,
-        "state": "SA",
-        "region_relevance": "utility_solar",
-        "reference_pv_capacity_kw": 140000.0,
     },
 ]
 
@@ -241,19 +202,31 @@ def seed_data_sources(config: dict | None = None) -> list[dict]:
         name = spec.get("name", f"{key} source")
         base_url = spec.get("base_url")
         cron = spec.get("cron_expression", "*/5 * * * *")
+        # `scheduled: false` (e.g. Solcast) seeds the source inactive so the
+        # scheduler never runs it on cron — it runs on demand only.
+        scheduled = bool(spec.get("scheduled", True))
 
         # Everything except the recognised scheduling/url fields goes into
         # config JSONB — including resolved credentials.
-        reserved = {"name", "base_url", "cron_expression"}
+        reserved = {"name", "base_url", "cron_expression", "scheduled"}
         ds_config = {k: v for k, v in spec.items() if k not in reserved}
+
+        # Runtime-only keys that the fetcher persists into config (e.g. metered
+        # request counters) must survive re-seeding on every app startup.
+        _runtime_keys = ("forecast_requests_used", "live_requests_used")
 
         existing = db.session.query(DataSource).filter_by(name=name).first()
         if existing:
+            preserved = {
+                k: (existing.config or {}).get(k)
+                for k in _runtime_keys
+                if existing.config and k in existing.config
+            }
             existing.source_type = source_type
             existing.base_url = base_url
             existing.cron_expression = cron
-            existing.config = ds_config
-            existing.is_active = True
+            existing.config = {**ds_config, **preserved}
+            existing.is_active = scheduled
             db.session.commit()
             logger.info("Updated data source: %s", name)
             results.append(existing.to_dict())
@@ -264,7 +237,7 @@ def seed_data_sources(config: dict | None = None) -> list[dict]:
                 base_url=base_url,
                 cron_expression=cron,
                 config=ds_config,
-                is_active=True,
+                is_active=scheduled,
                 last_fetch_status="pending",
             )
             db.session.add(ds)

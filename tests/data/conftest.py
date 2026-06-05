@@ -13,11 +13,50 @@ ad-hoc DB connections. Provides:
 import json
 import os
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
 FIXTURE_ROOT = os.path.join(os.path.dirname(__file__), "fixtures")
+
+
+@pytest.fixture(autouse=True)
+def _mock_solcast_http(monkeypatch):
+    """Intercept Solcast HTTP (no synthetic fallback) so offline runs get data.
+
+    Only solcast.com.au URLs are mocked; opennem/bom keep their real (failing)
+    requests to the unreachable test URL → their synthetic fallback path."""
+    import requests
+
+    real_get = requests.get
+    base = datetime(2026, 6, 5, 0, 0, tzinfo=timezone.utc)
+
+    def _items(key):
+        return {key: [{
+            "period_end": (base + timedelta(minutes=30 * (i + 1)))
+                .strftime("%Y-%m-%dT%H:%M:%S.0000000Z"),
+            "period": "PT30M", "ghi": 100.0 + i * 50, "dni": 80.0, "dhi": 20.0,
+            "air_temp": 12.0, "cloud_opacity": 30.0,
+        } for i in range(6)]}
+
+    class _R:
+        def __init__(self, p):
+            self._p = p
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return self._p
+
+    def fake_get(*args, **kwargs):
+        url = args[0] if args else kwargs.get("url", "")
+        if "solcast.com.au" in url:
+            return _R(_items("forecasts" if "forecast/" in url
+                             else "estimated_actuals"))
+        return real_get(*args, **kwargs)
+
+    monkeypatch.setattr(requests, "get", fake_get)
 
 # Matches ISO-8601 timestamps we serialised in the fixtures (with tz offset).
 _ISO_RE = re.compile(
@@ -102,17 +141,32 @@ def make_data_source(db_session, name, source_type, *, base_url=None, config=Non
     # In production the OpenNEM fetcher fails loud rather than fabricating data.
     # Tests deliberately point at an unreachable URL, so they opt into the
     # synthetic fallback to stay offline-safe — unless a test overrides it.
+    # Solcast has no synthetic path: it needs a key + reset budget, and its
+    # HTTP is intercepted by the _mock_solcast_http autouse fixture below.
     def _with_fallback(cfg):
         cfg = dict(cfg or {"timeout_seconds": 1})
         cfg.setdefault("allow_synthetic_fallback", True)
+        if source_type == "solcast":
+            cfg.setdefault("api_key", "test-solcast-key")
+            cfg["forecast_request_budget"] = 1000
+            cfg["live_request_budget"] = 1000
+            cfg["forecast_requests_used"] = 0
+            cfg["live_requests_used"] = 0
         return cfg
+
+    # Solcast must hit a solcast.com.au URL so the mock intercepts it.
+    default_url = (
+        "https://api.solcast.com.au" if source_type == "solcast"
+        else "http://127.0.0.1:1"  # unreachable -> synthetic (opennem/bom)
+    )
 
     existing = db_session.query(DataSource).filter_by(name=name).first()
     if existing:
         existing.source_type = source_type
-        existing.base_url = base_url or existing.base_url
+        existing.base_url = base_url or existing.base_url or default_url
         existing.config = (
-            _with_fallback(config) if config is not None else existing.config
+            _with_fallback(config) if config is not None
+            else _with_fallback(existing.config)
         )
         existing.last_fetch_status = "pending"
         existing.last_error = None
@@ -124,7 +178,7 @@ def make_data_source(db_session, name, source_type, *, base_url=None, config=Non
     ds = DataSource(
         name=name,
         source_type=source_type,
-        base_url=base_url or "http://127.0.0.1:1",  # unreachable -> synthetic
+        base_url=base_url or default_url,
         cron_expression="*/5 * * * *",
         config=_with_fallback(config),
     )

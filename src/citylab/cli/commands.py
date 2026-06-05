@@ -73,13 +73,59 @@ def register_cli_commands(app):
             click.echo(f"  {r['name']} ({r['persona_slug']}) — {r.get('role') or ''}")
         click.echo(f"Seeded/updated {len(results)} agent config(s).")
 
+    @app.cli.command("solcast-refresh")
+    def solcast_refresh_cmd():
+        """Fetch REAL Solcast live + forecast data on demand (budget-guarded).
+
+        Manual replacement for the (removed) Solcast cron job. Makes at most one
+        forecast + one live request per location and hard-stops before the
+        metered request budget is exhausted. No synthetic fallback.
+        """
+        from citylab.extensions import db
+        from citylab.models.data_source import DataSource
+        from citylab.services.ingestion.solcast import SolcastFetcher
+
+        ds = (
+            db.session.query(DataSource)
+            .filter_by(source_type="solcast")
+            .first()
+        )
+        if ds is None:
+            click.echo(
+                "No Solcast data source found. Run `flask seed-data-sources` first."
+            )
+            return
+
+        cfg = ds.config or {}
+        fc_b = int(cfg.get("forecast_request_budget", 10))
+        live_b = int(cfg.get("live_request_budget", 10))
+        click.echo(
+            f"Solcast budget before: "
+            f"forecast {int(cfg.get('forecast_requests_used', 0))}/{fc_b}, "
+            f"live {int(cfg.get('live_requests_used', 0))}/{live_b}"
+        )
+
+        result = SolcastFetcher(ds).run()
+
+        cfg = ds.config or {}
+        if result.get("ok"):
+            click.echo(f"OK — stored {result['rows']} rows.")
+        else:
+            click.echo(f"FAILED — {result.get('error')}")
+        click.echo(
+            f"Solcast budget after:  "
+            f"forecast {int(cfg.get('forecast_requests_used', 0))}/{fc_b}, "
+            f"live {int(cfg.get('live_requests_used', 0))}/{live_b}"
+        )
+
     @app.cli.command("backfill")
     @click.option(
         "--source",
         "source_type",
         required=True,
-        type=click.Choice(["opennem", "bom", "solcast"]),
-        help="Data source to backfill.",
+        type=click.Choice(["opennem", "bom"]),
+        help="Data source to backfill. (Solcast has no backfill — use real "
+        "history via ICU; live/forecast via `flask solcast-refresh`.)",
     )
     @click.option("--from", "from_date", default=None,
                   help="Start date YYYY-MM-DD (default: 12 months ago).")

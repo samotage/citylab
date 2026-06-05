@@ -326,12 +326,14 @@ def _verify_solcast(session) -> SourceResult:
     )
     src.categories.append(freshness)
 
-    # --- Consistency: intraday + short-range periods present; daytime GHI > 0 ---
+    # --- Consistency: 30-min period coverage present; daytime GHI > 0 ---
+    # Real Solcast (and the ICU history) are 30-min series, so we require the
+    # 30min period rather than the old synthetic intraday+hourly mix.
     consistency = CategoryResult(name="consistency")
     periods = {f.forecast_period for f in forecasts}
-    has_both = "30min" in periods and "hourly" in periods
+    has_30min = "30min" in periods
     consistency.checks.append(
-        CheckResult("period_coverage", has_both,
+        CheckResult("period_coverage", has_30min,
                     f"periods={sorted(periods)}", len(periods))
     )
     any_daytime = any(f.ghi_wm2 and f.ghi_wm2 > 0 for f in forecasts)

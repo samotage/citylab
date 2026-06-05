@@ -61,10 +61,14 @@ data_sources:
   solcast:
     name: "Solcast Solar Forecasts"
     base_url: https://api.solcast.com.au
-    # Solcast requires an API key (free tier has a daily call budget).
-    # Without a key the fetcher falls back to a synthetic diurnal forecast so
-    # the demo always has solar data. Hourly fetch per Solcast update cadence.
     api_key: ${SOLCAST_API_KEY}
-    cron_expression: "0 * * * *"
-    timeout_seconds: 8
-    daily_call_budget: 10
+    # REAL Solcast API — no synthetic fallback. Manual/on-demand only (NOT
+    # scheduled) to protect the small one-off request budget on the New User
+    # Evaluation plan. Refresh with:  flask solcast-refresh
+    scheduled: false
+    cron_expression: "0 * * * *"   # retained for reference; ignored while scheduled:false
+    timeout_seconds: 15
+    period: PT30M
+    output_parameters: ghi,dni,dhi,air_temp,cloud_opacity
+    forecast_request_budget: 10
+    live_request_budget: 10
