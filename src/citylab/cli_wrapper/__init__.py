@@ -8,6 +8,7 @@ from citylab.cli_wrapper.commands_data import data_group
 from citylab.cli_wrapper.commands_energy import energy_group
 from citylab.cli_wrapper.commands_weather import weather_group
 from citylab.cli_wrapper.commands_solar import solar_group
+from citylab.cli_wrapper.commands_agent import agent_group
 
 
 @click.group()
@@ -23,3 +24,4 @@ main.add_command(data_group, "data")
 main.add_command(energy_group, "energy")
 main.add_command(weather_group, "weather")
 main.add_command(solar_group, "solar")
+main.add_command(agent_group, "agent")

@@ -23,6 +23,7 @@ def create_api_v1_blueprint() -> Blueprint:
     from citylab.routes.api_v1.energy import energy_api_bp
     from citylab.routes.api_v1.weather import weather_api_bp
     from citylab.routes.api_v1.solar import solar_api_bp
+    from citylab.routes.api_v1.agent import agent_api_bp
 
     api_bp.register_blueprint(app_api_bp)
     api_bp.register_blueprint(schedules_api_bp)
@@ -30,5 +31,6 @@ def create_api_v1_blueprint() -> Blueprint:
     api_bp.register_blueprint(energy_api_bp)
     api_bp.register_blueprint(weather_api_bp)
     api_bp.register_blueprint(solar_api_bp)
+    api_bp.register_blueprint(agent_api_bp)
 
     return api_bp

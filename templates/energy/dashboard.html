@@ -6,77 +6,238 @@
 {% endblock %}
 
 {% block content %}
-<div class="energy-dashboard">
-    <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-bold text-zinc-900">Victorian Energy Market</h2>
-        <div class="flex items-center gap-3">
-            <div class="region-pill">&#9889; VIC1</div>
+<div class="mission-control">
+    <!-- ===== Left: energy dashboard (~67%) ===== -->
+    <div class="energy-dashboard mc-dashboard">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-zinc-900">Victorian Energy Market</h2>
+            <div class="flex items-center gap-3">
+                <div class="region-pill">&#9889; VIC1</div>
+            </div>
         </div>
-    </div>
 
-    <!-- Top strip: market snapshot -->
-    <div id="panel-price"
-         class="card mb-4 !border-2 !border-volt-300"
-         style="background: linear-gradient(180deg, rgba(124,58,237,0.06) 0%, white 100%);"
-         hx-get="{{ url_for('energy.partial_price') }}"
-         hx-trigger="load, every 30s"
-         hx-swap="innerHTML">
-        <div class="text-zinc-400 text-sm">Loading market snapshot&hellip;</div>
-    </div>
+        <!-- Top strip: market snapshot -->
+        <div id="panel-price"
+             class="card mb-4 !border-2 !border-volt-300"
+             style="background: linear-gradient(180deg, rgba(124,58,237,0.06) 0%, white 100%);"
+             hx-get="{{ url_for('energy.partial_price') }}"
+             hx-trigger="load, every 30s"
+             hx-swap="innerHTML">
+            <div class="text-zinc-400 text-sm">Loading market snapshot&hellip;</div>
+        </div>
 
-    <!-- 2-col panel grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-        <div id="panel-generation"
-             class="card"
-             hx-get="{{ url_for('energy.partial_generation') }}"
+        <!-- 2-col panel grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <div id="panel-generation"
+                 class="card"
+                 hx-get="{{ url_for('energy.partial_generation') }}"
+                 hx-trigger="load, every 60s"
+                 hx-swap="innerHTML">
+                <div class="text-zinc-400 text-sm">Loading generation mix&hellip;</div>
+            </div>
+
+            <div id="panel-interconnectors"
+                 class="card"
+                 hx-get="{{ url_for('energy.partial_interconnectors') }}"
+                 hx-trigger="load, every 60s"
+                 hx-swap="innerHTML">
+                <div class="text-zinc-400 text-sm">Loading interconnectors&hellip;</div>
+            </div>
+
+            <div id="panel-weather"
+                 class="card lg:col-span-2"
+                 hx-get="{{ url_for('energy.partial_weather') }}"
+                 hx-trigger="load, every 120s"
+                 hx-swap="innerHTML">
+                <div class="text-zinc-400 text-sm">Loading weather &amp; renewable outlook&hellip;</div>
+            </div>
+        </div>
+
+        <!-- Price forecast strip -->
+        <div id="panel-forecast"
+             class="card mb-4"
+             hx-get="{{ url_for('energy.partial_forecast') }}"
              hx-trigger="load, every 60s"
              hx-swap="innerHTML">
-            <div class="text-zinc-400 text-sm">Loading generation mix&hellip;</div>
+            <div class="text-zinc-400 text-sm">Loading price forecast&hellip;</div>
         </div>
 
-        <div id="panel-interconnectors"
+        <!-- Interactive market trend charts -->
+        <div id="panel-charts"
+             hx-get="{{ url_for('energy.partial_charts') }}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="card mb-4">
+                <div class="text-zinc-400 text-sm">Loading market trend charts&hellip;</div>
+            </div>
+        </div>
+
+        <!-- Source health strip -->
+        <div id="panel-sources"
              class="card"
-             hx-get="{{ url_for('energy.partial_interconnectors') }}"
+             hx-get="{{ url_for('energy.partial_sources') }}"
              hx-trigger="load, every 60s"
              hx-swap="innerHTML">
-            <div class="text-zinc-400 text-sm">Loading interconnectors&hellip;</div>
-        </div>
-
-        <div id="panel-weather"
-             class="card lg:col-span-2"
-             hx-get="{{ url_for('energy.partial_weather') }}"
-             hx-trigger="load, every 120s"
-             hx-swap="innerHTML">
-            <div class="text-zinc-400 text-sm">Loading weather &amp; renewable outlook&hellip;</div>
+            <div class="text-zinc-400 text-sm">Loading data source health&hellip;</div>
         </div>
     </div>
 
-    <!-- Price forecast strip -->
-    <div id="panel-forecast"
-         class="card mb-4"
-         hx-get="{{ url_for('energy.partial_forecast') }}"
-         hx-trigger="load, every 60s"
-         hx-swap="innerHTML">
-        <div class="text-zinc-400 text-sm">Loading price forecast&hellip;</div>
-    </div>
-
-    <!-- Interactive market trend charts -->
-    <div id="panel-charts"
-         hx-get="{{ url_for('energy.partial_charts') }}"
-         hx-trigger="load"
-         hx-swap="innerHTML">
-        <div class="card mb-4">
-            <div class="text-zinc-400 text-sm">Loading market trend charts&hellip;</div>
+    <!-- ===== Right: agent chat panel (~33%) ===== -->
+    <aside class="agent-panel" id="agent-panel"
+           data-api-token="{{ api_token }}"
+           data-agent-name="{{ default_agent }}">
+        <div class="agent-panel-header">
+            <div class="agent-panel-id">
+                <span class="agent-panel-name">{{ default_agent }}</span>
+                <span class="agent-status-badge" id="agent-status-badge" data-state="disconnected">
+                    disconnected
+                </span>
+            </div>
+            <div class="agent-panel-controls">
+                <button type="button" id="agent-start-btn" class="agent-btn agent-btn-start">
+                    Start Agent
+                </button>
+                <button type="button" id="agent-stop-btn" class="agent-btn agent-btn-stop" style="display:none;">
+                    Stop
+                </button>
+            </div>
         </div>
-    </div>
 
-    <!-- Source health strip -->
-    <div id="panel-sources"
-         class="card"
-         hx-get="{{ url_for('energy.partial_sources') }}"
-         hx-trigger="load, every 60s"
-         hx-swap="innerHTML">
-        <div class="text-zinc-400 text-sm">Loading data source health&hellip;</div>
-    </div>
+        <!-- Empty state -->
+        <div class="agent-panel-body" id="agent-empty-state">
+            <div class="agent-empty">
+                <div class="agent-empty-icon">&#129302;</div>
+                <p class="agent-empty-title">{{ default_agent }} is offline</p>
+                <p class="agent-empty-sub">
+                    Start the agent to ask live questions about the Victorian
+                    energy market &mdash; prices, generation mix, interconnectors,
+                    and weather impacts.
+                </p>
+                <button type="button" id="agent-start-btn-2" class="agent-btn agent-btn-start agent-btn-lg">
+                    Start {{ default_agent }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Embedded agent iframe -->
+        <div class="agent-panel-body agent-iframe-wrap" id="agent-iframe-wrap" style="display:none;">
+            <iframe id="agent-iframe" class="agent-iframe" src="about:blank"
+                    title="{{ default_agent }} agent chat"
+                    allow="clipboard-write"></iframe>
+        </div>
+
+        <div class="agent-panel-error" id="agent-error" style="display:none;"></div>
+    </aside>
 </div>
+
+<script>
+(function () {
+    const panel = document.getElementById('agent-panel');
+    const token = panel.dataset.apiToken;
+    const agentName = panel.dataset.agentName || 'Agent';
+
+    const badge = document.getElementById('agent-status-badge');
+    const startBtns = [
+        document.getElementById('agent-start-btn'),
+        document.getElementById('agent-start-btn-2'),
+    ].filter(Boolean);
+    const stopBtn = document.getElementById('agent-stop-btn');
+    const emptyState = document.getElementById('agent-empty-state');
+    const iframeWrap = document.getElementById('agent-iframe-wrap');
+    const iframe = document.getElementById('agent-iframe');
+    const errorBox = document.getElementById('agent-error');
+
+    function headers() {
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token,
+        };
+    }
+
+    function setBadge(state) {
+        badge.dataset.state = state;
+        badge.textContent = state;
+    }
+
+    function showError(msg) {
+        errorBox.textContent = msg;
+        errorBox.style.display = msg ? 'block' : 'none';
+    }
+
+    function showActive(session) {
+        setBadge(session.status || 'active');
+        emptyState.style.display = 'none';
+        iframeWrap.style.display = 'block';
+        if (session.embed_url && iframe.src !== session.embed_url) {
+            iframe.src = session.embed_url;
+        }
+        startBtns.forEach(b => b.style.display = 'none');
+        stopBtn.style.display = 'inline-flex';
+    }
+
+    function showOffline() {
+        setBadge('disconnected');
+        emptyState.style.display = 'flex';
+        iframeWrap.style.display = 'none';
+        iframe.src = 'about:blank';
+        startBtns.forEach(b => b.style.display = 'inline-flex');
+        stopBtn.style.display = 'none';
+    }
+
+    async function startAgent() {
+        showError('');
+        setBadge('connecting');
+        startBtns.forEach(b => b.disabled = true);
+        try {
+            const resp = await fetch('/api/v1/agent/init', {
+                method: 'POST', headers: headers(), body: JSON.stringify({}),
+            });
+            const body = await resp.json();
+            if (!resp.ok || !body.ok) {
+                throw new Error((body && body.error) || 'Failed to start agent');
+            }
+            showActive(body.data);
+        } catch (e) {
+            showError(e.message || 'Could not start ' + agentName);
+            showOffline();
+        } finally {
+            startBtns.forEach(b => b.disabled = false);
+        }
+    }
+
+    async function stopAgent() {
+        showError('');
+        stopBtn.disabled = true;
+        try {
+            await fetch('/api/v1/agent/shutdown', {
+                method: 'POST', headers: headers(), body: JSON.stringify({}),
+            });
+        } catch (e) {
+            /* best-effort */
+        } finally {
+            stopBtn.disabled = false;
+            showOffline();
+        }
+    }
+
+    // Resume an active session on page load (FR20).
+    async function resume() {
+        try {
+            const resp = await fetch('/api/v1/agent/status', { headers: headers() });
+            const body = await resp.json();
+            if (resp.ok && body.ok && body.data && body.data.active) {
+                showActive(body.data);
+            } else {
+                showOffline();
+            }
+        } catch (e) {
+            showOffline();
+        }
+    }
+
+    startBtns.forEach(b => b.addEventListener('click', startAgent));
+    stopBtn.addEventListener('click', stopAgent);
+    resume();
+})();
+</script>
 {% endblock %}

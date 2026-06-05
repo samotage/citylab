@@ -60,6 +60,19 @@ def register_cli_commands(app):
             click.echo(f"  {loc['name']} [{loc['state']}] ({loc['region_relevance']})")
         click.echo(f"Seeded/updated {len(solar_locations)} solar location(s).")
 
+    @app.cli.command("seed-agents")
+    def seed_agents_cmd():
+        """Seed AgentConfig rows from the headspace.personas config (FR3, FR4)."""
+        from citylab.services.agent_service import seed_agent_configs
+
+        results = seed_agent_configs()
+        if not results:
+            click.echo("No headspace personas configured in config.yaml.")
+            return
+        for r in results:
+            click.echo(f"  {r['name']} ({r['persona_slug']}) — {r.get('role') or ''}")
+        click.echo(f"Seeded/updated {len(results)} agent config(s).")
+
     @app.cli.command("backfill")
     @click.option(
         "--source",

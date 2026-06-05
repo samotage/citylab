@@ -37,6 +37,15 @@ DEFAULTS = {
     "headspace": {
         "url": "http://127.0.0.1:5001",
         "api_token": "",
+        "project_name": "citylab",
+        "timeout_seconds": 30,
+        "personas": [
+            {
+                "slug": "energy-market-analyst-ray-50",
+                "name": "Ray",
+                "role": "NEM energy market analyst",
+            },
+        ],
     },
     "session": {
         "lifetime_days": 30,
@@ -62,6 +71,7 @@ ENV_MAPPINGS = {
     "CITYLAB_API_TOKEN": ("api", "token"),
     "HEADSPACE_URL": ("headspace", "url"),
     "HEADSPACE_API_TOKEN": ("headspace", "api_token"),
+    "HEADSPACE_PROJECT_NAME": ("headspace", "project_name"),
 }
 
 
