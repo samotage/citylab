@@ -5,10 +5,10 @@ Branch: feature/hack-cli-completeness-for-ray-prd
 
 ## Task List
 
-- [ ] 1. Inspect existing patterns: energy CLI commands in `src/citylab/cli_wrapper/commands_energy.py`, the timeseries API endpoints in `src/citylab/routes/api_v1/energy.py`, and `energy_query.RANGE_INTERVALS`. Confirm endpoint paths, accepted query params (region/range/interval), and return shape before writing CLI commands.
-- [ ] 2. Add `cli-citylab energy timeseries-price` command in `commands_energy.py` — options `--region` (default VIC1), `--range` (default 24h), `--interval` (optional). Hits `/api/v1/energy/timeseries/price` via `APIClient.get()` and prints the JSON response. Mirror the existing energy command pattern.
-- [ ] 3. Add `cli-citylab energy timeseries-demand` command — same options, hits `/api/v1/energy/timeseries/demand`.
-- [ ] 4. Add `cli-citylab energy timeseries-generation` command — same options, hits `/api/v1/energy/timeseries/generation`.
+- [x] 1. Inspect existing patterns: energy CLI commands in `src/citylab/cli_wrapper/commands_energy.py`, the timeseries API endpoints in `src/citylab/routes/api_v1/energy.py`, and `energy_query.RANGE_INTERVALS`. Confirm endpoint paths, accepted query params (region/range/interval), and return shape before writing CLI commands.
+- [x] 2. Add `cli-citylab energy timeseries-price` command in `commands_energy.py` — options `--region` (default VIC1), `--range` (default 24h), `--interval` (optional). Hits `/api/v1/energy/timeseries/price` via `APIClient.get()` and prints the JSON response. Mirror the existing energy command pattern.
+- [x] 3. Add `cli-citylab energy timeseries-demand` command — same options, hits `/api/v1/energy/timeseries/demand`.
+- [x] 4. Add `cli-citylab energy timeseries-generation` command — same options, hits `/api/v1/energy/timeseries/generation`.
 - [ ] 5. Part B: Wire solar into `market_intelligence()` in `src/citylab/routes/api_v1/data.py` (~line 127). Import `solar_query as sq`, build `solar = {"summary": sq.summary(), "outlook": sq.outlook()}` inside a try/except (mirror the weather block), and replace the hardcoded `"solar": None`.
 - [ ] 6. Part C: Update `docs/help/cli-citylab.md` — add the 3 timeseries commands as full CLI entries in the energy section, and update the `data market-intelligence` return shape to show `solar: {summary, outlook}` instead of `null`.
 - [ ] 7. Add test coverage for the 3 new CLI commands (invocation doesn't crash, options accepted) following existing CLI wrapper test patterns under `tests/`. Confirm market-intelligence solar wiring is covered.

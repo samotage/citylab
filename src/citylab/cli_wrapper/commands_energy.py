@@ -17,6 +17,16 @@ def _range_qs(region, dt_from, dt_to):
     return urlencode(params)
 
 
+RANGE_CHOICES = ["1h", "6h", "24h", "7d", "30d"]
+
+
+def _timeseries_qs(region, range_key, interval):
+    params = {"region": region, "range": range_key}
+    if interval:
+        params["interval"] = interval
+    return urlencode(params)
+
+
 @click.group("energy")
 def energy_group():
     """Victorian energy market data."""
@@ -70,4 +80,73 @@ def forecasts(region):
     """Forward price forecasts."""
     client = APIClient()
     result = client.get(f"/api/v1/energy/forecasts?region={region}")
+    print(json.dumps(result, indent=2))
+
+
+@energy_group.command("timeseries-price")
+@click.option("--region", default="VIC1", help="Region (default VIC1)")
+@click.option(
+    "--range",
+    "range_key",
+    default="24h",
+    type=click.Choice(RANGE_CHOICES),
+    help="Window: 1h, 6h, 24h (default), 7d, 30d",
+)
+@click.option(
+    "--interval",
+    default=None,
+    help="Bucket size (auto-selected per range if omitted)",
+)
+def timeseries_price(region, range_key, interval):
+    """Interval-bucketed spot price series for trend analysis."""
+    client = APIClient()
+    result = client.get(
+        f"/api/v1/energy/timeseries/price?{_timeseries_qs(region, range_key, interval)}"
+    )
+    print(json.dumps(result, indent=2))
+
+
+@energy_group.command("timeseries-demand")
+@click.option("--region", default="VIC1", help="Region (default VIC1)")
+@click.option(
+    "--range",
+    "range_key",
+    default="24h",
+    type=click.Choice(RANGE_CHOICES),
+    help="Window: 1h, 6h, 24h (default), 7d, 30d",
+)
+@click.option(
+    "--interval",
+    default=None,
+    help="Bucket size (auto-selected per range if omitted)",
+)
+def timeseries_demand(region, range_key, interval):
+    """Interval-bucketed demand series for trend analysis."""
+    client = APIClient()
+    result = client.get(
+        f"/api/v1/energy/timeseries/demand?{_timeseries_qs(region, range_key, interval)}"
+    )
+    print(json.dumps(result, indent=2))
+
+
+@energy_group.command("timeseries-generation")
+@click.option("--region", default="VIC1", help="Region (default VIC1)")
+@click.option(
+    "--range",
+    "range_key",
+    default="24h",
+    type=click.Choice(RANGE_CHOICES),
+    help="Window: 1h, 6h, 24h (default), 7d, 30d",
+)
+@click.option(
+    "--interval",
+    default=None,
+    help="Bucket size (auto-selected per range if omitted)",
+)
+def timeseries_generation(region, range_key, interval):
+    """Interval-bucketed generation series by fuel type for trend analysis."""
+    client = APIClient()
+    result = client.get(
+        f"/api/v1/energy/timeseries/generation?{_timeseries_qs(region, range_key, interval)}"
+    )
     print(json.dumps(result, indent=2))
