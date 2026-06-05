@@ -15,7 +15,7 @@ Branch: feature/hack-remote-agent-interface-prd
 
 - [x] 5. **Agent service layer** — Add `src/citylab/services/agent_service.py` encapsulating resume-or-create (check alive, reuse if alive else mark dead + create new), health check, graceful shutdown, send message, and config seeding from `config.yaml`. Session token handled server-side only (NFR1). (FR3, FR6, FR7, FR8)
 
-- [ ] 6. **Agent API routes** — Add `src/citylab/routes/api_v1/agent.py` with: POST init (resume-or-create -> session id, persona, embed_url, status), POST shutdown, GET status (live liveness check for active sessions), POST send-message. Register blueprint. Never return session_token; embed_url only (FR13, FR14, FR15, FR16, NFR1, NFR3).
+- [x] 6. **Agent API routes** — Add `src/citylab/routes/api_v1/agent.py` with: POST init (resume-or-create -> session id, persona, embed_url, status), POST shutdown, GET status (live liveness check for active sessions), POST send-message. Register blueprint. Never return session_token; embed_url only (FR13, FR14, FR15, FR16, NFR1, NFR3).
 
 - [ ] 7. **CLI seed + config commands** — Add Flask CLI `seed-agents` (or extend existing seeding) to seed AgentConfig from config.yaml (FR3, FR4). Add `cli-citylab` agent config commands: list, add-config, set-default (FR23). Uses cli_wrapper REST/Bearer pattern.
 
