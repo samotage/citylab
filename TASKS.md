@@ -1,53 +1,24 @@
-# Tasks: Remote Agent Interface (Ray)
+# Tasks: CLI Completeness for Ray — Timeseries Commands + Market Intelligence Solar
 
-Source PRD: docs/prds/core/remote-agent-interface-prd.md
-Branch: feature/hack-remote-agent-interface-prd
+Source PRD: docs/prds/data/cli-completeness-for-ray-prd.md
+Branch: feature/hack-cli-completeness-for-ray-prd
 
 ## Task List
 
-- [x] 1. **Config: headspace section** — Update `config.yaml` headspace section with `url`, `api_token`, `project_name`, and a `personas` list (each with `slug`, `name`, `role`); seed Ray (energy-market-analyst-ray-50) as default. Add the corresponding DEFAULTS / ENV_MAPPINGS entries in `src/citylab/config.py` (FR25, FR26). (Config change — show diff before applying.)
-
-- [x] 2. **Models: agent config + session** — Add `AgentConfig` model (name, persona_slug unique, description, is_active, is_default) and `AgentSession` model (FK to config, headspace_agent_id, embed_url, session_token, status, timestamps) under `src/citylab/models/agent.py`; register in `models/__init__.py`. Provide for one default config and at-most-one active session per config (FR1, FR2, FR5, FR9).
-
-- [x] 3. **Migration: agent tables** — Generate Alembic migration for `agent_config` and `agent_session` tables with the unique constraint on persona_slug. Run `flask db upgrade` against the `citylab` dev DB (confirm target DB first).
-
-- [x] 4. **HeadspaceClient lifecycle** — Replace `trigger_agent()` in `src/citylab/services/headspace_client.py` with a client supporting `create_agent` (persona slug + optional initial prompt, retry once on 408/502/503), `check_alive` (session token auth), `shutdown_agent`, and `send_message`. Wrap connection/timeout errors in a domain exception carrying technical + user-friendly messages (FR10, FR11, FR12, NFR2).
-
-- [x] 5. **Agent service layer** — Add `src/citylab/services/agent_service.py` encapsulating resume-or-create (check alive, reuse if alive else mark dead + create new), health check, graceful shutdown, send message, and config seeding from `config.yaml`. Session token handled server-side only (NFR1). (FR3, FR6, FR7, FR8)
-
-- [x] 6. **Agent API routes** — Add `src/citylab/routes/api_v1/agent.py` with: POST init (resume-or-create -> session id, persona, embed_url, status), POST shutdown, GET status (live liveness check for active sessions), POST send-message. Register blueprint. Never return session_token; embed_url only (FR13, FR14, FR15, FR16, NFR1, NFR3).
-
-- [x] 7. **CLI seed + config commands** — Add Flask CLI `seed-agents` (or extend existing seeding) to seed AgentConfig from config.yaml (FR3, FR4). Add `cli-citylab` agent config commands: list, add-config, set-default (FR23). Uses cli_wrapper REST/Bearer pattern.
-
-- [x] 8. **CLI session commands** — Add `src/citylab/cli_wrapper/commands_agent.py` with `cli-citylab agent` group: start (--persona), stop, status, check, message — hitting the agent API routes via the Bearer-auth client; register the group in `__main__.py` (FR22, FR24, NFR4).
-
-- [x] 9. **Chat panel UI** — Add the chat panel to the `/energy` dashboard (right ~33%, dashboard left ~67%, Kenwood Mission Control layout): status indicator (name + badge), Start/Stop button, Headspace iframe, empty state with "Start Agent". Wire start/stop/status to the agent API routes; resume active session on page load. Conversation-first startup — Ray greets and waits for questions, no orientation data wall (FR17, FR18, FR19, FR20, FR21).
-
-- [x] 10. **CSS build + responsive layout** — Add any custom chat-panel styles to `static/css/src/input.css`, rebuild with `npx tailwindcss` (v3, NOT v4). Ensure responsive stacking on narrow screens; verify key custom selectors survive the build.
-
-- [x] 11. **Tests** — Add targeted tests using the existing fixture system (`app`, `client`, `db_session`): HeadspaceClient (mock requests — retry + error wrapping), agent_service resume-or-create logic, agent API routes (auth required, no session_token leak in response, init/status/shutdown), and model default/active-session constraints. Run `pytest` against `citylab_test`; confirm no regressions.
+- [ ] 1. Inspect existing patterns: energy CLI commands in `src/citylab/cli_wrapper/commands_energy.py`, the timeseries API endpoints in `src/citylab/routes/api_v1/energy.py`, and `energy_query.RANGE_INTERVALS`. Confirm endpoint paths, accepted query params (region/range/interval), and return shape before writing CLI commands.
+- [ ] 2. Add `cli-citylab energy timeseries-price` command in `commands_energy.py` — options `--region` (default VIC1), `--range` (default 24h), `--interval` (optional). Hits `/api/v1/energy/timeseries/price` via `APIClient.get()` and prints the JSON response. Mirror the existing energy command pattern.
+- [ ] 3. Add `cli-citylab energy timeseries-demand` command — same options, hits `/api/v1/energy/timeseries/demand`.
+- [ ] 4. Add `cli-citylab energy timeseries-generation` command — same options, hits `/api/v1/energy/timeseries/generation`.
+- [ ] 5. Part B: Wire solar into `market_intelligence()` in `src/citylab/routes/api_v1/data.py` (~line 127). Import `solar_query as sq`, build `solar = {"summary": sq.summary(), "outlook": sq.outlook()}` inside a try/except (mirror the weather block), and replace the hardcoded `"solar": None`.
+- [ ] 6. Part C: Update `docs/help/cli-citylab.md` — add the 3 timeseries commands as full CLI entries in the energy section, and update the `data market-intelligence` return shape to show `solar: {summary, outlook}` instead of `null`.
+- [ ] 7. Add test coverage for the 3 new CLI commands (invocation doesn't crash, options accepted) following existing CLI wrapper test patterns under `tests/`. Confirm market-intelligence solar wiring is covered.
+- [ ] 8. Run targeted tests (energy CLI + data market-intelligence) and confirm no regressions.
 
 ## Demo Script
 
-(No explicit Demo Script section in the PRD — synthesized from Success Moment §1.3 and Success Criteria SC1–SC7.)
-
-1. Start the server (`./restart_server.sh`) and confirm health: `curl http://127.0.0.1:15099/health`.
-2. Seed agents (`flask seed-agents` or app startup seed) and confirm Ray is present and default: `cli-citylab agent list` shows energy-market-analyst-ray-50 as default (SC7, FR4).
-3. Open the energy dashboard at `/energy`. The chat panel sits on the right in its empty state with a "Start Agent" button (SC1, UI Overview §6).
-4. Click "Start Agent". Ray's Headspace iframe loads and Ray greets the operator conversationally, waiting for questions — no automated data dump (FR21). Status badge shows active (SC4).
-5. Ask Ray: "What's the current spot price and where is it heading?" Ray queries `cli-citylab energy summary` and answers with a market-aware interpretation (SC2, Success Moment §1.3).
-6. Ask a follow-up: "What's the generation mix look like, and any weather impacts coming?" Ray uses `cli-citylab energy generation` / `weather` and responds (SC2).
-7. Refresh the page — the active session resumes; the panel reconnects to the running agent rather than starting a new one (SC3, FR20).
-8. Verify via CLI: `cli-citylab agent status` shows the active session and `cli-citylab agent check` confirms liveness (SC6).
-9. Click "Stop" in the UI (or `cli-citylab agent stop`) — the session shuts down and the badge returns to disconnected (SC5).
-
-## Ship Status
-
-- Build: complete (11/11 tasks)
-- Tests: passed (16/16 new agent tests; full suite 170 passed; 2 pre-existing unrelated solcast failures)
-- Smoke: passed (9/9 demo steps; 2 minor environmental gaps)
-
-### Known Issues
-- Live agent demo requires headspace.url pointed at the HTTPS Headspace endpoint (currently http:// hits an HTTPS-only port → falls back to verified graceful-error path). Operator-side config, not a code defect.
-- Browser screenshot of /energy chat panel not captured — admin login creds unset (set CITYLAB_ADMIN_EMAIL + CITYLAB_ADMIN_PASSWORD, run `flask seed-admin`). Verified via authenticated test-client render instead.
-- Optional: `pip install -e .` so the `cli-citylab` console script is on PATH (entry point declared but package not installed in active env).
+1. Open a terminal connected to the CityLab server
+2. Run `cli-citylab energy timeseries-price --range 24h` — see JSON with price series over 24 hours, interval-bucketed
+3. Run `cli-citylab energy timeseries-demand --range 7d --interval 1d` — see daily demand aggregates for the week
+4. Run `cli-citylab data market-intelligence --region VIC1` — see the combined response with energy, weather, AND solar data (no more `null`)
+5. Start Ray: `cli-citylab agent start` — ask "How have prices moved today?" — Ray uses the timeseries data to answer with trend analysis, not just a snapshot
+6. Ask Ray "Give me the full market picture" — the market-intelligence response now includes solar irradiance alongside energy and weather
