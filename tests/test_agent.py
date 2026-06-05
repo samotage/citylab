@@ -184,8 +184,7 @@ def ray_config(app):
 
 
 def test_resume_or_create_creates_when_none(app, ray_config):
-    from citylab.extensions import db
-    from citylab.models.agent import AgentSession, SessionStatus
+    from citylab.models.agent import SessionStatus
     from citylab.services import agent_service
 
     fake = MagicMock()
