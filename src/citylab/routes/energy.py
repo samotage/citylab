@@ -445,7 +445,21 @@ def _sources_view_model() -> dict:
 @energy_bp.route("/")
 @login_required
 def dashboard():
-    return render_template("energy/dashboard.html")
+    # The chat panel calls the Bearer-authed /api/v1/agent/* endpoints
+    # client-side, so hand the logged-in browser the configured API token
+    # (same pattern as the charts partial). Also resolve the default agent's
+    # display name for the panel header.
+    cfg = current_app.config.get("CITYLAB_CONFIG", {})
+    api_token = cfg.get("api", {}).get("token", "")
+    default_agent = "Ray"
+    personas = cfg.get("headspace", {}).get("personas", []) or []
+    if personas:
+        default_agent = personas[0].get("name", "Ray")
+    return render_template(
+        "energy/dashboard.html",
+        api_token=api_token,
+        default_agent=default_agent,
+    )
 
 
 @energy_bp.route("/partials/price")

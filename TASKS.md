@@ -21,9 +21,9 @@ Branch: feature/hack-remote-agent-interface-prd
 
 - [x] 8. **CLI session commands** — Add `src/citylab/cli_wrapper/commands_agent.py` with `cli-citylab agent` group: start (--persona), stop, status, check, message — hitting the agent API routes via the Bearer-auth client; register the group in `__main__.py` (FR22, FR24, NFR4).
 
-- [ ] 9. **Chat panel UI** — Add the chat panel to the `/energy` dashboard (right ~33%, dashboard left ~67%, Kenwood Mission Control layout): status indicator (name + badge), Start/Stop button, Headspace iframe, empty state with "Start Agent". Wire start/stop/status to the agent API routes; resume active session on page load. Conversation-first startup — Ray greets and waits for questions, no orientation data wall (FR17, FR18, FR19, FR20, FR21).
+- [x] 9. **Chat panel UI** — Add the chat panel to the `/energy` dashboard (right ~33%, dashboard left ~67%, Kenwood Mission Control layout): status indicator (name + badge), Start/Stop button, Headspace iframe, empty state with "Start Agent". Wire start/stop/status to the agent API routes; resume active session on page load. Conversation-first startup — Ray greets and waits for questions, no orientation data wall (FR17, FR18, FR19, FR20, FR21).
 
-- [ ] 10. **CSS build + responsive layout** — Add any custom chat-panel styles to `static/css/src/input.css`, rebuild with `npx tailwindcss` (v3, NOT v4). Ensure responsive stacking on narrow screens; verify key custom selectors survive the build.
+- [x] 10. **CSS build + responsive layout** — Add any custom chat-panel styles to `static/css/src/input.css`, rebuild with `npx tailwindcss` (v3, NOT v4). Ensure responsive stacking on narrow screens; verify key custom selectors survive the build.
 
 - [ ] 11. **Tests** — Add targeted tests using the existing fixture system (`app`, `client`, `db_session`): HeadspaceClient (mock requests — retry + error wrapping), agent_service resume-or-create logic, agent API routes (auth required, no session_token leak in response, init/status/shutdown), and model default/active-session constraints. Run `pytest` against `citylab_test`; confirm no regressions.
 
