@@ -4,6 +4,16 @@ Agent-operable Flask application for the What the Hack hackathon. Human users in
 
 Built fast with [Claude Code](https://claude.ai/claude-code). PRD-driven orchestration, fast-lane pipeline, no ceremony.
 
+---
+
+> **Want to build features fast?** This project includes an AI orchestration engine that takes a PRD and builds, tests, and ships it automatically. Write what you want, run three commands, get a merged PR.
+>
+> **[Read the Orchestration Quick Start](docs/orchestration-quickstart.md)** — works with Claude Code and OpenAI Codex.
+>
+> Full command reference, SOPs, and troubleshooting: [Orchestration Reference](docs/orchestration-reference.md)
+
+---
+
 ## Quick Start
 
 ```bash
