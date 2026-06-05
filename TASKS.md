@@ -40,3 +40,14 @@ Branch: feature/hack-remote-agent-interface-prd
 7. Refresh the page — the active session resumes; the panel reconnects to the running agent rather than starting a new one (SC3, FR20).
 8. Verify via CLI: `cli-citylab agent status` shows the active session and `cli-citylab agent check` confirms liveness (SC6).
 9. Click "Stop" in the UI (or `cli-citylab agent stop`) — the session shuts down and the badge returns to disconnected (SC5).
+
+## Ship Status
+
+- Build: complete (11/11 tasks)
+- Tests: passed (16/16 new agent tests; full suite 170 passed; 2 pre-existing unrelated solcast failures)
+- Smoke: passed (9/9 demo steps; 2 minor environmental gaps)
+
+### Known Issues
+- Live agent demo requires headspace.url pointed at the HTTPS Headspace endpoint (currently http:// hits an HTTPS-only port → falls back to verified graceful-error path). Operator-side config, not a code defect.
+- Browser screenshot of /energy chat panel not captured — admin login creds unset (set CITYLAB_ADMIN_EMAIL + CITYLAB_ADMIN_PASSWORD, run `flask seed-admin`). Verified via authenticated test-client render instead.
+- Optional: `pip install -e .` so the `cli-citylab` console script is on PATH (entry point declared but package not installed in active env).
