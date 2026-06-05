@@ -24,34 +24,10 @@ PRICE_PRELIM_WINDOW_MIN = 10
 
 # --- Generation fuel-type aggregation -------------------------------------
 
-# Buckets shown on the chart, in stacking order, with brand colours.
-_FUEL_BUCKETS = [
-    ("brown_coal", "Brown Coal", "#6366f1"),
-    ("gas", "Gas", "#a855f7"),
-    ("hydro", "Hydro", "#14b8a6"),
-    ("wind", "Wind", "#0ea5e9"),
-    ("solar", "Solar", "#eab308"),
-    ("battery_discharging", "Battery (discharge)", "#f472b6"),
-    ("battery_charging", "Battery (charge)", "#6B21A8"),
-    ("biomass", "Biomass", "#65A30D"),
-    ("distillate", "Distillate", "#DC2626"),
-    ("other", "Other", "#94a3b8"),
-]
-
-_GAS_TYPES = {"gas_ccgt", "gas_ocgt", "gas_recip", "gas_steam"}
-_SOLAR_TYPES = {"solar_utility", "solar_rooftop"}
-
-
-def _bucket_for(fuel_type: str) -> str:
-    if fuel_type in _GAS_TYPES:
-        return "gas"
-    if fuel_type in _SOLAR_TYPES:
-        return "solar"
-    if fuel_type in ("brown_coal", "wind", "hydro", "biomass", "distillate"):
-        return fuel_type
-    if fuel_type in ("battery_charging", "battery_discharging"):
-        return fuel_type
-    return "other"
+# Fuel buckets + colours + the raw->bucket mapping are the shared source of
+# truth in energy_query (FR8/SC9). Alias them here for local use.
+_FUEL_BUCKETS = eq.FUEL_BUCKETS
+_bucket_for = eq.bucket_for
 
 
 def _aggregate_generation(generation_mix: list[dict]) -> dict:

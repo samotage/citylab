@@ -20,6 +20,233 @@ from citylab.models.energy import (
 DEFAULT_REGION = "VIC1"
 
 
+# --- Shared fuel-type palette --------------------------------------------
+#
+# Single source of truth for generation fuel buckets, in stacking order, with
+# brand colours. Both the static generation panel (routes/energy.py) and the
+# new stacked-area chart consume this so colours/labels stay identical (FR8,
+# SC9).
+FUEL_BUCKETS = [
+    ("brown_coal", "Brown Coal", "#6366f1"),
+    ("gas", "Gas", "#a855f7"),
+    ("hydro", "Hydro", "#14b8a6"),
+    ("wind", "Wind", "#0ea5e9"),
+    ("solar", "Solar", "#eab308"),
+    ("battery_discharging", "Battery (discharge)", "#f472b6"),
+    ("battery_charging", "Battery (charge)", "#6B21A8"),
+    ("biomass", "Biomass", "#65A30D"),
+    ("distillate", "Distillate", "#DC2626"),
+    ("other", "Other", "#94a3b8"),
+]
+
+_GAS_TYPES = {"gas_ccgt", "gas_ocgt", "gas_recip", "gas_steam"}
+_SOLAR_TYPES = {"solar_utility", "solar_rooftop"}
+
+
+def bucket_for(fuel_type: str) -> str:
+    """Map a raw fuel_type to its display bucket key (shared with the panel)."""
+    if fuel_type in _GAS_TYPES:
+        return "gas"
+    if fuel_type in _SOLAR_TYPES:
+        return "solar"
+    if fuel_type in ("brown_coal", "wind", "hydro", "biomass", "distillate"):
+        return fuel_type
+    if fuel_type in ("battery_charging", "battery_discharging"):
+        return fuel_type
+    return "other"
+
+
+# --- Time-series aggregation ----------------------------------------------
+
+# Valid intervals per range + the default to auto-select (FR5, NFR2).
+RANGE_HOURS = {
+    "1h": 1,
+    "6h": 6,
+    "24h": 24,
+    "7d": 24 * 7,
+    "30d": 24 * 30,
+}
+
+RANGE_INTERVALS = {
+    "1h": (["5min"], "5min"),
+    "6h": (["5min", "1h"], "5min"),
+    "24h": (["5min", "1h"], "1h"),
+    "7d": (["1h", "1d"], "1h"),
+    "30d": (["1h", "1d"], "1d"),
+}
+
+_MAX_POINTS = 10000
+
+
+def valid_intervals(range_key: str):
+    """Return (allowed_intervals, default_interval) for a range key."""
+    return RANGE_INTERVALS.get(range_key, (["5min", "1h"], "1h"))
+
+
+def resolve_interval(range_key: str, interval: str | None) -> str:
+    """Validate the requested interval against the range; fall back to default."""
+    allowed, default = valid_intervals(range_key)
+    if interval in allowed:
+        return interval
+    return default
+
+
+def _trunc_expr(column, interval: str):
+    """date_trunc bucketing expression for an interval ('1h'/'1d')."""
+    unit = "hour" if interval == "1h" else "day"
+    return func.date_trunc(unit, column)
+
+
+def price_timeseries(region, dt_from, dt_to, interval: str = "5min"):
+    """Ordered [{timestamp, value}] of spot price ($/MWh) for a window."""
+    if interval == "5min":
+        rows = (
+            db.session.query(
+                EnergyPrice.interval_start, EnergyPrice.price_aud_mwh
+            )
+            .filter(
+                EnergyPrice.region == region,
+                EnergyPrice.interval_start >= dt_from,
+                EnergyPrice.interval_start <= dt_to,
+            )
+            .order_by(EnergyPrice.interval_start.asc())
+            .limit(_MAX_POINTS)
+            .all()
+        )
+        return [
+            {"timestamp": ts.isoformat(), "value": round(v, 2)}
+            for ts, v in rows
+            if v is not None
+        ]
+
+    bucket = _trunc_expr(EnergyPrice.interval_start, interval)
+    rows = (
+        db.session.query(bucket.label("b"), func.avg(EnergyPrice.price_aud_mwh))
+        .filter(
+            EnergyPrice.region == region,
+            EnergyPrice.interval_start >= dt_from,
+            EnergyPrice.interval_start <= dt_to,
+        )
+        .group_by("b")
+        .order_by("b")
+        .limit(_MAX_POINTS)
+        .all()
+    )
+    return [
+        {"timestamp": ts.isoformat(), "value": round(float(v), 2)}
+        for ts, v in rows
+        if v is not None
+    ]
+
+
+def demand_timeseries(region, dt_from, dt_to, interval: str = "5min"):
+    """Ordered [{timestamp, value}] of demand (MW) for a window."""
+    if interval == "5min":
+        rows = (
+            db.session.query(
+                EnergyDemand.interval_start, EnergyDemand.demand_mw
+            )
+            .filter(
+                EnergyDemand.region == region,
+                EnergyDemand.interval_start >= dt_from,
+                EnergyDemand.interval_start <= dt_to,
+            )
+            .order_by(EnergyDemand.interval_start.asc())
+            .limit(_MAX_POINTS)
+            .all()
+        )
+        return [
+            {"timestamp": ts.isoformat(), "value": round(v, 1)}
+            for ts, v in rows
+            if v is not None
+        ]
+
+    bucket = _trunc_expr(EnergyDemand.interval_start, interval)
+    rows = (
+        db.session.query(bucket.label("b"), func.avg(EnergyDemand.demand_mw))
+        .filter(
+            EnergyDemand.region == region,
+            EnergyDemand.interval_start >= dt_from,
+            EnergyDemand.interval_start <= dt_to,
+        )
+        .group_by("b")
+        .order_by("b")
+        .limit(_MAX_POINTS)
+        .all()
+    )
+    return [
+        {"timestamp": ts.isoformat(), "value": round(float(v), 1)}
+        for ts, v in rows
+        if v is not None
+    ]
+
+
+def generation_timeseries(region, dt_from, dt_to, interval: str = "5min"):
+    """Generation output (MW) by fuel bucket over time.
+
+    Returns one series per fuel bucket present in the window, each:
+        {"key", "label", "colour", "points": [{timestamp, value}, ...]}
+    Series are ordered by FUEL_BUCKETS (stacking order). Charging is reported
+    as positive magnitude. All series share the same ordered timestamp axis so
+    the client can stack them directly.
+    """
+    if interval == "5min":
+        time_expr = GenerationOutput.interval_start
+    else:
+        time_expr = _trunc_expr(GenerationOutput.interval_start, interval)
+
+    rows = (
+        db.session.query(
+            time_expr.label("b"),
+            GenerationOutput.fuel_type,
+            func.avg(GenerationOutput.output_mw),
+        )
+        .filter(
+            GenerationOutput.region == region,
+            GenerationOutput.interval_start >= dt_from,
+            GenerationOutput.interval_start <= dt_to,
+        )
+        .group_by("b", GenerationOutput.fuel_type)
+        .order_by("b")
+        .all()
+    )
+
+    # bucket_key -> { ts_iso -> summed value }
+    by_bucket: dict[str, dict[str, float]] = {}
+    timestamps: list[str] = []
+    seen_ts: set[str] = set()
+    for ts, fuel_type, val in rows:
+        if val is None:
+            continue
+        ts_iso = ts.isoformat()
+        if ts_iso not in seen_ts:
+            seen_ts.add(ts_iso)
+            timestamps.append(ts_iso)
+        bkey = bucket_for(fuel_type)
+        slot = by_bucket.setdefault(bkey, {})
+        slot[ts_iso] = slot.get(ts_iso, 0.0) + float(val)
+
+    timestamps.sort()
+    # Cap points: if a single series would exceed the limit, truncate the axis.
+    if len(timestamps) > _MAX_POINTS:
+        timestamps = timestamps[-_MAX_POINTS:]
+        ts_set = set(timestamps)
+
+    series = []
+    for key, label, colour in FUEL_BUCKETS:
+        if key not in by_bucket:
+            continue
+        slot = by_bucket[key]
+        points = [
+            {"timestamp": ts, "value": round(abs(slot.get(ts, 0.0)), 1)}
+            for ts in timestamps
+        ]
+        series.append(
+            {"key": key, "label": label, "colour": colour, "points": points}
+        )
+    return series
+
+
 def _parse_dt(value: str | None):
     """Parse an ISO-ish datetime string; return None on failure/empty."""
     if not value:
