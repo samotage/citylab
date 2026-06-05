@@ -257,6 +257,58 @@ def seed_solar_locations() -> list[dict]:
     return results
 
 
+def seed_battery_assets(config: dict | None = None) -> list[dict]:
+    """Create/update BatteryAsset rows from config. Idempotent (matched by name)."""
+    from citylab.config import load_config
+    from citylab.extensions import db
+    from citylab.models.battery import BatteryAsset
+
+    if config is None:
+        config = load_config()
+
+    specs = config.get("battery_assets", []) or []
+    results = []
+
+    for spec in specs:
+        if not isinstance(spec, dict):
+            continue
+        name = spec.get("name")
+        if not name:
+            continue
+
+        existing = db.session.query(BatteryAsset).filter_by(name=name).first()
+        if existing:
+            existing.region = spec.get("region", existing.region)
+            existing.capacity_mwh = spec.get("capacity_mwh", existing.capacity_mwh)
+            existing.max_power_mw = spec.get("max_power_mw", existing.max_power_mw)
+            existing.roundtrip_eff = spec.get("roundtrip_eff", existing.roundtrip_eff)
+            existing.min_soc_pct = spec.get("min_soc_pct", existing.min_soc_pct)
+            existing.max_soc_pct = spec.get("max_soc_pct", existing.max_soc_pct)
+            existing.reserve_soc_pct = spec.get("reserve_soc_pct", existing.reserve_soc_pct)
+            db.session.commit()
+            logger.info("Updated battery asset: %s", name)
+            results.append(existing.to_dict())
+        else:
+            asset = BatteryAsset(
+                name=name,
+                region=spec.get("region", "VIC1"),
+                capacity_mwh=spec["capacity_mwh"],
+                max_power_mw=spec["max_power_mw"],
+                roundtrip_eff=spec.get("roundtrip_eff", 0.85),
+                min_soc_pct=spec.get("min_soc_pct", 10.0),
+                max_soc_pct=spec.get("max_soc_pct", 95.0),
+                reserve_soc_pct=spec.get("reserve_soc_pct", 30.0),
+                current_soc_pct=spec.get("initial_soc_pct", 50.0),
+                status="idle",
+            )
+            db.session.add(asset)
+            db.session.commit()
+            logger.info("Seeded battery asset: %s", name)
+            results.append(asset.to_dict())
+
+    return results
+
+
 def seed_data_sources(config: dict | None = None) -> list[dict]:
     """Create/update DataSource rows from config. Returns list of to_dict()."""
     from citylab.config import load_config

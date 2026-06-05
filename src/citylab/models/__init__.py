@@ -26,3 +26,7 @@ from citylab.models.agent import (  # noqa: F401
     AgentSession,
     SessionStatus,
 )
+from citylab.models.battery import (  # noqa: F401
+    BatteryAsset,
+    DispatchEvent,
+)

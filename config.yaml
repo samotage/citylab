@@ -39,6 +39,34 @@ session:
   lifetime_days: 30
   cookie_name: session_citylab
 
+battery_assets:
+  - name: "City BESS Alpha"
+    region: VIC1
+    capacity_mwh: 200
+    max_power_mw: 100
+    roundtrip_eff: 0.85
+    min_soc_pct: 10
+    max_soc_pct: 95
+    reserve_soc_pct: 30
+    initial_soc_pct: 50
+  - name: "City BESS Beta"
+    region: VIC1
+    capacity_mwh: 50
+    max_power_mw: 25
+    roundtrip_eff: 0.90
+    min_soc_pct: 5
+    max_soc_pct: 95
+    reserve_soc_pct: 20
+    initial_soc_pct: 60
+
+dispatch:
+  discharge_threshold_aud_mwh: 150
+  charge_threshold_aud_mwh: 40
+  interconnector_stress_pct: 85
+  solar_cloud_opacity_trigger_pct: 60
+  wind_drop_trigger_pct: 30
+  pre_position_soc_ceiling_pct: 70
+
 # Data ingestion sources. Sensitive credentials are referenced via env vars
 # (${VAR_NAME}) and injected into DataSource.config at seed time. New sources
 # are added here and seeded via `cli-citylab data seed`.
