@@ -134,6 +134,7 @@ def market_intelligence():
     """
     from citylab.services.energy_query import current_snapshot, latest_fetch_timestamp
     from citylab.services import weather_query as wq
+    from citylab.services import solar_query as sq
 
     region = request.args.get("region", "VIC1")
 
@@ -162,6 +163,15 @@ def market_intelligence():
     except Exception:  # noqa: BLE001 - never break the combined endpoint
         weather = None
 
+    # Solar: current irradiance snapshot + forward outlook for VIC/SA sites.
+    try:
+        solar = {
+            "summary": sq.summary(),
+            "outlook": sq.outlook(),
+        }
+    except Exception:  # noqa: BLE001 - never break the combined endpoint
+        solar = None
+
     return jsonify(
         {
             "ok": True,
@@ -170,8 +180,7 @@ def market_intelligence():
                 "sources": per_source,
                 "energy": energy,
                 "weather": weather,
-                # Placeholder populated when the Solcast PRD lands.
-                "solar": None,
+                "solar": solar,
             },
             "data_as_of": latest_fetch_timestamp(),
         }
