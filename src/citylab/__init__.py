@@ -150,7 +150,7 @@ def _is_flask_cli() -> bool:
     """Detect if we're running under flask CLI (db migrate, etc.)."""
     import sys
     return any(
-        arg in sys.argv for arg in ["db", "seed-admin", "seed-data-sources", "seed-agents", "routes", "shell"]
+        arg in sys.argv for arg in ["db", "seed-admin", "seed-data-sources", "seed-agents", "solcast-refresh", "routes", "shell"]
     )
 
 
