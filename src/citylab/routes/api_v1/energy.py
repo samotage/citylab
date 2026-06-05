@@ -180,6 +180,41 @@ def inertia_current():
     )
 
 
+@energy_api_bp.route("/energy/carbon", methods=["GET"])
+@require_api_token
+def carbon_timeseries():
+    from citylab.services import carbon as carbon_svc
+
+    region, range_key, interval, dt_from, dt_to = _timeseries_window()
+    series = carbon_svc.carbon_timeseries(region, dt_from, dt_to, interval)
+    return jsonify(
+        {
+            "ok": True,
+            "region": region,
+            "range": range_key,
+            "interval": interval,
+            "series": series,
+            "data_as_of": eq.latest_fetch_timestamp("opennem"),
+        }
+    )
+
+
+@energy_api_bp.route("/energy/carbon/current", methods=["GET"])
+@require_api_token
+def carbon_current():
+    from citylab.services import carbon as carbon_svc
+
+    region = request.args.get("region", "VIC1")
+    return jsonify(
+        {
+            "ok": True,
+            "region": region,
+            "data": carbon_svc.current_carbon(region),
+            "data_as_of": eq.latest_fetch_timestamp("opennem"),
+        }
+    )
+
+
 @energy_api_bp.route("/energy/summary", methods=["GET"])
 @require_api_token
 def summary():

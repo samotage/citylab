@@ -20,6 +20,45 @@ from citylab.models.energy import (
 DEFAULT_REGION = "VIC1"
 
 
+# --- Price bands ----------------------------------------------------------
+#
+# Market Price Cap — CPI-indexed annually by AEMC (updates each 1 July). Stored
+# as a named constant with the FY noted so the next indexation is a one-line
+# change.
+MARKET_PRICE_CAP_MWH = 20300.0  # FY2025-26, AEMC indexed
+
+# Analytical price bands ($/MWh) -> (band name, descriptive label).
+#   Negative  < 0        Solar oversupply
+#   Low       0–30       Renewable surplus
+#   Normal    30–150     Standard operation
+#   Elevated  150–300    Gas peaker territory
+#   Stress    300–MPC    Grid stress event
+#   MPC       = MPC      Market Price Cap
+PRICE_BAND_LOW = 30.0
+PRICE_BAND_NORMAL = 150.0
+PRICE_BAND_ELEVATED = 300.0
+
+
+def classify_price_band(price) -> tuple[str | None, str | None]:
+    """Classify a spot price ($/MWh) into ``(band, label)``.
+
+    Returns ``(None, None)`` when ``price`` is ``None`` (no data).
+    """
+    if price is None:
+        return None, None
+    if price < 0:
+        return "Negative", "Solar oversupply"
+    if price < PRICE_BAND_LOW:
+        return "Low", "Renewable surplus"
+    if price < PRICE_BAND_NORMAL:
+        return "Normal", "Standard operation"
+    if price < PRICE_BAND_ELEVATED:
+        return "Elevated", "Gas peaker territory"
+    if price < MARKET_PRICE_CAP_MWH:
+        return "Stress", "Grid stress event"
+    return "MPC", "Market Price Cap (FY2025-26)"
+
+
 # --- Shared fuel-type palette --------------------------------------------
 #
 # Single source of truth for generation fuel buckets, in stacking order, with
@@ -402,10 +441,16 @@ def current_snapshot(region: str = DEFAULT_REGION) -> dict:
 
     inertia = compute_inertia(generation_mix)
 
+    # Analytical price band for the latest spot price (hero display, FR).
+    price_value = latest_price.price_aud_mwh if latest_price else None
+    price_band, price_band_label = classify_price_band(price_value)
+
     return {
         "region": region,
         "latest_price": latest_price.to_dict() if latest_price else None,
         "latest_demand": latest_demand.to_dict() if latest_demand else None,
+        "price_band": price_band,
+        "price_band_label": price_band_label,
         "generation_mix": generation_mix,
         "battery_state": battery,
         "interconnectors": interconnectors,
