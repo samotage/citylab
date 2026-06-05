@@ -1,0 +1,272 @@
+<div class="card mb-4" id="charts-card">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <div class="card-label !mb-0">Market Trends</div>
+        <div class="flex flex-wrap items-center gap-3">
+            <div id="range-selector" class="inline-flex rounded-lg bg-zinc-100 p-0.5">
+                {% for r in ["1h", "6h", "24h", "7d", "30d"] %}
+                <button type="button"
+                        data-range="{{ r }}"
+                        class="range-btn px-3 py-1 text-xs font-medium rounded-md text-zinc-600 transition">
+                    {{ r }}
+                </button>
+                {% endfor %}
+            </div>
+            <div id="interval-selector" class="inline-flex rounded-lg bg-zinc-100 p-0.5"></div>
+        </div>
+    </div>
+
+    <!-- Price + demand -->
+    <div class="mb-2 text-[13px] text-zinc-500">Spot price ($/MWh) &amp; demand (MW)</div>
+    <div class="relative" style="height: 300px;">
+        <canvas id="chart-price-demand"></canvas>
+        <div id="empty-price-demand" class="chart-empty hidden">No data available for this range</div>
+    </div>
+
+    <!-- Generation stacked area -->
+    <div class="mt-6 mb-2 text-[13px] text-zinc-500">Generation mix (MW by fuel type)</div>
+    <div class="relative" style="height: 300px;">
+        <canvas id="chart-generation"></canvas>
+        <div id="empty-generation" class="chart-empty hidden">No data available for this range</div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const API_BASE = "/api/v1/energy/timeseries";
+    const TOKEN = {{ api_token | tojson }};
+
+    // Valid intervals per range + default (mirrors energy_query.RANGE_INTERVALS).
+    const RANGE_INTERVALS = {
+        "1h":  { allowed: ["5min"], def: "5min" },
+        "6h":  { allowed: ["5min", "1h"], def: "5min" },
+        "24h": { allowed: ["5min", "1h"], def: "1h" },
+        "7d":  { allowed: ["1h", "1d"], def: "1h" },
+        "30d": { allowed: ["1h", "1d"], def: "1d" }
+    };
+    const INTERVAL_LABELS = { "5min": "5 min", "1h": "Hourly", "1d": "Daily" };
+
+    let state = { range: "24h", interval: "1h" };
+    let priceDemandChart = null;
+    let generationChart = null;
+
+    function authHeaders() {
+        return TOKEN ? { "Authorization": "Bearer " + TOKEN } : {};
+    }
+
+    async function fetchSeries(metric) {
+        const url = `${API_BASE}/${metric}?range=${state.range}&interval=${state.interval}`;
+        const resp = await fetch(url, { headers: authHeaders() });
+        if (!resp.ok) return { series: [] };
+        return resp.json();
+    }
+
+    function fmtTime(iso) {
+        const d = new Date(iso);
+        return d.toLocaleString("en-AU", {
+            month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false
+        });
+    }
+
+    function highlightRange() {
+        document.querySelectorAll(".range-btn").forEach(b => {
+            const active = b.dataset.range === state.range;
+            b.classList.toggle("bg-white", active);
+            b.classList.toggle("shadow-sm", active);
+            b.classList.toggle("text-volt-700", active);
+            b.classList.toggle("text-zinc-600", !active);
+        });
+    }
+
+    function renderIntervalControl() {
+        const cfg = RANGE_INTERVALS[state.range];
+        const wrap = document.getElementById("interval-selector");
+        wrap.innerHTML = "";
+        cfg.allowed.forEach(iv => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.textContent = INTERVAL_LABELS[iv] || iv;
+            btn.className = "interval-btn px-3 py-1 text-xs font-medium rounded-md transition";
+            const active = iv === state.interval;
+            btn.classList.add(active ? "bg-white" : "text-zinc-600");
+            if (active) btn.classList.add("shadow-sm", "text-volt-700");
+            btn.addEventListener("click", () => {
+                state.interval = iv;
+                renderIntervalControl();
+                refresh();
+            });
+            wrap.appendChild(btn);
+        });
+    }
+
+    function toggleEmpty(id, isEmpty) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle("hidden", !isEmpty);
+    }
+
+    async function refresh() {
+        const [priceData, demandData, genData] = await Promise.all([
+            fetchSeries("price"),
+            fetchSeries("demand"),
+            fetchSeries("generation")
+        ]);
+        renderPriceDemand(priceData.series || [], demandData.series || []);
+        renderGeneration(genData.series || []);
+    }
+
+    function renderPriceDemand(priceSeries, demandSeries) {
+        const priceEmpty = priceSeries.length === 0;
+        const demandEmpty = demandSeries.length === 0;
+        toggleEmpty("empty-price-demand", priceEmpty && demandEmpty);
+
+        const pricePts = priceSeries.map(p => ({ x: p.timestamp, y: p.value }));
+        const demandPts = demandSeries.map(p => ({ x: p.timestamp, y: p.value }));
+
+        const datasets = [
+            {
+                label: "Spot price ($/MWh)",
+                data: pricePts,
+                yAxisID: "yPrice",
+                borderColor: "#7c3aed",
+                backgroundColor: "rgba(124,58,237,0.08)",
+                borderWidth: 2,
+                fill: true,
+                pointRadius: 0,
+                tension: 0.2
+            },
+            {
+                label: "Demand (MW)",
+                data: demandPts,
+                yAxisID: "yDemand",
+                borderColor: "#0ea5e9",
+                borderWidth: 1.5,
+                borderDash: [4, 3],
+                fill: false,
+                pointRadius: 0,
+                tension: 0.2
+            }
+        ];
+
+        const labels = (priceSeries.length ? priceSeries : demandSeries).map(p => p.timestamp);
+
+        if (priceDemandChart) {
+            priceDemandChart.data.labels = labels;
+            priceDemandChart.data.datasets = datasets;
+            priceDemandChart.update("none");
+            return;
+        }
+        const ctx = document.getElementById("chart-price-demand").getContext("2d");
+        priceDemandChart = new Chart(ctx, {
+            type: "line",
+            data: { labels: labels, datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                parsing: false,
+                interaction: { mode: "index", intersect: false },
+                scales: {
+                    x: {
+                        type: "category",
+                        ticks: { maxTicksLimit: 8, callback: (v, i) => fmtTime(labels[i]) },
+                        grid: { display: false }
+                    },
+                    yPrice: {
+                        position: "left",
+                        title: { display: true, text: "$/MWh" },
+                        grid: { color: "rgba(0,0,0,0.04)" }
+                    },
+                    yDemand: {
+                        position: "right",
+                        title: { display: true, text: "MW" },
+                        grid: { drawOnChartArea: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: true, labels: { boxWidth: 12, font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            title: items => items.length ? fmtTime(items[0].label) : "",
+                            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderGeneration(series) {
+        toggleEmpty("empty-generation", series.length === 0);
+
+        let labels = [];
+        series.forEach(s => { if (s.points.length > labels.length) labels = s.points.map(p => p.timestamp); });
+
+        const datasets = series.map(s => ({
+            label: s.label,
+            data: s.points.map(p => p.value),
+            borderColor: s.colour,
+            backgroundColor: s.colour + "cc",
+            borderWidth: 1,
+            fill: true,
+            pointRadius: 0,
+            tension: 0.15
+        }));
+
+        if (generationChart) {
+            generationChart.data.labels = labels;
+            generationChart.data.datasets = datasets;
+            generationChart.update("none");
+            return;
+        }
+        const ctx = document.getElementById("chart-generation").getContext("2d");
+        generationChart = new Chart(ctx, {
+            type: "line",
+            data: { labels: labels, datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: "index", intersect: false },
+                scales: {
+                    x: {
+                        type: "category",
+                        ticks: { maxTicksLimit: 8, callback: (v, i) => fmtTime(labels[i]) },
+                        grid: { display: false }
+                    },
+                    y: {
+                        stacked: true,
+                        title: { display: true, text: "MW" },
+                        grid: { color: "rgba(0,0,0,0.04)" }
+                    }
+                },
+                plugins: {
+                    legend: { display: true, labels: { boxWidth: 12, font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            title: items => items.length ? fmtTime(labels[items[0].dataIndex]) : "",
+                            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y} MW`,
+                            footer: items => {
+                                const total = items.reduce((a, i) => a + (i.parsed.y || 0), 0);
+                                return "Total: " + Math.round(total) + " MW";
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Wire range buttons.
+    document.querySelectorAll(".range-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            state.range = btn.dataset.range;
+            state.interval = RANGE_INTERVALS[state.range].def;
+            highlightRange();
+            renderIntervalControl();
+            refresh();
+        });
+    });
+
+    // Init.
+    highlightRange();
+    renderIntervalControl();
+    refresh();
+})();
+</script>

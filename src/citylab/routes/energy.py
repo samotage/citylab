@@ -7,7 +7,7 @@ round-trip. Each panel is an HTMX partial that the dashboard page polls.
 
 from datetime import datetime, timedelta, timezone
 
-from flask import Blueprint, render_template
+from flask import Blueprint, current_app, render_template
 from flask_login import login_required
 
 from citylab.services import energy_query as eq
@@ -492,3 +492,16 @@ def partial_sources():
     return render_template(
         "energy/partials/sources.html", vm=_sources_view_model()
     )
+
+
+@energy_bp.route("/partials/charts")
+@login_required
+def partial_charts():
+    # The charts call the Bearer-authed timeseries API client-side, so hand the
+    # logged-in browser the configured API token to use for those fetches.
+    api_token = (
+        current_app.config.get("CITYLAB_CONFIG", {})
+        .get("api", {})
+        .get("token", "")
+    )
+    return render_template("energy/partials/charts.html", api_token=api_token)
