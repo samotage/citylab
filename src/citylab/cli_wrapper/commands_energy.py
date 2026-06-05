@@ -83,6 +83,39 @@ def forecasts(region):
     print(json.dumps(result, indent=2))
 
 
+@energy_group.command("inertia")
+@click.option("--region", default="VIC1", help="Region (default VIC1)")
+@click.option(
+    "--range",
+    "range_key",
+    default=None,
+    type=click.Choice(RANGE_CHOICES),
+    help="Timeseries window (omit for current state): 1h, 6h, 24h, 7d, 30d",
+)
+@click.option(
+    "--interval",
+    default=None,
+    help="Bucket size (auto-selected per range if omitted)",
+)
+@click.option(
+    "--contingency",
+    default="heywood",
+    help="Preset (heywood, loy_yang_a) or custom MW value",
+)
+def inertia(region, range_key, interval, contingency):
+    """Grid inertia: sync fraction, E_proxy, RoCoF, state. --range for timeseries."""
+    client = APIClient()
+    if range_key:
+        params = {"region": region, "range": range_key, "contingency": contingency}
+        if interval:
+            params["interval"] = interval
+        result = client.get(f"/api/v1/energy/inertia?{urlencode(params)}")
+    else:
+        params = {"region": region, "contingency": contingency}
+        result = client.get(f"/api/v1/energy/inertia/current?{urlencode(params)}")
+    print(json.dumps(result, indent=2))
+
+
 @energy_group.command("timeseries-price")
 @click.option("--region", default="VIC1", help="Region (default VIC1)")
 @click.option(

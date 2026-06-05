@@ -136,6 +136,50 @@ def forecasts():
     )
 
 
+@energy_api_bp.route("/energy/inertia", methods=["GET"])
+@require_api_token
+def inertia_timeseries():
+    from citylab.services import inertia as inertia_svc
+
+    region, range_key, interval, dt_from, dt_to = _timeseries_window()
+    contingency = request.args.get("contingency", "heywood")
+    series = inertia_svc.inertia_timeseries(
+        region, dt_from, dt_to, interval, contingency
+    )
+    label, mw = inertia_svc.resolve_contingency(contingency)
+    return jsonify(
+        {
+            "ok": True,
+            "region": region,
+            "range": range_key,
+            "interval": interval,
+            "contingency_label": label,
+            "contingency_mw": mw,
+            "caveat": inertia_svc.MVA_CAVEAT,
+            "series": series,
+            "data_as_of": eq.latest_fetch_timestamp("opennem"),
+        }
+    )
+
+
+@energy_api_bp.route("/energy/inertia/current", methods=["GET"])
+@require_api_token
+def inertia_current():
+    from citylab.services import inertia as inertia_svc
+
+    region = request.args.get("region", "VIC1")
+    contingency = request.args.get("contingency", "heywood")
+    return jsonify(
+        {
+            "ok": True,
+            "region": region,
+            "caveat": inertia_svc.MVA_CAVEAT,
+            "data": inertia_svc.current_inertia(region, contingency),
+            "data_as_of": eq.latest_fetch_timestamp("opennem"),
+        }
+    )
+
+
 @energy_api_bp.route("/energy/summary", methods=["GET"])
 @require_api_token
 def summary():

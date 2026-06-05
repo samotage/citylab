@@ -396,6 +396,12 @@ def current_snapshot(region: str = DEFAULT_REGION) -> dict:
         .first()
     )
 
+    # Grid inertia proxy, derived from the generation mix already fetched above
+    # — zero additional DB queries (inertia.py is a pure derivation module).
+    from citylab.services.inertia import compute_inertia
+
+    inertia = compute_inertia(generation_mix)
+
     return {
         "region": region,
         "latest_price": latest_price.to_dict() if latest_price else None,
@@ -404,4 +410,5 @@ def current_snapshot(region: str = DEFAULT_REGION) -> dict:
         "battery_state": battery,
         "interconnectors": interconnectors,
         "nearest_forecast": next_forecast.to_dict() if next_forecast else None,
+        "inertia": inertia,
     }
