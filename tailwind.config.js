@@ -12,6 +12,8 @@ module.exports = {
     'chip-solar-sunny', 'chip-solar-partly-cloudy', 'chip-solar-overcast', 'chip-solar-unknown',
     'chip-rain-dry', 'chip-rain-light', 'chip-rain-moderate', 'chip-rain-heavy', 'chip-rain-unknown',
     'sc-type-active', 'sc-impact-up', 'sc-impact-down',
+    'inertia-state-comfortable', 'inertia-state-watch', 'inertia-state-brittle',
+    'inertia-gauge-comfortable', 'inertia-gauge-watch', 'inertia-gauge-brittle',
   ],
   theme: {
     extend: {

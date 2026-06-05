@@ -316,6 +316,49 @@
     @apply bg-zinc-200;
   }
 
+  /* ---- Grid inertia panel ---- */
+
+  .inertia-state {
+    @apply inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold uppercase tracking-wide;
+  }
+  .inertia-state-comfortable {
+    @apply bg-emerald-100 text-emerald-700;
+  }
+  .inertia-state-watch {
+    background: #fef3c7;
+    color: #b45309;
+  }
+  .inertia-state-brittle {
+    @apply bg-red-100 text-red-700;
+    animation: inertia-brittle-pulse 2s ease-in-out infinite;
+  }
+
+  .inertia-gauge {
+    @apply relative w-full h-2.5 rounded-full bg-zinc-100 overflow-visible;
+  }
+  .inertia-gauge-fill {
+    @apply absolute inset-y-0 left-0 rounded-full transition-all duration-500;
+  }
+  .inertia-gauge-comfortable {
+    @apply bg-emerald-500;
+  }
+  .inertia-gauge-watch {
+    @apply bg-amber-400;
+  }
+  .inertia-gauge-brittle {
+    @apply bg-red-500;
+  }
+  .inertia-gauge-marker {
+    @apply absolute top-[-2px] w-px h-[calc(100%+4px)] bg-zinc-300;
+  }
+
+  .contingency-select {
+    @apply px-2.5 py-1 rounded-lg bg-zinc-50 border border-zinc-200 text-[11px] font-medium text-zinc-600 cursor-pointer;
+  }
+  .contingency-select:focus {
+    @apply outline-none ring-2 ring-volt-400 border-volt-300;
+  }
+
   /* ---- Demand response panel ---- */
 
   .dr-curtailed-counter {
@@ -493,10 +536,16 @@
   50% { opacity: 0.7; }
 }
 
+@keyframes inertia-brittle-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .live-dot,
   .price-spike,
-  .dr-wf-curtailed {
+  .dr-wf-curtailed,
+  .inertia-state-brittle {
     animation: none;
   }
 }

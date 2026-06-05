@@ -14,6 +14,7 @@ from citylab.extensions import db
 from citylab.models.battery import BatteryAsset, DispatchEvent
 from citylab.models.demand_response import ControllableLoad, DemandResponseEvent
 from citylab.services import energy_query as eq
+from citylab.services import inertia as inertia_svc
 from citylab.services import solar_query as sq
 from citylab.services import weather_query as wq
 
@@ -661,6 +662,42 @@ def partial_demand_response():
         curtailed_mw=curtailed_mw,
         last_reason=last_reason,
         last_time=last_time,
+    )
+
+
+@energy_bp.route("/partials/inertia")
+@login_required
+def partial_inertia():
+    region = _get_region()
+    contingency = request.args.get("contingency", "heywood")
+    snap = inertia_svc.current_inertia(region, contingency)
+    sync_pct = round(snap["sync_fraction"] * 100, 1)
+    vm = {
+        "state": snap["inertia_state"],
+        "state_lower": snap["inertia_state"].lower(),
+        "sync_pct": sync_pct,
+        "sync_mw": snap["sync_mw"],
+        "total_mw": snap["total_mw"],
+        "rocof": snap["rocof_hz_s"],
+        "contingency_label": snap["contingency_label"],
+        "contingency_mw": snap["contingency_mw"],
+        "e_proxy_mws": snap["e_proxy_mws"],
+        "as_of": snap.get("as_of"),
+        "selected_contingency": contingency,
+    }
+    return render_template("energy/partials/inertia.html", vm=vm)
+
+
+@energy_bp.route("/partials/inertia-chart")
+@login_required
+def partial_inertia_chart():
+    api_token = (
+        current_app.config.get("CITYLAB_CONFIG", {}).get("api", {}).get("token", "")
+    )
+    return render_template(
+        "energy/partials/inertia_chart.html",
+        api_token=api_token,
+        region=_get_region(),
     )
 
 

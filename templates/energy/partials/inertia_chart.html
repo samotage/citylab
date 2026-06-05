@@ -1,0 +1,370 @@
+<div class="card mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <div class="card-label !mb-0">Inertia Trend &amp; Weather Correlation</div>
+        <div class="inline-flex rounded-lg bg-zinc-100 p-0.5">
+            {% for r in ["24h", "7d"] %}
+            <button type="button"
+                    data-range="{{ r }}"
+                    class="inertia-range-btn px-3 py-1 text-xs font-medium rounded-md text-zinc-600 transition">
+                {{ r }}
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Sync fraction + RoCoF chart -->
+    <div class="mb-2 text-[13px] text-zinc-500">Synchronous fraction &amp; RoCoF</div>
+    <div class="relative" style="height: 280px;">
+        <canvas id="chart-inertia"></canvas>
+        <div id="empty-inertia" class="chart-empty hidden">No inertia data available</div>
+    </div>
+
+    <!-- Weather correlation chart -->
+    <div class="mt-6 mb-2 text-[13px] text-zinc-500">Weather drivers &mdash; wind &amp; solar vs sync fraction</div>
+    <div class="relative" style="height: 240px;">
+        <canvas id="chart-weather-corr"></canvas>
+        <div id="empty-weather-corr" class="chart-empty hidden">No weather data available for correlation</div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var TOKEN = {{ api_token | tojson }};
+    var REGION = {{ region | tojson }};
+    var inertiaChart = null;
+    var corrChart = null;
+    var rangeState = "24h";
+
+    function authHeaders() {
+        return TOKEN ? { "Authorization": "Bearer " + TOKEN } : {};
+    }
+
+    function fmtTime(iso) {
+        var d = new Date(iso);
+        return d.toLocaleString("en-AU", {
+            month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false
+        });
+    }
+
+    function toggleEmpty(id, show) {
+        var el = document.getElementById(id);
+        if (el) el.classList.toggle("hidden", !show);
+    }
+
+    function highlightRange() {
+        document.querySelectorAll(".inertia-range-btn").forEach(function(b) {
+            var active = b.dataset.range === rangeState;
+            b.classList.toggle("bg-white", active);
+            b.classList.toggle("shadow-sm", active);
+            b.classList.toggle("text-volt-700", active);
+            b.classList.toggle("text-zinc-600", !active);
+        });
+    }
+
+    /* --- Threshold bands plugin --- */
+    var thresholdPlugin = {
+        id: "inertiaThresholds",
+        beforeDraw: function(chart) {
+            var ySync = chart.scales.ySync;
+            var ca = chart.chartArea;
+            if (!ySync || !ca) return;
+            var ctx = chart.ctx;
+            var w = ca.right - ca.left;
+
+            ctx.save();
+            var b50 = ySync.getPixelForValue(50);
+            var b30 = ySync.getPixelForValue(30);
+            ctx.fillStyle = "rgba(5,150,105,0.04)";
+            ctx.fillRect(ca.left, ca.top, w, b50 - ca.top);
+            ctx.fillStyle = "rgba(245,158,11,0.06)";
+            ctx.fillRect(ca.left, b50, w, b30 - b50);
+            ctx.fillStyle = "rgba(220,38,38,0.06)";
+            ctx.fillRect(ca.left, b30, w, ca.bottom - b30);
+            ctx.restore();
+        }
+    };
+
+    /* --- Inertia chart (sync fraction + RoCoF) --- */
+    function renderInertia(series) {
+        toggleEmpty("empty-inertia", !series || series.length === 0);
+        if (!series || series.length === 0) return;
+
+        var labels = series.map(function(p) { return p.timestamp; });
+        var syncData = series.map(function(p) { return +(p.sync_fraction * 100).toFixed(1); });
+        var rocofData = series.map(function(p) { return +p.rocof_hz_s.toFixed(3); });
+
+        var datasets = [
+            {
+                label: "Sync fraction (%)",
+                data: syncData,
+                yAxisID: "ySync",
+                borderColor: "#059669",
+                backgroundColor: "rgba(5,150,105,0.08)",
+                borderWidth: 2,
+                fill: true,
+                pointRadius: 0,
+                tension: 0.3
+            },
+            {
+                label: "RoCoF (Hz/s)",
+                data: rocofData,
+                yAxisID: "yRocof",
+                borderColor: "#dc2626",
+                borderWidth: 1.5,
+                borderDash: [4, 3],
+                fill: false,
+                pointRadius: 0,
+                tension: 0.3
+            }
+        ];
+
+        if (inertiaChart) {
+            inertiaChart.data.labels = labels;
+            inertiaChart.data.datasets = datasets;
+            inertiaChart.update("none");
+            return;
+        }
+
+        var ctx = document.getElementById("chart-inertia").getContext("2d");
+        inertiaChart = new Chart(ctx, {
+            type: "line",
+            data: { labels: labels, datasets: datasets },
+            plugins: [thresholdPlugin],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: "index", intersect: false },
+                scales: {
+                    x: {
+                        type: "category",
+                        ticks: { maxTicksLimit: 8, callback: function(v, i) { return fmtTime(labels[i]); } },
+                        grid: { display: false }
+                    },
+                    ySync: {
+                        position: "left",
+                        min: 0,
+                        max: 100,
+                        title: { display: true, text: "Sync %" },
+                        grid: { color: "rgba(0,0,0,0.04)" }
+                    },
+                    yRocof: {
+                        position: "right",
+                        min: 0,
+                        title: { display: true, text: "Hz/s" },
+                        grid: { drawOnChartArea: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: true, labels: { boxWidth: 12, font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            title: function(items) { return items.length ? fmtTime(items[0].label) : ""; },
+                            label: function(ctx) {
+                                if (ctx.datasetIndex === 0) return "Sync: " + ctx.parsed.y + "%";
+                                return "RoCoF: " + ctx.parsed.y + " Hz/s";
+                            },
+                            afterBody: function(items) {
+                                if (!items.length) return "";
+                                var sf = items[0].parsed.y;
+                                if (items[0].datasetIndex !== 0) return "";
+                                if (sf >= 50) return "State: Comfortable";
+                                if (sf >= 30) return "State: Watch";
+                                return "State: Brittle";
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    /* --- Weather correlation chart --- */
+    function renderCorrelation(inertiaSeries, windSeries, solarSeries) {
+        var hasWeather = windSeries.length > 0 || solarSeries.length > 0;
+        toggleEmpty("empty-weather-corr", !hasWeather);
+        if (!hasWeather) return;
+
+        // Build shared timeline from inertia timestamps
+        var tsSet = {};
+        inertiaSeries.forEach(function(s) { tsSet[s.timestamp] = true; });
+        windSeries.forEach(function(s) { tsSet[s.timestamp] = true; });
+        solarSeries.forEach(function(s) { tsSet[s.timestamp] = true; });
+        var allTimes = Object.keys(tsSet).sort();
+
+        var inertiaMap = {};
+        inertiaSeries.forEach(function(s) { inertiaMap[s.timestamp] = +(s.sync_fraction * 100).toFixed(1); });
+        var windMap = {};
+        windSeries.forEach(function(s) { windMap[s.timestamp] = s.wind_speed_kmh; });
+        var solarMap = {};
+        solarSeries.forEach(function(s) { solarMap[s.timestamp] = s.ghi_wm2; });
+
+        var syncPts = allTimes.map(function(t) { return inertiaMap[t] != null ? inertiaMap[t] : null; });
+        var windPts = allTimes.map(function(t) { return windMap[t] != null ? windMap[t] : null; });
+        var solarPts = allTimes.map(function(t) { return solarMap[t] != null ? solarMap[t] : null; });
+
+        var datasets = [
+            {
+                label: "Sync fraction (%)",
+                data: syncPts,
+                yAxisID: "ySyncCorr",
+                borderColor: "#059669",
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 0,
+                tension: 0.3,
+                spanGaps: true
+            },
+            {
+                label: "Wind speed (km/h)",
+                data: windPts,
+                yAxisID: "yWeather",
+                borderColor: "#0ea5e9",
+                backgroundColor: "rgba(14, 165, 233, 0.06)",
+                borderWidth: 1.5,
+                fill: true,
+                pointRadius: 0,
+                tension: 0.3,
+                spanGaps: true
+            },
+            {
+                label: "Solar GHI (W/m²)",
+                data: solarPts,
+                yAxisID: "yWeather",
+                borderColor: "#eab308",
+                backgroundColor: "rgba(234, 179, 8, 0.06)",
+                borderWidth: 1.5,
+                fill: true,
+                pointRadius: 0,
+                tension: 0.3,
+                spanGaps: true
+            }
+        ];
+
+        if (corrChart) {
+            corrChart.data.labels = allTimes;
+            corrChart.data.datasets = datasets;
+            corrChart.update("none");
+            return;
+        }
+
+        var ctx = document.getElementById("chart-weather-corr").getContext("2d");
+        corrChart = new Chart(ctx, {
+            type: "line",
+            data: { labels: allTimes, datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: "index", intersect: false },
+                scales: {
+                    x: {
+                        type: "category",
+                        ticks: { maxTicksLimit: 8, callback: function(v, i) { return fmtTime(allTimes[i]); } },
+                        grid: { display: false }
+                    },
+                    ySyncCorr: {
+                        position: "left",
+                        min: 0,
+                        max: 100,
+                        title: { display: true, text: "Sync %" },
+                        grid: { color: "rgba(0,0,0,0.04)" }
+                    },
+                    yWeather: {
+                        position: "right",
+                        min: 0,
+                        title: { display: true, text: "km/h | W/m²" },
+                        grid: { drawOnChartArea: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: true, labels: { boxWidth: 12, font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            title: function(items) { return items.length ? fmtTime(items[0].label) : ""; },
+                            label: function(ctx) {
+                                var v = ctx.parsed.y;
+                                if (v == null) return null;
+                                if (ctx.datasetIndex === 0) return "Sync: " + v + "%";
+                                if (ctx.datasetIndex === 1) return "Wind: " + v.toFixed(1) + " km/h";
+                                return "GHI: " + Math.round(v) + " W/m²";
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    /* --- Data fetching --- */
+    function fetchInertia() {
+        var contingency = window._citylabContingency || "heywood";
+        var url = "/api/v1/energy/inertia?range=" + rangeState + "&interval=1h&region=" + REGION + "&contingency=" + contingency;
+        return fetch(url, { headers: authHeaders() })
+            .then(function(r) { return r.json(); })
+            .then(function(d) { return d.series || []; })
+            .catch(function() { return []; });
+    }
+
+    function fetchWeather() {
+        return fetch("/api/v1/weather/forecasts", { headers: authHeaders() })
+            .then(function(r) { return r.json(); })
+            .then(function(body) {
+                var byTs = {};
+                (body.data || []).forEach(function(loc) {
+                    (loc.forecasts || []).forEach(function(f) {
+                        if (!f.forecast_for || f.wind_speed_kmh == null) return;
+                        if (!byTs[f.forecast_for]) byTs[f.forecast_for] = [];
+                        byTs[f.forecast_for].push(f.wind_speed_kmh);
+                    });
+                });
+                return Object.keys(byTs).sort().map(function(ts) {
+                    var arr = byTs[ts];
+                    return { timestamp: ts, wind_speed_kmh: arr.reduce(function(a, b) { return a + b; }, 0) / arr.length };
+                });
+            })
+            .catch(function() { return []; });
+    }
+
+    function fetchSolar() {
+        return fetch("/api/v1/solar/forecasts", { headers: authHeaders() })
+            .then(function(r) { return r.json(); })
+            .then(function(body) {
+                var byTs = {};
+                (body.data || []).forEach(function(loc) {
+                    (loc.forecasts || []).forEach(function(f) {
+                        if (!f.forecast_for || f.ghi_wm2 == null) return;
+                        if (!byTs[f.forecast_for]) byTs[f.forecast_for] = [];
+                        byTs[f.forecast_for].push(f.ghi_wm2);
+                    });
+                });
+                return Object.keys(byTs).sort().map(function(ts) {
+                    var arr = byTs[ts];
+                    return { timestamp: ts, ghi_wm2: arr.reduce(function(a, b) { return a + b; }, 0) / arr.length };
+                });
+            })
+            .catch(function() { return []; });
+    }
+
+    function refresh() {
+        Promise.all([fetchInertia(), fetchWeather(), fetchSolar()])
+            .then(function(results) {
+                renderInertia(results[0]);
+                renderCorrelation(results[0], results[1], results[2]);
+            });
+    }
+
+    /* --- Wire range buttons --- */
+    document.querySelectorAll(".inertia-range-btn").forEach(function(btn) {
+        btn.addEventListener("click", function() {
+            rangeState = btn.dataset.range;
+            highlightRange();
+            refresh();
+        });
+    });
+
+    /* Re-fetch when contingency changes */
+    document.body.addEventListener("contingencyChanged", refresh);
+
+    highlightRange();
+    refresh();
+})();
+</script>

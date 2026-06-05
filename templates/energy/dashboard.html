@@ -51,12 +51,31 @@
                 <div class="text-zinc-400 text-sm">Loading interconnectors&hellip;</div>
             </div>
 
+            <div id="panel-inertia"
+                 class="card"
+                 hx-get="{{ url_for('energy.partial_inertia') }}"
+                 hx-trigger="load, every 30s, regionChanged from:body, contingencyChanged from:body"
+                 hx-vals='js:{"region": document.getElementById("region-selector").value, "contingency": window._citylabContingency || "heywood"}'
+                 hx-swap="innerHTML">
+                <div class="text-zinc-400 text-sm">Loading grid inertia&hellip;</div>
+            </div>
+
             <div id="panel-weather"
                  class="card lg:col-span-2"
                  hx-get="{{ url_for('energy.partial_weather') }}"
                  hx-trigger="load, every 120s, regionChanged from:body"
                  hx-swap="innerHTML">
                 <div class="text-zinc-400 text-sm">Loading weather &amp; renewable outlook&hellip;</div>
+            </div>
+        </div>
+
+        <!-- Inertia trend chart with weather correlation -->
+        <div id="panel-inertia-chart"
+             hx-get="{{ url_for('energy.partial_inertia_chart') }}"
+             hx-trigger="load, regionChanged from:body"
+             hx-swap="innerHTML">
+            <div class="card mb-4">
+                <div class="text-zinc-400 text-sm">Loading inertia trend&hellip;</div>
             </div>
         </div>
 
