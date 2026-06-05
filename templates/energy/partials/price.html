@@ -6,6 +6,15 @@
             {% if vm.price is not none %}${{ '%.2f' | format(vm.price) }}{% else %}&mdash;{% endif %}
         </span>
     </div>
+    {% if vm.price_status == 'preliminary' %}
+    <div class="mt-1">
+        <span class="trend-pill bg-amber-50 text-amber-600" title="Current dispatch interval — the market may still revise this price for a few minutes before it settles.">&#9679; preliminary</span>
+    </div>
+    {% elif vm.price_status == 'settled' %}
+    <div class="mt-1">
+        <span class="trend-pill bg-emerald-50 text-emerald-600" title="Settled dispatch price — no longer subject to revision.">&#10003; settled</span>
+    </div>
+    {% endif %}
     <div class="mt-2">
         {% if vm.trend == 'down' %}
         <span class="trend-pill bg-green-50 text-green-600">&#9660; falling</span>

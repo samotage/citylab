@@ -18,6 +18,10 @@ energy_bp = Blueprint("energy", __name__, url_prefix="/energy")
 
 REGION = "VIC1"
 
+# Minutes after a dispatch interval first appears during which the source may
+# still revise it — the hero price is flagged "preliminary" within this window.
+PRICE_PRELIM_WINDOW_MIN = 10
+
 # --- Generation fuel-type aggregation -------------------------------------
 
 # Buckets shown on the chart, in stacking order, with brand colours.
@@ -164,6 +168,22 @@ def _price_view_model() -> dict:
         range_low = round(min(prices_24h), 0)
         range_high = round(max(prices_24h), 0)
 
+    # Preliminary vs settled: the leading dispatch interval is republished and
+    # revised by the market for a few minutes after it first appears (we watched
+    # one interval move $104 -> $15 -> $46 before settling). Flag the hero price
+    # as preliminary while it's inside that revision window so the dashboard
+    # never silently disagrees with AEMO's settled price.
+    price_status = None
+    if latest and latest.get("interval_start"):
+        iv = eq._parse_dt(latest["interval_start"])
+        if iv is not None:
+            age = datetime.now(timezone.utc) - iv
+            price_status = (
+                "preliminary"
+                if age < timedelta(minutes=PRICE_PRELIM_WINDOW_MIN)
+                else "settled"
+            )
+
     return {
         "price": current_price,
         "colour_state": _price_colour_state(current_price),
@@ -171,6 +191,7 @@ def _price_view_model() -> dict:
         "prev_price": prev_price,
         "demand_mw": demand.get("demand_mw") if demand else None,
         "interval_start": latest.get("interval_start") if latest else None,
+        "price_status": price_status,
         "next_price": next_price,
         "next_direction": next_dir,
         "next_forecast_for": nearest.get("forecast_for") if nearest else None,
