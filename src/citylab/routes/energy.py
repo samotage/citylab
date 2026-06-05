@@ -64,15 +64,16 @@ def _aggregate_generation(generation_mix: list[dict]) -> dict:
         if row.get("capacity_mw"):
             cap_sums[bucket] = cap_sums.get(bucket, 0.0) + row["capacity_mw"]
 
-    labels, colours, outputs = [], [], []
+    rows = []
     for key, label, colour in _FUEL_BUCKETS:
         val = sums.get(key)
         if val is None:
             continue
-        # Battery charging is a negative number in the data; show magnitude.
-        labels.append(label)
-        colours.append(colour)
-        outputs.append(round(abs(val), 1))
+        rows.append((label, colour, round(abs(val), 1)))
+    rows.sort(key=lambda r: r[2], reverse=True)
+    labels = [r[0] for r in rows]
+    colours = [r[1] for r in rows]
+    outputs = [r[2] for r in rows]
 
     # Total generation = sum of all positive outputs excluding battery charging.
     total_output = round(
