@@ -70,3 +70,16 @@ All demo-script instruments verified live against the running server (port 15099
    - Ray runs `data sources`, reports status per source with freshness assessment
 
 The key insight: Ray isn't just a chatbot with energy knowledge — he's an analyst with live instruments, pulling real data and interpreting it through NEM expertise.
+
+## Ship Status
+
+- Build: complete
+- Tests: passed (33/33 agent-API smoke; branch diff was doc-only)
+- Smoke: passed (6/6 demo steps live against server on port 15099)
+
+### Known Issues
+
+- `cli-citylab` is not on PATH as a console script in this environment. Install
+  via `pip install -e .` or invoke through `PYTHONPATH=src python3 -m
+  citylab.cli_wrapper` for the live demo. Operational note only — not a code
+  defect (the wrapper code path is identical either way).
