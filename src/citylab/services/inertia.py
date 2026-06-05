@@ -73,15 +73,21 @@ CONTINGENCY_PRESETS: dict[str, float] = {
     "loy_yang_a": 560.0,    # largest single-generator contingency in VIC
 }
 
-# Threshold bands (NEM-typical VIC). State is the more severe of the two
-# indicators (sync fraction and reference-contingency RoCoF).
-#   Comfortable: sync >= 0.50 and rocof < 0.25
-#   Watch:       sync 0.30–0.50, rocof 0.25–0.50
-#   Brittle:     sync < 0.30,    rocof > 0.50  (1 Hz/s is cascade danger zone)
+# State bands (NEM-typical VIC). Sync fraction is the SOLE state driver — it has
+# real dynamic range (swings 30–80% across a day) and is the honest "VIC exposure
+# within the mainland pool" metric.
+#   Comfortable: sync >= 0.50
+#   Watch:       sync 0.30–0.50
+#   Brittle:     sync < 0.30
 SYNC_COMFORTABLE = 0.50
 SYNC_WATCH = 0.30
-ROCOF_COMFORTABLE = 0.25
-ROCOF_WATCH = 0.50
+
+# RoCoF display bands — informational only, NOT a state driver. With
+# EXTERNAL_INERTIA_MWS buffering VIC, RoCoF's achievable range is narrow
+# (~0.29–0.46 Hz/s for Heywood), so it cannot discriminate state. Calibrated to
+# that window: Low < 0.33, Moderate 0.33–0.40, Elevated > 0.40.
+ROCOF_LOW = 0.33
+ROCOF_MODERATE = 0.40
 
 _STATE_SEVERITY = {"Comfortable": 0, "Watch": 1, "Brittle": 2}
 
@@ -120,19 +126,23 @@ def _sync_band(sync_fraction: float) -> str:
     return "Brittle"
 
 
-def _rocof_band(rocof_hz_s: float) -> str:
-    if rocof_hz_s < ROCOF_COMFORTABLE:
-        return "Comfortable"
-    if rocof_hz_s <= ROCOF_WATCH:
-        return "Watch"
-    return "Brittle"
+def rocof_label(rocof_hz_s: float) -> str:
+    """Informational RoCoF band — display only, NOT a state driver.
+
+    Calibrated to the narrow achievable window VIC sees through the mainland
+    pool: Low < 0.33, Moderate 0.33–0.40, Elevated > 0.40 Hz/s.
+    """
+    if rocof_hz_s < ROCOF_LOW:
+        return "Low"
+    if rocof_hz_s <= ROCOF_MODERATE:
+        return "Moderate"
+    return "Elevated"
 
 
-def classify_state(sync_fraction: float, rocof_hz_s: float) -> str:
-    """The more severe of the sync-fraction and RoCoF bands — worst signal wins."""
-    sync = _sync_band(sync_fraction)
-    rocof = _rocof_band(rocof_hz_s)
-    return sync if _STATE_SEVERITY[sync] >= _STATE_SEVERITY[rocof] else rocof
+def classify_state(sync_fraction: float) -> str:
+    """Inertia state from sync fraction alone — the only indicator with real
+    dynamic range. RoCoF is buffered too narrow to discriminate state."""
+    return _sync_band(sync_fraction)
 
 
 def compute_inertia(generation_rows, contingency_preset="heywood") -> dict:
@@ -144,7 +154,7 @@ def compute_inertia(generation_rows, contingency_preset="heywood") -> dict:
     generation, and is excluded).
 
     Returns ``{sync_mw, total_mw, sync_fraction, e_proxy_mws, e_total_mws,
-    rocof_hz_s, inertia_state, contingency_label, contingency_mw}``.
+    rocof_hz_s, rocof_label, inertia_state, contingency_label, contingency_mw}``.
     """
     contingency_label, contingency_mw = resolve_contingency(contingency_preset)
 
@@ -164,7 +174,7 @@ def compute_inertia(generation_rows, contingency_preset="heywood") -> dict:
     sync_fraction = sync_mw / total_mw if total_mw > 0 else 0.0
     e_total_mws = e_proxy_mws + EXTERNAL_INERTIA_MWS
     rocof_hz_s = (contingency_mw * SYSTEM_FREQUENCY_HZ) / (2 * e_total_mws)
-    inertia_state = classify_state(sync_fraction, rocof_hz_s)
+    inertia_state = classify_state(sync_fraction)
 
     return {
         "sync_mw": round(sync_mw, 1),
@@ -173,6 +183,7 @@ def compute_inertia(generation_rows, contingency_preset="heywood") -> dict:
         "e_proxy_mws": round(e_proxy_mws, 1),
         "e_total_mws": round(e_total_mws, 1),
         "rocof_hz_s": round(rocof_hz_s, 4),
+        "rocof_label": rocof_label(rocof_hz_s),
         "inertia_state": inertia_state,
         "contingency_label": contingency_label,
         "contingency_mw": contingency_mw,

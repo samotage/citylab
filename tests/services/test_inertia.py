@@ -35,8 +35,10 @@ def test_compute_inertia_mixed_fuel_types():
     assert m["rocof_hz_s"] == pytest.approx(0.3421, abs=1e-4)
     assert m["contingency_label"] == "heywood"
     assert m["contingency_mw"] == 650.0
-    # sync 0.58 -> Comfortable, rocof 0.34 -> Watch; worst wins.
-    assert m["inertia_state"] == "Watch"
+    # sync 0.58 -> Comfortable. Sync fraction is the sole state driver now;
+    # RoCoF (0.34 -> Moderate) is informational only and does not pull state down.
+    assert m["inertia_state"] == "Comfortable"
+    assert m["rocof_label"] == "Moderate"
 
 
 def test_external_inertia_term_present():
@@ -88,24 +90,57 @@ def test_empty_generation_rows():
     assert m["e_total_mws"] == 35000.0
 
 
-# --- Threshold boundary conditions -----------------------------------------
+# --- Threshold boundary conditions (sync fraction is the sole state driver) --
 
 @pytest.mark.parametrize(
-    "sync_fraction,rocof,expected",
+    "sync_fraction,expected",
     [
-        (0.60, 0.20, "Comfortable"),   # both comfortable
-        (0.50, 0.20, "Comfortable"),   # sync at boundary (>= 0.5)
-        (0.50, 0.25, "Watch"),         # rocof at lower boundary (not < 0.25)
-        (0.50, 0.50, "Watch"),         # rocof at upper boundary (<= 0.5)
-        (0.50, 0.51, "Brittle"),       # rocof just past 0.5
-        (0.30, 0.10, "Watch"),         # sync at watch boundary (>= 0.3)
-        (0.29, 0.10, "Brittle"),       # sync just below 0.3
-        (0.70, 0.40, "Watch"),         # sync comfortable, rocof watch -> worst wins
-        (0.60, 0.60, "Brittle"),       # rocof brittle dominates
+        (0.80, "Comfortable"),   # well above
+        (0.50, "Comfortable"),   # boundary (>= 0.5)
+        (0.49, "Watch"),         # just below comfortable
+        (0.30, "Watch"),         # boundary (>= 0.3)
+        (0.29, "Brittle"),       # just below watch
+        (0.10, "Brittle"),       # well below
     ],
 )
-def test_classify_state_boundaries(sync_fraction, rocof, expected):
-    assert inertia_svc.classify_state(sync_fraction, rocof) == expected
+def test_classify_state_boundaries(sync_fraction, expected):
+    assert inertia_svc.classify_state(sync_fraction) == expected
+
+
+def test_classify_state_ignores_rocof():
+    """77% sync reads Comfortable regardless of RoCoF — RoCoF no longer drives
+    state. This is the calibration bug the fix targets."""
+    rows = [
+        {"fuel_type": "brown_coal", "output_mw": 770.0},  # sync
+        {"fuel_type": "wind", "output_mw": 230.0},        # inverter
+    ]
+    m = inertia_svc.compute_inertia(rows)
+    assert m["sync_fraction"] == pytest.approx(0.77, abs=1e-4)
+    assert m["inertia_state"] == "Comfortable"
+
+
+# --- RoCoF informational label bands ---------------------------------------
+
+@pytest.mark.parametrize(
+    "rocof,expected",
+    [
+        (0.20, "Low"),        # below window
+        (0.32, "Low"),        # just below lower boundary
+        (0.33, "Moderate"),   # lower boundary (>= 0.33)
+        (0.40, "Moderate"),   # upper boundary (<= 0.40)
+        (0.41, "Elevated"),   # just past upper boundary
+        (0.46, "Elevated"),   # top of achievable window
+    ],
+)
+def test_rocof_label_bands(rocof, expected):
+    assert inertia_svc.rocof_label(rocof) == expected
+
+
+def test_compute_inertia_includes_rocof_label():
+    rows = [{"fuel_type": "brown_coal", "output_mw": 2000.0}]
+    m = inertia_svc.compute_inertia(rows)
+    assert "rocof_label" in m
+    assert m["rocof_label"] in {"Low", "Moderate", "Elevated"}
 
 
 # --- Contingency resolution ------------------------------------------------

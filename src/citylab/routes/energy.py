@@ -679,6 +679,7 @@ def partial_inertia():
         "sync_mw": snap["sync_mw"],
         "total_mw": snap["total_mw"],
         "rocof": snap["rocof_hz_s"],
+        "rocof_label": snap["rocof_label"],
         "contingency_label": snap["contingency_label"],
         "contingency_mw": snap["contingency_mw"],
         "e_proxy_mws": snap["e_proxy_mws"],
