@@ -229,6 +229,12 @@ class SolcastFetcher(BaseFetcher):
 
     def _require_key(self, cfg: dict) -> str:
         api_key = cfg.get("api_key")
+        # Fall back to the env var if the stored value is an unresolved
+        # ${SOLCAST_API_KEY} placeholder (config cascade / on-demand CLI runs).
+        if not api_key or str(api_key).startswith("${"):
+            import os
+
+            api_key = os.environ.get("SOLCAST_API_KEY")
         if not api_key or str(api_key).startswith("${"):
             raise RuntimeError(
                 "no Solcast API key configured (set SOLCAST_API_KEY) — refusing "

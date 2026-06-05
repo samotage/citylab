@@ -229,6 +229,7 @@ def test_solcast_no_key_no_synthetic(db_session, monkeypatch):
     from citylab.services.ingestion.seed import seed_solar_locations
     from citylab.services.ingestion.solcast import SolcastFetcher
 
+    monkeypatch.delenv("SOLCAST_API_KEY", raising=False)  # no env fallback
     seed_solar_locations()
     ds = _make_ds(db_session, "Solcast NoKey", api_key="${SOLCAST_API_KEY}")
     calls = []
