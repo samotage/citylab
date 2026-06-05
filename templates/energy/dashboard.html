@@ -60,6 +60,15 @@
             </div>
         </div>
 
+        <!-- Scenario analysis panel -->
+        <div id="panel-scenario"
+             class="card mb-4"
+             hx-get="{{ url_for('energy.partial_scenario') }}"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="text-zinc-400 text-sm">Loading scenario engine&hellip;</div>
+        </div>
+
         <!-- Price forecast strip -->
         <div id="panel-forecast"
              class="card mb-4"

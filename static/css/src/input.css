@@ -158,6 +158,64 @@
     @apply bg-zinc-100 text-zinc-400;
   }
 
+  /* ---- Scenario analysis panel ---- */
+
+  .sc-field-label {
+    @apply text-[11px] font-medium text-zinc-500 mb-1.5;
+  }
+
+  .scenario-select {
+    @apply w-full px-3 py-2 rounded-lg bg-zinc-50 border border-zinc-200 text-sm text-zinc-900 cursor-pointer;
+  }
+  .scenario-select:focus {
+    @apply outline-none ring-2 ring-volt-400 border-volt-300;
+  }
+
+  .sc-num-input {
+    @apply w-16 px-2 py-1.5 text-sm font-mono text-right rounded-lg border border-zinc-200 bg-zinc-50;
+  }
+  .sc-num-input:focus {
+    @apply outline-none ring-2 ring-volt-400 border-volt-300;
+  }
+
+  .sc-type-btn {
+    @apply flex-1 px-3 py-2 rounded-lg text-xs font-semibold text-zinc-500 bg-zinc-100 border border-zinc-200 transition-all cursor-pointer;
+  }
+  .sc-type-btn:hover {
+    @apply bg-zinc-200 text-zinc-700;
+  }
+  .sc-type-active {
+    @apply bg-volt-600 text-white border-volt-600;
+  }
+  .sc-type-active:hover {
+    @apply bg-volt-700;
+  }
+
+  .sc-run-btn {
+    @apply w-full py-2.5 px-4 bg-volt-600 hover:bg-volt-700 text-white font-semibold text-sm rounded-lg transition-colors cursor-pointer;
+  }
+  .sc-run-btn:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  .sc-impact-card {
+    @apply rounded-lg border border-zinc-100 bg-zinc-50 p-3 text-center transition-colors;
+  }
+  .sc-impact-up {
+    @apply border-red-200 bg-red-50;
+  }
+  .sc-impact-down {
+    @apply border-emerald-200 bg-emerald-50;
+  }
+
+  /* SVG map hover states */
+  .ic-link {
+    cursor: pointer;
+  }
+  .ic-link:hover .ic-line-vis {
+    filter: brightness(0.8);
+  }
+
   /* ---- Mission Control layout + agent chat panel ---- */
 
   /* Two-column shell: dashboard left (~67%), agent panel right (~33%).

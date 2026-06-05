@@ -533,6 +533,15 @@ def partial_forecast():
     )
 
 
+@energy_bp.route("/partials/scenario")
+@login_required
+def partial_scenario():
+    api_token = (
+        current_app.config.get("CITYLAB_CONFIG", {}).get("api", {}).get("token", "")
+    )
+    return render_template("energy/partials/scenario.html", api_token=api_token)
+
+
 @energy_bp.route("/partials/sources")
 @login_required
 def partial_sources():

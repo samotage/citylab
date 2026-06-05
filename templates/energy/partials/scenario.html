@@ -1,0 +1,501 @@
+<div class="flex items-center justify-between mb-4">
+    <div class="card-label !mb-0">Scenario Analysis</div>
+    <span class="text-[10px] text-zinc-400 tracking-normal font-normal">What happens if&hellip;</span>
+</div>
+
+<div id="scenario-engine">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Controls -->
+        <div class="space-y-4">
+            <!-- Type selector -->
+            <div>
+                <div class="sc-field-label">Scenario Type</div>
+                <div class="flex gap-2">
+                    <button type="button" class="sc-type-btn sc-type-active" data-type="interconnector_failure">
+                        Interconnector Failure
+                    </button>
+                    <button type="button" class="sc-type-btn" data-type="generation_loss">
+                        Generation Loss
+                    </button>
+                </div>
+            </div>
+
+            <!-- IC Failure params -->
+            <div id="sc-ic-params">
+                <div class="sc-field-label">Interconnector</div>
+                <select id="sc-ic-select" class="scenario-select">
+                    <option value="V-SA">Heywood (VIC1 &harr; SA1)</option>
+                    <option value="V-S-MNSP1">Murraylink (VIC1 &harr; SA1)</option>
+                    <option value="T-V-MNSP1">Basslink (TAS1 &harr; VIC1)</option>
+                    <option value="VIC1-NSW1">VNI (NSW1 &harr; VIC1)</option>
+                    <option value="VNI-WEST">VNI West (NSW1 &harr; VIC1)</option>
+                    <option value="QNI">QNI (QLD1 &harr; NSW1)</option>
+                    <option value="N-Q-MNSP1">Directlink (NSW1 &harr; QLD1)</option>
+                </select>
+
+                <div class="sc-field-label mt-3">Remaining Capacity</div>
+                <div class="flex items-center gap-3">
+                    <input type="range" id="sc-ic-cap" min="0" max="650" value="0" step="10"
+                           class="flex-1 accent-volt-600">
+                    <div class="flex items-center gap-1">
+                        <input type="number" id="sc-ic-cap-num" value="0" min="0" max="650" step="10"
+                               class="sc-num-input">
+                        <span class="text-xs text-zinc-400">MW</span>
+                    </div>
+                </div>
+                <div class="text-[10px] text-zinc-400 mt-1">0 MW = total failure</div>
+            </div>
+
+            <!-- Gen Loss params -->
+            <div id="sc-gen-params" style="display:none">
+                <div class="sc-field-label">Region</div>
+                <select id="sc-gen-region" class="scenario-select">
+                    <option value="VIC1">VIC1 &mdash; Victoria</option>
+                    <option value="NSW1">NSW1 &mdash; New South Wales</option>
+                    <option value="QLD1">QLD1 &mdash; Queensland</option>
+                    <option value="SA1">SA1 &mdash; South Australia</option>
+                    <option value="TAS1">TAS1 &mdash; Tasmania</option>
+                </select>
+
+                <div class="sc-field-label mt-3">Fuel Type</div>
+                <select id="sc-gen-fuel" class="scenario-select">
+                    <option value="brown_coal">Brown Coal</option>
+                    <option value="black_coal">Black Coal</option>
+                    <option value="gas_ccgt">Gas CCGT</option>
+                    <option value="gas_ocgt">Gas OCGT</option>
+                    <option value="hydro">Hydro</option>
+                    <option value="wind">Wind</option>
+                    <option value="solar_utility">Solar</option>
+                </select>
+
+                <div class="sc-field-label mt-3">Generation Loss</div>
+                <div class="flex items-center gap-1">
+                    <input type="number" id="sc-gen-mw" value="1400" min="0" step="100"
+                           class="sc-num-input w-24">
+                    <span class="text-xs text-zinc-400">MW</span>
+                </div>
+                <div class="text-[10px] text-zinc-400 mt-1">e.g. 1400 MW &asymp; one Loy Yang unit</div>
+            </div>
+
+            <!-- Run button -->
+            <button type="button" id="sc-run-btn" class="sc-run-btn">
+                Run Scenario
+            </button>
+        </div>
+
+        <!-- NEM Topology Map -->
+        <div class="flex items-center justify-center">
+            <svg id="nem-map" viewBox="0 0 380 380" class="w-full max-w-[320px]" style="font-family: 'Inter', sans-serif;">
+                <defs>
+                    <filter id="node-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.1"/>
+                    </filter>
+                </defs>
+
+                <!-- Interconnector lines (behind nodes) -->
+                <g id="ic-lines">
+                    <!-- QNI: NSW(280,140) -> QLD(305,50) -->
+                    <g class="ic-link" data-ic="QNI">
+                        <line x1="273" y1="140" x2="298" y2="50" stroke="transparent" stroke-width="14" style="cursor:pointer"/>
+                        <line x1="273" y1="140" x2="298" y2="50" class="ic-line-vis" stroke="#d4d4d8" stroke-width="2.5" stroke-linecap="round"/>
+                        <text x="266" y="92" fill="#a1a1aa" font-size="8" text-anchor="end" style="pointer-events:none">QNI</text>
+                    </g>
+                    <!-- Directlink: NSW(280,140) -> QLD(305,50) (offset right) -->
+                    <g class="ic-link" data-ic="N-Q-MNSP1">
+                        <line x1="287" y1="140" x2="312" y2="50" stroke="transparent" stroke-width="14" style="cursor:pointer"/>
+                        <line x1="287" y1="140" x2="312" y2="50" class="ic-line-vis" stroke="#d4d4d8" stroke-width="2.5" stroke-linecap="round"/>
+                        <text x="316" y="92" fill="#a1a1aa" font-size="8" style="pointer-events:none">DL</text>
+                    </g>
+                    <!-- VNI: NSW(280,140) -> VIC(195,255) -->
+                    <g class="ic-link" data-ic="VIC1-NSW1">
+                        <line x1="274" y1="145" x2="189" y2="250" stroke="transparent" stroke-width="14" style="cursor:pointer"/>
+                        <line x1="274" y1="145" x2="189" y2="250" class="ic-line-vis" stroke="#d4d4d8" stroke-width="2.5" stroke-linecap="round"/>
+                        <text x="218" y="192" fill="#a1a1aa" font-size="8" text-anchor="end" style="pointer-events:none">VNI</text>
+                    </g>
+                    <!-- VNI West: NSW(280,140) -> VIC(195,255) (offset right) -->
+                    <g class="ic-link" data-ic="VNI-WEST">
+                        <line x1="286" y1="145" x2="201" y2="250" stroke="transparent" stroke-width="14" style="cursor:pointer"/>
+                        <line x1="286" y1="145" x2="201" y2="250" class="ic-line-vis" stroke="#d4d4d8" stroke-width="2.5" stroke-linecap="round"/>
+                        <text x="260" y="202" fill="#a1a1aa" font-size="8" style="pointer-events:none">VNI-W</text>
+                    </g>
+                    <!-- Heywood: VIC(195,255) -> SA(70,195) (offset up) -->
+                    <g class="ic-link" data-ic="V-SA">
+                        <line x1="195" y1="249" x2="70" y2="189" stroke="transparent" stroke-width="14" style="cursor:pointer"/>
+                        <line x1="195" y1="249" x2="70" y2="189" class="ic-line-vis" stroke="#d4d4d8" stroke-width="2.5" stroke-linecap="round"/>
+                        <text x="128" y="210" fill="#a1a1aa" font-size="8" text-anchor="middle" style="pointer-events:none">HWD</text>
+                    </g>
+                    <!-- Murraylink: VIC(195,255) -> SA(70,195) (offset down) -->
+                    <g class="ic-link" data-ic="V-S-MNSP1">
+                        <line x1="195" y1="261" x2="70" y2="201" stroke="transparent" stroke-width="14" style="cursor:pointer"/>
+                        <line x1="195" y1="261" x2="70" y2="201" class="ic-line-vis" stroke="#d4d4d8" stroke-width="2.5" stroke-linecap="round"/>
+                        <text x="128" y="243" fill="#a1a1aa" font-size="8" text-anchor="middle" style="pointer-events:none">MRL</text>
+                    </g>
+                    <!-- Basslink: VIC(195,255) -> TAS(195,350) -->
+                    <g class="ic-link" data-ic="T-V-MNSP1">
+                        <line x1="195" y1="255" x2="195" y2="350" stroke="transparent" stroke-width="14" style="cursor:pointer"/>
+                        <line x1="195" y1="255" x2="195" y2="350" class="ic-line-vis" stroke="#d4d4d8" stroke-width="2.5" stroke-linecap="round"/>
+                        <text x="208" y="305" fill="#a1a1aa" font-size="8" style="pointer-events:none">BSL</text>
+                    </g>
+                </g>
+
+                <!-- Region nodes (on top) -->
+                <g id="region-nodes">
+                    <!-- QLD -->
+                    <g id="region-QLD1" class="region-node">
+                        <circle cx="305" cy="50" r="26" fill="#27272a" filter="url(#node-shadow)"/>
+                        <text x="305" y="47" fill="white" font-size="12" font-weight="700" text-anchor="middle" dominant-baseline="middle">QLD</text>
+                        <text x="305" y="62" fill="#a1a1aa" font-size="9" text-anchor="middle" class="region-price" style="font-family:'JetBrains Mono',monospace"></text>
+                        <text x="305" y="88" fill="#a1a1aa" font-size="11" font-weight="600" text-anchor="middle" class="region-delta" style="font-family:'JetBrains Mono',monospace"></text>
+                    </g>
+                    <!-- NSW -->
+                    <g id="region-NSW1" class="region-node">
+                        <circle cx="280" cy="140" r="26" fill="#27272a" filter="url(#node-shadow)"/>
+                        <text x="280" y="137" fill="white" font-size="12" font-weight="700" text-anchor="middle" dominant-baseline="middle">NSW</text>
+                        <text x="280" y="152" fill="#a1a1aa" font-size="9" text-anchor="middle" class="region-price" style="font-family:'JetBrains Mono',monospace"></text>
+                        <text x="320" y="145" fill="#a1a1aa" font-size="11" font-weight="600" text-anchor="start" class="region-delta" style="font-family:'JetBrains Mono',monospace"></text>
+                    </g>
+                    <!-- VIC -->
+                    <g id="region-VIC1" class="region-node">
+                        <circle cx="195" cy="255" r="26" fill="#27272a" filter="url(#node-shadow)"/>
+                        <text x="195" y="252" fill="white" font-size="12" font-weight="700" text-anchor="middle" dominant-baseline="middle">VIC</text>
+                        <text x="195" y="267" fill="#a1a1aa" font-size="9" text-anchor="middle" class="region-price" style="font-family:'JetBrains Mono',monospace"></text>
+                        <text x="232" y="260" fill="#a1a1aa" font-size="11" font-weight="600" text-anchor="start" class="region-delta" style="font-family:'JetBrains Mono',monospace"></text>
+                    </g>
+                    <!-- SA -->
+                    <g id="region-SA1" class="region-node">
+                        <circle cx="70" cy="195" r="26" fill="#27272a" filter="url(#node-shadow)"/>
+                        <text x="70" y="192" fill="white" font-size="12" font-weight="700" text-anchor="middle" dominant-baseline="middle">SA</text>
+                        <text x="70" y="207" fill="#a1a1aa" font-size="9" text-anchor="middle" class="region-price" style="font-family:'JetBrains Mono',monospace"></text>
+                        <text x="70" y="233" fill="#a1a1aa" font-size="11" font-weight="600" text-anchor="middle" class="region-delta" style="font-family:'JetBrains Mono',monospace"></text>
+                    </g>
+                    <!-- TAS -->
+                    <g id="region-TAS1" class="region-node">
+                        <circle cx="195" cy="350" r="26" fill="#27272a" filter="url(#node-shadow)"/>
+                        <text x="195" y="347" fill="white" font-size="12" font-weight="700" text-anchor="middle" dominant-baseline="middle">TAS</text>
+                        <text x="195" y="362" fill="#a1a1aa" font-size="9" text-anchor="middle" class="region-price" style="font-family:'JetBrains Mono',monospace"></text>
+                        <text x="232" y="355" fill="#a1a1aa" font-size="11" font-weight="600" text-anchor="start" class="region-delta" style="font-family:'JetBrains Mono',monospace"></text>
+                    </g>
+                </g>
+
+                <!-- Break marker (hidden until scenario runs) -->
+                <g id="break-marker" style="display:none">
+                    <line x1="-6" y1="-6" x2="6" y2="6" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+                    <line x1="6" y1="-6" x2="-6" y2="6" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+                </g>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Results (shown after run) -->
+    <div id="sc-results" style="display:none" class="mt-5 pt-4 border-t border-zinc-100">
+        <div id="sc-headline" class="text-sm font-semibold text-zinc-900 mb-3"></div>
+        <div id="sc-impacts" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2"></div>
+        <!-- Supply detail for generation loss -->
+        <div id="sc-supply-detail" style="display:none" class="mt-3 text-xs text-zinc-500">
+            <span id="sc-supply-text"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var TOKEN = {{ api_token | tojson }};
+
+    var ICS = [
+        {id: 'V-SA', name: 'Heywood', from: 'VIC1', to: 'SA1', cap: 650},
+        {id: 'V-S-MNSP1', name: 'Murraylink', from: 'VIC1', to: 'SA1', cap: 220},
+        {id: 'T-V-MNSP1', name: 'Basslink', from: 'TAS1', to: 'VIC1', cap: 478},
+        {id: 'VIC1-NSW1', name: 'VNI', from: 'NSW1', to: 'VIC1', cap: 1900},
+        {id: 'VNI-WEST', name: 'VNI West', from: 'NSW1', to: 'VIC1', cap: 1900},
+        {id: 'QNI', name: 'QNI', from: 'NSW1', to: 'QLD1', cap: 600},
+        {id: 'N-Q-MNSP1', name: 'Directlink', from: 'NSW1', to: 'QLD1', cap: 180},
+    ];
+
+    var IC_MIDPOINTS = {
+        'V-SA':       {x: 132, y: 222},
+        'V-S-MNSP1':  {x: 132, y: 231},
+        'T-V-MNSP1':  {x: 195, y: 302},
+        'VIC1-NSW1':  {x: 232, y: 197},
+        'VNI-WEST':   {x: 243, y: 197},
+        'QNI':        {x: 286, y: 95},
+        'N-Q-MNSP1':  {x: 300, y: 95},
+    };
+
+    var scenarioType = 'interconnector_failure';
+    var selectedIC = 'V-SA';
+
+    var icParams  = document.getElementById('sc-ic-params');
+    var genParams = document.getElementById('sc-gen-params');
+    var icSelect  = document.getElementById('sc-ic-select');
+    var icCap     = document.getElementById('sc-ic-cap');
+    var icCapNum  = document.getElementById('sc-ic-cap-num');
+    var resultsDiv = document.getElementById('sc-results');
+    var headline   = document.getElementById('sc-headline');
+    var impactsGrid = document.getElementById('sc-impacts');
+    var runBtn     = document.getElementById('sc-run-btn');
+    var supplyDetail = document.getElementById('sc-supply-detail');
+    var supplyText = document.getElementById('sc-supply-text');
+    var breakMarker = document.getElementById('break-marker');
+
+    // --- Type switching ---
+    function setType(type) {
+        scenarioType = type;
+        document.querySelectorAll('.sc-type-btn').forEach(function (b) {
+            b.classList.toggle('sc-type-active', b.dataset.type === type);
+        });
+        icParams.style.display  = type === 'interconnector_failure' ? '' : 'none';
+        genParams.style.display = type === 'generation_loss' ? '' : 'none';
+        clearResults();
+    }
+
+    document.querySelectorAll('.sc-type-btn').forEach(function (b) {
+        b.addEventListener('click', function () { setType(b.dataset.type); });
+    });
+
+    // --- IC selection ---
+    function selectIC(icId) {
+        selectedIC = icId;
+        icSelect.value = icId;
+        var ic = ICS.find(function (i) { return i.id === icId; });
+        if (ic) {
+            icCap.max = ic.cap;
+            icCapNum.max = ic.cap;
+            if (parseInt(icCapNum.value) > ic.cap) {
+                icCap.value = 0;
+                icCapNum.value = 0;
+            }
+        }
+        highlightMap();
+    }
+
+    icSelect.addEventListener('change', function () { selectIC(this.value); });
+
+    // --- Capacity slider sync ---
+    icCap.addEventListener('input', function () { icCapNum.value = this.value; });
+    icCapNum.addEventListener('input', function () { icCap.value = this.value; });
+
+    // --- Map interaction ---
+    document.querySelectorAll('.ic-link').forEach(function (g) {
+        g.addEventListener('click', function () {
+            setType('interconnector_failure');
+            selectIC(g.dataset.ic);
+        });
+        g.addEventListener('mouseenter', function () {
+            if (scenarioType !== 'interconnector_failure') return;
+            g.querySelectorAll('.ic-line-vis').forEach(function (l) {
+                if (g.dataset.ic !== selectedIC) {
+                    l.setAttribute('stroke', '#a78bfa');
+                    l.setAttribute('stroke-width', '3');
+                }
+            });
+        });
+        g.addEventListener('mouseleave', function () {
+            highlightMap();
+        });
+    });
+
+    function highlightMap() {
+        document.querySelectorAll('.ic-link').forEach(function (g) {
+            var isSel = g.dataset.ic === selectedIC && scenarioType === 'interconnector_failure';
+            g.querySelectorAll('.ic-line-vis').forEach(function (l) {
+                l.setAttribute('stroke', isSel ? '#7c3aed' : '#d4d4d8');
+                l.setAttribute('stroke-width', isSel ? '3.5' : '2.5');
+                l.removeAttribute('stroke-dasharray');
+            });
+        });
+        breakMarker.style.display = 'none';
+    }
+
+    // --- Run scenario ---
+    runBtn.addEventListener('click', run);
+
+    async function run() {
+        runBtn.disabled = true;
+        runBtn.textContent = 'Running…';
+        clearResults();
+
+        var body;
+        if (scenarioType === 'interconnector_failure') {
+            body = {
+                type: 'interconnector_failure',
+                params: {
+                    interconnector_id: selectedIC,
+                    reduced_capacity_mw: parseInt(icCapNum.value) || 0,
+                },
+            };
+        } else {
+            body = {
+                type: 'generation_loss',
+                params: {
+                    region:    document.getElementById('sc-gen-region').value,
+                    fuel_type: document.getElementById('sc-gen-fuel').value,
+                    loss_mw:   parseInt(document.getElementById('sc-gen-mw').value) || 0,
+                },
+            };
+        }
+
+        try {
+            var resp = await fetch('/api/v1/energy/scenario', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + TOKEN,
+                },
+                body: JSON.stringify(body),
+            });
+            var data = await resp.json();
+            if (data.ok) {
+                renderResults(data);
+            } else {
+                headline.textContent = 'Error: ' + (data.error || 'Scenario failed');
+                resultsDiv.style.display = '';
+            }
+        } catch (e) {
+            headline.textContent = 'Network error — is the server running?';
+            resultsDiv.style.display = '';
+        } finally {
+            runBtn.disabled = false;
+            runBtn.textContent = 'Run Scenario';
+        }
+    }
+
+    // --- Render results ---
+    function renderResults(data) {
+        var hl = '';
+        if (data.scenario_type === 'interconnector_failure' && data.interconnector) {
+            hl = data.interconnector.name + ' offline';
+            if (data.interconnector.reduced_capacity_mw > 0) {
+                hl = data.interconnector.name + ' reduced to ' + data.interconnector.reduced_capacity_mw + ' MW';
+            }
+        } else if (data.scenario_type === 'generation_loss' && data.params) {
+            hl = data.params.actual_loss_mw + ' MW ' +
+                 data.params.fuel_type.replace(/_/g, ' ') +
+                 ' lost in ' + data.params.region;
+        }
+
+        // Find most impacted region for the headline
+        var impacts = data.impacts || {};
+        var sorted = Object.entries(impacts).sort(function (a, b) {
+            return Math.abs(b[1].change_pct) - Math.abs(a[1].change_pct);
+        });
+        if (sorted.length > 0) {
+            var top = sorted[0];
+            var sign = top[1].change_pct > 0 ? '+' : '';
+            hl += ' → ' + top[0] + ' ' + sign + top[1].change_pct.toFixed(0) + '% ($' +
+                  top[1].baseline_price.toFixed(0) + ' → $' + top[1].projected_price.toFixed(0) + ')';
+        }
+        headline.textContent = hl;
+
+        // Impact cards (sorted by absolute change)
+        impactsGrid.innerHTML = '';
+        sorted.forEach(function (entry) {
+            var region = entry[0];
+            var imp = entry[1];
+            var isUp = imp.change_pct > 0;
+            var isNeutral = Math.abs(imp.change_pct) < 1;
+
+            var card = document.createElement('div');
+            card.className = 'sc-impact-card' +
+                (!isNeutral ? (isUp ? ' sc-impact-up' : ' sc-impact-down') : '');
+
+            var priceColor = isNeutral ? 'text-zinc-400' : (isUp ? 'text-red-600' : 'text-emerald-600');
+            var deltaColor = isNeutral ? 'text-zinc-300' : (isUp ? 'text-red-400' : 'text-emerald-500');
+            var deltaText  = isNeutral ? '—' : ((isUp ? '+' : '') + imp.change_pct.toFixed(0) + '%');
+
+            card.innerHTML =
+                '<div class="text-[11px] font-semibold text-zinc-500">' + region + '</div>' +
+                '<div class="font-mono text-lg font-semibold ' + priceColor + '">$' + imp.projected_price.toFixed(0) + '</div>' +
+                '<div class="text-[10px] font-mono ' + deltaColor + '">' + deltaText + '</div>' +
+                '<div class="text-[10px] text-zinc-400">was $' + imp.baseline_price.toFixed(0) + '</div>';
+
+            impactsGrid.appendChild(card);
+        });
+
+        // Supply detail for generation loss
+        if (data.scenario_type === 'generation_loss' && data.projected) {
+            supplyText.textContent =
+                'Supply: ' + (data.projected.supply_mw || 0).toLocaleString() + ' MW' +
+                ' | Net import: ' + (data.projected.net_import_mw || 0).toLocaleString() + ' MW' +
+                (data.projected.deficit_mw > 0 ? ' | Deficit: ' + data.projected.deficit_mw.toLocaleString() + ' MW' : '');
+            supplyDetail.style.display = '';
+        } else {
+            supplyDetail.style.display = 'none';
+        }
+
+        resultsDiv.style.display = '';
+        updateMapResults(data);
+    }
+
+    // --- Update SVG map with results ---
+    function updateMapResults(data) {
+        var impacts = data.impacts || {};
+
+        // Reset lines then mark broken one
+        document.querySelectorAll('.ic-link').forEach(function (g) {
+            g.querySelectorAll('.ic-line-vis').forEach(function (l) {
+                l.setAttribute('stroke', '#d4d4d8');
+                l.setAttribute('stroke-width', '2.5');
+                l.removeAttribute('stroke-dasharray');
+            });
+        });
+
+        if (data.scenario_type === 'interconnector_failure' && data.interconnector) {
+            var icId = data.interconnector.id;
+            var g = document.querySelector('.ic-link[data-ic="' + icId + '"]');
+            if (g) {
+                g.querySelectorAll('.ic-line-vis').forEach(function (l) {
+                    l.setAttribute('stroke', '#ef4444');
+                    l.setAttribute('stroke-width', '3');
+                    l.setAttribute('stroke-dasharray', '6 4');
+                });
+            }
+            // Show break X marker at midpoint
+            var mid = IC_MIDPOINTS[icId];
+            if (mid) {
+                breakMarker.setAttribute('transform', 'translate(' + mid.x + ',' + mid.y + ')');
+                breakMarker.style.display = '';
+            }
+        }
+
+        // Update region nodes
+        Object.entries(impacts).forEach(function (entry) {
+            var region = entry[0];
+            var imp = entry[1];
+            var isUp = imp.change_pct > 0;
+            var isNeutral = Math.abs(imp.change_pct) < 1;
+
+            var priceEl = document.querySelector('#region-' + region + ' .region-price');
+            var deltaEl = document.querySelector('#region-' + region + ' .region-delta');
+            var circle  = document.querySelector('#region-' + region + ' circle');
+
+            if (priceEl) {
+                priceEl.textContent = '$' + imp.projected_price.toFixed(0);
+                priceEl.setAttribute('fill', isNeutral ? '#a1a1aa' : (isUp ? '#fca5a5' : '#86efac'));
+            }
+            if (deltaEl) {
+                deltaEl.textContent = isNeutral ? '' : ((isUp ? '+' : '') + imp.change_pct.toFixed(0) + '%');
+                deltaEl.setAttribute('fill', isNeutral ? '#a1a1aa' : (isUp ? '#ef4444' : '#22c55e'));
+            }
+            if (circle) {
+                circle.setAttribute('fill', isNeutral ? '#27272a' : (isUp ? '#7f1d1d' : '#14532d'));
+            }
+        });
+    }
+
+    // --- Clear results ---
+    function clearResults() {
+        resultsDiv.style.display = 'none';
+        supplyDetail.style.display = 'none';
+        impactsGrid.innerHTML = '';
+        headline.textContent = '';
+        breakMarker.style.display = 'none';
+        document.querySelectorAll('.region-price').forEach(function (el) { el.textContent = ''; });
+        document.querySelectorAll('.region-delta').forEach(function (el) { el.textContent = ''; });
+        document.querySelectorAll('#region-nodes circle').forEach(function (el) { el.setAttribute('fill', '#27272a'); });
+        highlightMap();
+    }
+
+    // Initial state
+    selectIC('V-SA');
+})();
+</script>
