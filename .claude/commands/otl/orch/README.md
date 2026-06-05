@@ -21,7 +21,7 @@ PRD → Propose → Build → Test → Smoke → Ship → Merge
 | 3 | Test | `50-test` | Run tests, fix failures (2 attempts max) |
 | 4 | Smoke | `55-smoke` | Start app, verify demo script works (2 attempts max) |
 | 5 | Ship | `60-finalize` | Commit, push |
-| — | Merge | Lead | Merge branch to master, move PRD to done |
+| — | Merge | Lead | Merge PR to master via `gh pr merge` |
 
 ## Quick Start
 
@@ -56,7 +56,7 @@ The lead logs progress with phase numbers:
 - **No state file.** Resume detection uses branch-exists + commit message tags.
 - **No Ruby backend.** All orchestration is in the lead command file.
 - **No OpenSpec.** Tasks are tracked in `TASKS.md` on the feature branch.
-- **Feature branches.** Each PRD gets `feature/hack-{name}`, merged to master via `--no-ff`.
+- **Feature branches.** Each PRD gets `feature/hack-{name}`, merged to master via PR.
 - **2-attempt Ralph loop** for both Test and Smoke phases.
 
 ## Production Comparison
@@ -70,7 +70,7 @@ The lead logs progress with phase numbers:
 | Code quality | /simplify pass | None |
 | Test retries | 2 attempts | 2 attempts |
 | Smoke retries | 2 attempts | 2 attempts |
-| Merge method | PR + squash | git merge --no-ff |
+| Merge method | PR + squash | PR + merge |
 | Failure handling | Hard stop + escalate | Log and advance |
 | Target time/PRD | 2+ hours | 20-30 minutes |
 
