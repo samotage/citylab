@@ -136,14 +136,12 @@ class HeadspaceClient:
         payload = {
             "project_slug": self.project_slug,
             "persona_slug": persona_slug,
-            # Headspace requires a non-empty initial_prompt. Default to a
-            # conversation-first greeting so Ray waits for questions rather
-            # than dumping an orientation data wall (FR21).
             "initial_prompt": initial_prompt
             or (
-                "You are now live inside the CityLab energy dashboard. Greet "
-                "the operator in one short sentence and wait for their "
-                "questions. Do not run any commands yet."
+                "You are now live inside the CityLab energy dashboard. "
+                "Read docs/help/cli-citylab.md to load your instrument "
+                "reference, then greet the operator in one short sentence "
+                "and wait for their questions. Do not dump data unprompted."
             ),
         }
         if feature_flags is not None:
