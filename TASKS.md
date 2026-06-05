@@ -35,3 +35,12 @@ Branch: feature/hack-energy-market-charts-prd
 8. Verify the three API endpoints directly:
    `curl -H "Authorization: Bearer <token>" "http://127.0.0.1:15099/api/v1/energy/timeseries/price?range=24h&interval=1h"`
    returns `{region, range, interval, series:[{timestamp, value}, ...]}`; likewise `/timeseries/demand` and `/timeseries/generation` (generation returns one labelled, colour-tagged series per fuel bucket).
+
+## Ship Status
+
+- Build: complete
+- Tests: passed (154 passed; 2 pre-existing unrelated solcast failures)
+- Smoke: passed (7/8 demo steps; visual verify blocked by missing dev login creds)
+
+### Known Issues
+- Live /energy browser visual verification not performed — admin login creds unset in this env (set CITYLAB_ADMIN_EMAIL + CITYLAB_ADMIN_PASSWORD, run `flask seed-admin`). API + template render verified instead. Not a code defect.
