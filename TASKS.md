@@ -25,7 +25,7 @@ Branch: feature/hack-remote-agent-interface-prd
 
 - [x] 10. **CSS build + responsive layout** — Add any custom chat-panel styles to `static/css/src/input.css`, rebuild with `npx tailwindcss` (v3, NOT v4). Ensure responsive stacking on narrow screens; verify key custom selectors survive the build.
 
-- [ ] 11. **Tests** — Add targeted tests using the existing fixture system (`app`, `client`, `db_session`): HeadspaceClient (mock requests — retry + error wrapping), agent_service resume-or-create logic, agent API routes (auth required, no session_token leak in response, init/status/shutdown), and model default/active-session constraints. Run `pytest` against `citylab_test`; confirm no regressions.
+- [x] 11. **Tests** — Add targeted tests using the existing fixture system (`app`, `client`, `db_session`): HeadspaceClient (mock requests — retry + error wrapping), agent_service resume-or-create logic, agent API routes (auth required, no session_token leak in response, init/status/shutdown), and model default/active-session constraints. Run `pytest` against `citylab_test`; confirm no regressions.
 
 ## Demo Script
 
