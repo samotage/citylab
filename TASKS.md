@@ -22,3 +22,12 @@ Branch: feature/hack-cli-completeness-for-ray-prd
 4. Run `cli-citylab data market-intelligence --region VIC1` — see the combined response with energy, weather, AND solar data (no more `null`)
 5. Start Ray: `cli-citylab agent start` — ask "How have prices moved today?" — Ray uses the timeseries data to answer with trend analysis, not just a snapshot
 6. Ask Ray "Give me the full market picture" — the market-intelligence response now includes solar irradiance alongside energy and weather
+
+## Ship Status
+
+- Build: complete
+- Tests: passed (50/50 targeted tests)
+- Smoke: passed (4/4 deterministic demo steps; steps 5-6 are interactive live-Ray, out of CLI smoke scope)
+
+### Known Issues
+- `cli-citylab` is not on PATH in the orchestration environment. Invoke the CLI via `PYTHONPATH=src python3 -m citylab.cli_wrapper` instead. (Operational/environment issue only — no code defect.)
