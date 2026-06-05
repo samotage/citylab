@@ -12,6 +12,10 @@ logger = logging.getLogger(__name__)
 # Maps the config.yaml key under data_sources -> source_type enum value.
 _SOURCE_TYPE_BY_KEY = {
     "opennem": "opennem",
+    "opennem_nsw1": "opennem",
+    "opennem_qld1": "opennem",
+    "opennem_sa1": "opennem",
+    "opennem_tas1": "opennem",
     "bom": "bom",
     "solcast": "solcast",
 }
@@ -113,6 +117,44 @@ _WEATHER_LOCATIONS = [
         "state": "SA",
         "region_relevance": "wind_corridor",
     },
+    # Queensland — coal + solar + demand centres
+    {
+        "name": "Brisbane",
+        "bom_station_id": "040913",
+        "bom_forecast_area_id": "QLD_PT254",
+        "latitude": -27.4698,
+        "longitude": 153.0251,
+        "state": "QLD",
+        "region_relevance": "demand_centre",
+    },
+    {
+        "name": "Central Queensland (Gladstone)",
+        "bom_station_id": "039083",
+        "bom_forecast_area_id": "QLD_PT058",
+        "latitude": -23.8490,
+        "longitude": 151.2600,
+        "state": "QLD",
+        "region_relevance": "demand_centre",
+    },
+    {
+        "name": "North Queensland (Townsville)",
+        "bom_station_id": "032040",
+        "bom_forecast_area_id": "QLD_PT219",
+        "latitude": -19.2500,
+        "longitude": 146.7700,
+        "state": "QLD",
+        "region_relevance": "solar_region",
+    },
+    # NSW — Sydney demand centre
+    {
+        "name": "Sydney",
+        "bom_station_id": "066062",
+        "bom_forecast_area_id": "NSW_PT131",
+        "latitude": -33.8688,
+        "longitude": 151.2093,
+        "state": "NSW",
+        "region_relevance": "demand_centre",
+    },
 ]
 
 
@@ -149,11 +191,43 @@ def seed_weather_locations() -> list[dict]:
 _SOLAR_LOCATIONS = [
     {
         "name": "Melbourne Metro (rooftop PV)",
-        "latitude": -37.8136,  # Melbourne CBD
+        "latitude": -37.8136,
         "longitude": 144.9631,
         "state": "VIC",
         "region_relevance": "rooftop_aggregate",
-        "reference_pv_capacity_kw": 1800000.0,  # aggregate rooftop fleet
+        "reference_pv_capacity_kw": 1800000.0,
+    },
+    {
+        "name": "Sydney Metro (rooftop PV)",
+        "latitude": -33.8688,
+        "longitude": 151.2093,
+        "state": "NSW",
+        "region_relevance": "rooftop_aggregate",
+        "reference_pv_capacity_kw": 2500000.0,
+    },
+    {
+        "name": "Brisbane Metro (rooftop PV)",
+        "latitude": -27.4698,
+        "longitude": 153.0251,
+        "state": "QLD",
+        "region_relevance": "rooftop_aggregate",
+        "reference_pv_capacity_kw": 3000000.0,
+    },
+    {
+        "name": "Adelaide Metro (rooftop PV)",
+        "latitude": -34.9285,
+        "longitude": 138.6007,
+        "state": "SA",
+        "region_relevance": "rooftop_aggregate",
+        "reference_pv_capacity_kw": 1200000.0,
+    },
+    {
+        "name": "Northern Tasmania (rooftop PV)",
+        "latitude": -41.4332,
+        "longitude": 147.1441,
+        "state": "TAS",
+        "region_relevance": "rooftop_aggregate",
+        "reference_pv_capacity_kw": 200000.0,
     },
 ]
 

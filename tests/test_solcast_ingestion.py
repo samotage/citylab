@@ -77,18 +77,19 @@ def test_seed_solar_locations_single(db_session):
     from citylab.services.ingestion.seed import seed_solar_locations
 
     first = seed_solar_locations()
-    assert len(first) == 1
+    assert len(first) == 5
     count_after_first = db_session.query(SolarLocation).count()
 
     # Idempotent.
     second = seed_solar_locations()
-    assert len(second) == 1
+    assert len(second) == 5
     assert count_after_first == db_session.query(SolarLocation).count()
 
-    loc = db_session.query(SolarLocation).one()
-    assert "Melbourne" in loc.name
-    assert loc.region_relevance == "rooftop_aggregate"
-    assert loc.state == "VIC"
+    mel = db_session.query(SolarLocation).filter(
+        SolarLocation.name.contains("Melbourne")
+    ).one()
+    assert mel.region_relevance == "rooftop_aggregate"
+    assert mel.state == "VIC"
 
 
 # ---------------------------------------------------------------------------
@@ -190,13 +191,13 @@ def test_solcast_real_fetch_mocked(db_session, monkeypatch):
     result = SolcastFetcher(ds).run()
 
     assert result["ok"] is True
-    assert result["rows"] == 8  # 4 forecast + 4 live for the one location
+    assert result["rows"] == 40  # 4 forecast + 4 live per location × 5 locations
     assert ds.last_fetch_status == "success"
-    # Exactly one forecast + one live HTTP call (no retries, one location).
-    assert len(calls) == 2
+    # One forecast + one live HTTP call per location (5 locations).
+    assert len(calls) == 10
 
     rows = db_session.query(SolarForecast).all()
-    assert len(rows) == 8
+    assert len(rows) == 40
     # Forecast rows: issued_at != forecast_for. Live rows: issued_at == forecast_for.
     assert any(r.issued_at != r.forecast_for for r in rows)
     assert any(r.issued_at == r.forecast_for for r in rows)
@@ -204,8 +205,8 @@ def test_solcast_real_fetch_mocked(db_session, monkeypatch):
     assert {r.ghi_wm2 for r in rows} == {100.0, 150.0, 200.0, 250.0}
 
     # Budget counters advanced and persisted.
-    assert ds.config["forecast_requests_used"] == 1
-    assert ds.config["live_requests_used"] == 1
+    assert ds.config["forecast_requests_used"] == 5
+    assert ds.config["live_requests_used"] == 5
 
 
 def test_solcast_budget_guard_blocks_calls(db_session, monkeypatch):

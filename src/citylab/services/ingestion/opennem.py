@@ -1,14 +1,16 @@
-"""OpenNEM fetcher — Victorian (VIC1) NEM market data.
+"""OpenNEM fetcher — NEM-wide market data (all 5 regions).
 
 Primary source: OpenNEM API (https://api.opennem.org.au). Where OpenNEM lacks a
 dataset (pre-dispatch forecasts, detailed generator submissions) AEMO is used as
 a secondary source within this same fetcher — AEMO is an implementation detail,
 not a separate DataSource.
 
+Each NEM region (NSW1, QLD1, SA1, TAS1, VIC1) gets its own DataSource row and
+fetcher instance. The region is read from DataSource.config["region"].
+
 Hackathon resilience: live API calls are attempted, but if the network/API is
-unavailable the fetcher falls back to a synthetic-but-realistic Victorian market
-snapshot so the demo always has data to reason on. The fallback is clearly
-flagged in logs.
+unavailable the fetcher falls back to a synthetic-but-realistic market snapshot
+so the demo always has data to reason on. The fallback is clearly flagged in logs.
 """
 
 import logging
@@ -21,11 +23,8 @@ from citylab.services.ingestion.registry import register_fetcher
 
 logger = logging.getLogger(__name__)
 
-REGION = "VIC1"
+NEM_REGIONS = ["NSW1", "QLD1", "SA1", "TAS1", "VIC1"]
 
-# OpenNEM moved to the OpenElectricity v4 API. The legacy host 301-redirects and
-# the old /stats path 404s, so we default to v4 and auto-heal stored base_urls
-# that still point at the dead legacy host.
 DEFAULT_API_BASE = "https://api.openelectricity.org.au/v4"
 _LEGACY_HOSTS = ("api.opennem.org.au",)
 
@@ -57,10 +56,9 @@ def _interval_seconds(interval) -> int:
     except Exception:  # noqa: BLE001
         return 300
 
-# Generation fuel types tracked for VIC1. Battery charging/discharging are
-# explicit, distinct fuel types per the PRD.
 FUEL_TYPES = [
     "brown_coal",
+    "black_coal",
     "gas_ccgt",
     "gas_ocgt",
     "gas_recip",
@@ -75,19 +73,20 @@ FUEL_TYPES = [
     "distillate",
 ]
 
-# The 5 interconnector corridors touching Victoria.
-# flow_mw positive = from_region -> to_region.
+# All NEM interconnectors — covers every corridor.
 INTERCONNECTORS = [
     {"id": "T-V-MNSP1", "name": "Basslink", "from": "TAS1", "to": "VIC1", "capacity": 478},
     {"id": "V-SA", "name": "Heywood", "from": "VIC1", "to": "SA1", "capacity": 650},
     {"id": "V-S-MNSP1", "name": "Murraylink", "from": "VIC1", "to": "SA1", "capacity": 220},
     {"id": "VIC1-NSW1", "name": "VNI", "from": "NSW1", "to": "VIC1", "capacity": 1900},
     {"id": "VNI-WEST", "name": "VNI West", "from": "NSW1", "to": "VIC1", "capacity": 1900},
+    {"id": "N-Q-MNSP1", "name": "Directlink", "from": "NSW1", "to": "QLD1", "capacity": 180},
+    {"id": "QNI", "name": "QNI", "from": "NSW1", "to": "QLD1", "capacity": 600},
 ]
 
-# OpenNEM-style fuel labels mapped to our canonical fuel_type set.
 OPENNEM_FUEL_MAP = {
     "coal_brown": "brown_coal",
+    "coal_black": "black_coal",
     "gas_ccgt": "gas_ccgt",
     "gas_ocgt": "gas_ocgt",
     "gas_recip": "gas_recip",
@@ -102,13 +101,8 @@ OPENNEM_FUEL_MAP = {
     "distillate": "distillate",
 }
 
-# OpenElectricity v4 `fueltech_group` labels -> our canonical fuel_type set.
-# VIC coal is brown; v4 only exposes aggregate `gas`/`solar` groups (lower
-# granularity than the synthetic mix, but real). The aggregate `battery` group
-# is deliberately omitted — it nets charging/discharging and would double-count
-# the explicit battery_charging / battery_discharging groups.
-V4_FUELTECH_MAP = {
-    "coal": "brown_coal",
+# Base v4 fueltech map — coal type resolved per-region at parse time.
+_V4_FUELTECH_MAP_BASE = {
     "gas": "gas_ccgt",
     "solar": "solar_utility",
     "wind": "wind",
@@ -120,13 +114,157 @@ V4_FUELTECH_MAP = {
     "distillate": "distillate",
 }
 
+# Region-specific synthetic generation profiles.
+# Each fuel entry: (base_mw, peak_adder_mw).
+_REGION_PROFILES = {
+    "VIC1": {
+        "base_demand": 4200, "demand_range": 2600,
+        "base_price": 45, "price_range": 90,
+        "mix": {
+            "brown_coal": (3000, 400),
+            "gas_ccgt": (200, 500),
+            "gas_ocgt": (50, 300),
+            "gas_recip": (10, 30),
+            "gas_steam": (20, 0),
+            "solar_utility": (900, 0),
+            "solar_rooftop": (1400, 0),
+            "wind": (1800, 0),
+            "hydro": (150, 400),
+            "battery_discharging": (250, 0),
+            "battery_charging": (-180, 0),
+            "biomass": (30, 0),
+            "distillate": (5, 0),
+        },
+    },
+    "NSW1": {
+        "base_demand": 6000, "demand_range": 3500,
+        "base_price": 50, "price_range": 100,
+        "mix": {
+            "black_coal": (6000, 800),
+            "gas_ccgt": (500, 600),
+            "gas_ocgt": (100, 400),
+            "gas_recip": (5, 20),
+            "gas_steam": (30, 0),
+            "solar_utility": (1200, 0),
+            "solar_rooftop": (2000, 0),
+            "wind": (1200, 0),
+            "hydro": (800, 1200),
+            "battery_discharging": (200, 0),
+            "battery_charging": (-150, 0),
+            "biomass": (40, 0),
+            "distillate": (5, 0),
+        },
+    },
+    "QLD1": {
+        "base_demand": 5000, "demand_range": 2800,
+        "base_price": 42, "price_range": 85,
+        "mix": {
+            "black_coal": (4500, 600),
+            "gas_ccgt": (800, 400),
+            "gas_ocgt": (200, 300),
+            "gas_recip": (10, 20),
+            "gas_steam": (50, 0),
+            "solar_utility": (1500, 0),
+            "solar_rooftop": (2500, 0),
+            "wind": (600, 0),
+            "hydro": (300, 200),
+            "battery_discharging": (100, 0),
+            "battery_charging": (-80, 0),
+            "biomass": (100, 0),
+            "distillate": (5, 0),
+        },
+    },
+    "SA1": {
+        "base_demand": 1200, "demand_range": 600,
+        "base_price": 55, "price_range": 120,
+        "mix": {
+            "gas_ccgt": (300, 200),
+            "gas_ocgt": (200, 300),
+            "gas_recip": (20, 30),
+            "gas_steam": (10, 0),
+            "solar_utility": (500, 0),
+            "solar_rooftop": (800, 0),
+            "wind": (2000, 0),
+            "battery_discharging": (200, 0),
+            "battery_charging": (-150, 0),
+            "biomass": (10, 0),
+            "distillate": (10, 0),
+        },
+    },
+    "TAS1": {
+        "base_demand": 900, "demand_range": 300,
+        "base_price": 40, "price_range": 60,
+        "mix": {
+            "hydro": (1800, 400),
+            "wind": (500, 0),
+            "gas_ocgt": (50, 100),
+            "solar_utility": (50, 0),
+            "solar_rooftop": (80, 0),
+            "biomass": (10, 0),
+        },
+    },
+}
+
+_REGION_STATIONS = {
+    "VIC1": [
+        ("Loy Yang A", "LYA1", "brown_coal"),
+        ("Yallourn W", "YWPS1", "brown_coal"),
+        ("Newport", "NPS1", "gas_steam"),
+        ("Mortlake", "MORTLK11", "gas_ocgt"),
+        ("Bald Hills Wind", "BALDHWF1", "wind"),
+    ],
+    "NSW1": [
+        ("Eraring", "ER01", "black_coal"),
+        ("Bayswater", "BW01", "black_coal"),
+        ("Tumut 3", "TUMUT3", "hydro"),
+        ("Tallawarra", "TALLAWB1", "gas_ccgt"),
+        ("Silverton Wind", "STWF1", "wind"),
+    ],
+    "QLD1": [
+        ("Gladstone", "GLAD1", "black_coal"),
+        ("Callide B", "CPP_3", "black_coal"),
+        ("Swanbank E", "SWAN_E", "gas_ccgt"),
+        ("Coopers Gap Wind", "CPGWF1", "wind"),
+        ("Sun Metals Solar", "SMCSF1", "solar_utility"),
+    ],
+    "SA1": [
+        ("Torrens Island A", "TORRA1", "gas_steam"),
+        ("Pelican Point", "PPCCGT", "gas_ccgt"),
+        ("Hornsdale Wind", "HDWF1", "wind"),
+        ("Hornsdale Battery", "HPRG1", "battery_discharging"),
+        ("Bungala Solar", "BNGSF1", "solar_utility"),
+    ],
+    "TAS1": [
+        ("Gordon", "GORDON", "hydro"),
+        ("John Butters", "JBT01", "hydro"),
+        ("Musselroe Wind", "MUSSWF1", "wind"),
+        ("Tamar Valley", "TVPP104", "gas_ccgt"),
+        ("Woolnorth Wind", "WOOLNTH1", "wind"),
+    ],
+}
+
 
 class OpenNEMFetcher(BaseFetcher):
-    """Fetch Victorian market data from OpenNEM (+ AEMO for forecasts/bids)."""
+    """Fetch NEM market data from OpenNEM (+ AEMO for forecasts/bids).
+
+    Region is read from DataSource.config["region"] — one instance per region.
+    """
 
     source_type = "opennem"
-    # Gap-fill threshold base: NEM dispatch is 5-min; gap-fill triggers >10min.
     normal_interval_seconds = 600
+
+    @property
+    def region(self):
+        return self.config.get("region", "VIC1")
+
+    @property
+    def _profile(self):
+        return _REGION_PROFILES.get(self.region, _REGION_PROFILES["VIC1"])
+
+    def _v4_fueltech_map(self):
+        """Region-aware fueltech mapping — coal type depends on region."""
+        coal_type = "brown_coal" if self.region == "VIC1" else "black_coal"
+        return {**_V4_FUELTECH_MAP_BASE, "coal": coal_type}
 
     def fetch(self):
         """Fetch the live OpenElectricity v4 snapshot.
@@ -143,14 +281,14 @@ class OpenNEMFetcher(BaseFetcher):
         """
         backfill = self.data_source.last_fetch_at is None
         if not self.config.get("allow_synthetic_fallback", False):
-            # Honest path: fail loud, never fabricate.
             return self._fetch_live(backfill=backfill)
         try:
             return self._fetch_live(backfill=backfill)
         except Exception as exc:  # noqa: BLE001
             logger.warning(
-                "OpenElectricity live fetch unavailable (%s); synthetic "
-                "fallback ENABLED via config — data will be FABRICATED", exc
+                "OpenElectricity live fetch unavailable (%s) for %s; synthetic "
+                "fallback ENABLED via config — data will be FABRICATED",
+                exc, self.region,
             )
             return self._synthetic(backfill=backfill)
 
@@ -169,21 +307,13 @@ class OpenNEMFetcher(BaseFetcher):
         return headers
 
     def _fetch_live(self, backfill: bool):
-        """Live OpenElectricity v4 fetch + parse. Raises on any failure.
-
-        Two endpoints make the snapshot:
-          - market/network/NEM  -> price + demand (metrics repeated as params)
-          - data/network/NEM    -> power, grouped by fueltech_group
-
-        Any HTTP or parse failure propagates so ``run()`` records an honest
-        ``error`` status rather than silently storing fabricated data.
-        """
+        """Live OpenElectricity v4 fetch + parse. Raises on any failure."""
         market = self._get_v4(
             "market/network/NEM",
             {
                 "metrics": ["price", "demand"],
                 "interval": "5m",
-                "network_region": REGION,
+                "network_region": self.region,
                 "primary_grouping": "network_region",
             },
         )
@@ -192,23 +322,21 @@ class OpenNEMFetcher(BaseFetcher):
             {
                 "metrics": "power",
                 "interval": "5m",
-                "network_region": REGION,
+                "network_region": self.region,
                 "secondary_grouping": "fueltech_group",
             },
         )
         snap = self._parse_v4(market, power)
         snap["source"] = "live"
         logger.info(
-            "OpenElectricity v4 parse OK: %s prices, %s demand, %s gen rows",
-            len(snap["prices"]), len(snap["demand"]), len(snap["generation"]),
+            "OpenElectricity v4 parse OK (%s): %s prices, %s demand, %s gen rows",
+            self.region, len(snap["prices"]), len(snap["demand"]),
+            len(snap["generation"]),
         )
         return snap
 
     def _get_v4(self, path: str, params: dict) -> dict:
-        """GET an OpenElectricity v4 endpoint and return the parsed JSON.
-
-        Raises on HTTP error or on an ``success: false`` envelope.
-        """
+        """GET an OpenElectricity v4 endpoint and return the parsed JSON."""
         import requests
 
         url = f"{self._api_base()}/{path}"
@@ -230,10 +358,7 @@ class OpenNEMFetcher(BaseFetcher):
 
     @staticmethod
     def _v4_points(result: dict) -> list[tuple]:
-        """Expand a v4 result block's ``data`` into [(timestamp, value), ...].
-
-        v4 carries inline timestamps: data = [[iso_ts, value], ...].
-        """
+        """Expand a v4 result block's ``data`` into [(timestamp, value), ...]."""
         out = []
         for row in result.get("data") or []:
             if not isinstance(row, (list, tuple)) or len(row) < 2:
@@ -245,11 +370,9 @@ class OpenNEMFetcher(BaseFetcher):
         return out
 
     def _parse_v4(self, market: dict, power: dict) -> dict:
-        """Parse v4 market (price/demand) + data (power) payloads.
-
-        Each top-level ``data`` entry is one metric series with a ``results``
-        list; each result holds inline [timestamp, value] rows.
-        """
+        """Parse v4 market (price/demand) + data (power) payloads."""
+        region = self.region
+        fueltech_map = self._v4_fueltech_map()
         prices: list[dict] = []
         demand: list[dict] = []
         generation: list[dict] = []
@@ -265,7 +388,7 @@ class OpenNEMFetcher(BaseFetcher):
                     if metric == "price":
                         prices.append(
                             {
-                                "region": REGION,
+                                "region": region,
                                 "interval_start": ts,
                                 "interval_end": ts + timedelta(minutes=5),
                                 "interval_type": "5min",
@@ -275,7 +398,7 @@ class OpenNEMFetcher(BaseFetcher):
                     elif metric == "demand":
                         demand.append(
                             {
-                                "region": REGION,
+                                "region": region,
                                 "interval_start": ts,
                                 "demand_mw": round(float(v), 1),
                                 "demand_type": "actual",
@@ -289,16 +412,14 @@ class OpenNEMFetcher(BaseFetcher):
                 continue
             for result in series.get("results") or []:
                 group = (result.get("columns") or {}).get("fueltech_group")
-                fuel = V4_FUELTECH_MAP.get(str(group).lower())
+                fuel = fueltech_map.get(str(group).lower())
                 if fuel is None:
-                    # Unknown / aggregate group (e.g. net `battery`) — skip to
-                    # avoid double-counting or storing junk fuel labels.
                     continue
                 for ts, v in self._v4_points(result):
                     latest_ts = max(latest_ts or ts, ts)
                     generation.append(
                         {
-                            "region": REGION,
+                            "region": region,
                             "interval_start": ts,
                             "fuel_type": fuel,
                             "output_mw": round(float(v), 1),
@@ -315,9 +436,6 @@ class OpenNEMFetcher(BaseFetcher):
             "prices": prices,
             "demand": demand,
             "generation": generation,
-            # Interconnector flows, bid submissions and pre-dispatch forecasts
-            # are not exposed by these v4 endpoints; left empty rather than
-            # fabricated.
             "interconnectors": [],
             "submissions": [],
             "forecasts": [],
@@ -328,13 +446,7 @@ class OpenNEMFetcher(BaseFetcher):
     # ------------------------------------------------------------------
 
     def fetch_range(self, start, end, progress=None):
-        """Fetch VIC1 data for [start, end).
-
-        Tries the OpenNEM date-range query; on any HTTP/parse failure falls back
-        to a synthetic snapshot covering the range so backfill/gap-fill still
-        produce continuous data for the demo (D7). Returns one snapshot payload
-        covering the whole range.
-        """
+        """Fetch region data for [start, end)."""
         start = _parse_iso(start)
         end = _parse_iso(end)
         if start is None or end is None or start >= end:
@@ -343,15 +455,14 @@ class OpenNEMFetcher(BaseFetcher):
             raise ValueError(f"Invalid range for fetch_range: {start}..{end}")
 
         if not self.config.get("allow_synthetic_fallback", False):
-            # Honest path: real history or nothing — never fabricate backfill.
             return self._fetch_range_live(start, end)
         try:
             return self._fetch_range_live(start, end)
         except Exception as exc:  # noqa: BLE001
             logger.warning(
-                "OpenElectricity range fetch unavailable (%s); synthetic "
+                "OpenElectricity range fetch unavailable (%s) for %s; synthetic "
                 "fallback ENABLED via config — data will be FABRICATED "
-                "%s..%s", exc, start.date(), end.date(),
+                "%s..%s", exc, self.region, start.date(), end.date(),
             )
             return self._synthetic_range(start, end)
 
@@ -359,7 +470,7 @@ class OpenNEMFetcher(BaseFetcher):
         """Live v4 date-range query (market + data), parsed via _parse_v4."""
         params_common = {
             "interval": "5m",
-            "network_region": REGION,
+            "network_region": self.region,
             "date_start": start.isoformat(),
             "date_end": end.isoformat(),
         }
@@ -374,7 +485,6 @@ class OpenNEMFetcher(BaseFetcher):
              "secondary_grouping": "fueltech_group"},
         )
         snap = self._parse_v4(market, power)
-        # Clip to the requested window.
         snap = self._clip_range(snap, start, end)
         snap["source"] = "live"
         return snap
@@ -392,7 +502,7 @@ class OpenNEMFetcher(BaseFetcher):
         return snap
 
     def _synthetic_range(self, start, end) -> dict:
-        """Synthetic VIC1 snapshot covering [start, end) at 5-min resolution."""
+        """Synthetic snapshot covering [start, end) at 5-min resolution."""
         if start is None or end is None or start >= end:
             return {
                 "source": "synthetic",
@@ -400,12 +510,10 @@ class OpenNEMFetcher(BaseFetcher):
                 "prices": [], "demand": [], "generation": [],
                 "interconnectors": [], "submissions": [], "forecasts": [],
             }
-        # Align start to 5-min boundary.
         s = start.replace(second=0, microsecond=0)
         s = s - timedelta(minutes=s.minute % 5)
         intervals = []
         t = s
-        # Cap volume defensively (e.g. one day = 288 intervals).
         max_intervals = 7 * 24 * 12
         while t < end and len(intervals) < max_intervals:
             intervals.append(t)
@@ -431,20 +539,19 @@ class OpenNEMFetcher(BaseFetcher):
         }
 
     # ------------------------------------------------------------------
-    # Synthetic snapshot — realistic Victorian market data
+    # Synthetic snapshot — region-aware market data
     # ------------------------------------------------------------------
 
     def _synthetic(self, backfill: bool) -> dict:
-        """Generate a realistic VIC1 snapshot (and 7-day backfill on first run)."""
+        """Generate a realistic snapshot for this region."""
         now = datetime.now(timezone.utc).replace(second=0, microsecond=0)
-        # Align to 5-minute boundary
         now = now - timedelta(minutes=now.minute % 5)
 
         if backfill:
             intervals = [now - timedelta(minutes=5 * i) for i in range(7 * 24 * 12)]
         else:
             since = self.data_source.last_fetch_at
-            count = 12  # default last hour
+            count = 12
             if since:
                 delta = now - since.astimezone(timezone.utc)
                 count = max(1, min(int(delta.total_seconds() // 300), 7 * 24 * 12))
@@ -485,10 +592,11 @@ class OpenNEMFetcher(BaseFetcher):
 
     def _price_at(self, t: datetime) -> dict:
         factor = self._daily_factor(t)
-        base = 45 + 90 * factor
+        p = self._profile
+        base = p["base_price"] + p["price_range"] * factor
         price = round(base + random.uniform(-15, 25), 2)
         return {
-            "region": REGION,
+            "region": self.region,
             "interval_start": t,
             "interval_end": t + timedelta(minutes=5),
             "interval_type": "5min",
@@ -497,9 +605,10 @@ class OpenNEMFetcher(BaseFetcher):
 
     def _demand_at(self, t: datetime) -> dict:
         factor = self._daily_factor(t)
-        demand = round(4200 + 2600 * factor + random.uniform(-150, 150), 1)
+        p = self._profile
+        demand = round(p["base_demand"] + p["demand_range"] * factor + random.uniform(-150, 150), 1)
         return {
-            "region": REGION,
+            "region": self.region,
             "interval_start": t,
             "demand_mw": demand,
             "demand_type": "actual",
@@ -510,30 +619,27 @@ class OpenNEMFetcher(BaseFetcher):
         h = t.hour + t.minute / 60.0
         solar = max(0.0, math.sin((h - 6) / 12 * math.pi)) if 6 <= h <= 18 else 0.0
         wind_factor = 0.3 + 0.5 * random.random()
-        # Battery: charging midday (cheap solar), discharging evening peak
         charging = solar * (h < 15)
         discharging = factor * (h >= 17 or h < 7)
 
-        mix = {
-            "brown_coal": 3000 + 400 * factor,
-            "gas_ccgt": 200 + 500 * factor,
-            "gas_ocgt": 50 + 300 * factor,
-            "gas_recip": 10 + 30 * factor,
-            "gas_steam": 20,
-            "solar_utility": 900 * solar,
-            "solar_rooftop": 1400 * solar,
-            "wind": 1800 * wind_factor,
-            "hydro": 150 + 400 * factor,
-            "battery_discharging": 250 * discharging,
-            "battery_charging": -180 * charging,
-            "biomass": 30,
-            "distillate": 5 * (factor > 0.85),
-        }
+        profile_mix = self._profile["mix"]
         rows = []
-        for fuel, mw in mix.items():
+        for fuel, (base, peak_add) in profile_mix.items():
+            if fuel in ("solar_utility", "solar_rooftop"):
+                mw = base * solar
+            elif fuel == "wind":
+                mw = base * wind_factor
+            elif fuel == "battery_discharging":
+                mw = base * discharging
+            elif fuel == "battery_charging":
+                mw = base * charging
+            elif fuel == "distillate":
+                mw = base * (factor > 0.85)
+            else:
+                mw = base + peak_add * factor
             rows.append(
                 {
-                    "region": REGION,
+                    "region": self.region,
                     "interval_start": t,
                     "fuel_type": fuel,
                     "output_mw": round(mw + random.uniform(-20, 20), 1),
@@ -546,8 +652,9 @@ class OpenNEMFetcher(BaseFetcher):
         factor = self._daily_factor(t)
         rows = []
         for ic in INTERCONNECTORS:
-            # Net importer into VIC at peak; mild export off-peak.
-            direction = 1 if ic["to"] == "VIC1" else -1
+            if ic["from"] != self.region and ic["to"] != self.region:
+                continue
+            direction = 1 if ic["to"] == self.region else -1
             flow = direction * ic["capacity"] * (0.2 + 0.6 * factor) * random.uniform(0.6, 1.0)
             rows.append(
                 {
@@ -563,13 +670,7 @@ class OpenNEMFetcher(BaseFetcher):
         return rows
 
     def _submissions_at(self, t: datetime) -> list[dict]:
-        stations = [
-            ("Loy Yang A", "LYA1", "brown_coal"),
-            ("Yallourn W", "YWPS1", "brown_coal"),
-            ("Newport", "NPS1", "gas_steam"),
-            ("Mortlake", "MORTLK11", "gas_ocgt"),
-            ("Bald Hills Wind", "BALDHWF1", "wind"),
-        ]
+        stations = _REGION_STATIONS.get(self.region, _REGION_STATIONS["VIC1"])
         rows = []
         for station, unit, fuel in stations:
             for band in range(1, 4):
@@ -578,7 +679,7 @@ class OpenNEMFetcher(BaseFetcher):
                         "station_name": station,
                         "unit_id": unit,
                         "fuel_type": fuel,
-                        "region": REGION,
+                        "region": self.region,
                         "interval_start": t,
                         "bid_band": band,
                         "price_aud_mwh": round(-50 + band * 60 + random.uniform(-10, 10), 2),
@@ -588,16 +689,19 @@ class OpenNEMFetcher(BaseFetcher):
         return rows
 
     def _forecasts_at(self, t: datetime) -> list[dict]:
+        p = self._profile
         rows = []
-        for i in range(1, 9):  # next 8 half-hour intervals (pre-dispatch sample)
+        for i in range(1, 9):
             target = t + timedelta(minutes=30 * i)
             factor = self._daily_factor(target)
             rows.append(
                 {
-                    "region": REGION,
+                    "region": self.region,
                     "forecast_issued_at": t,
                     "forecast_for": target,
-                    "price_aud_mwh": round(48 + 95 * factor + random.uniform(-10, 20), 2),
+                    "price_aud_mwh": round(
+                        p["base_price"] + p["price_range"] * factor + random.uniform(-10, 20), 2
+                    ),
                     "forecast_type": "predispatch_30min",
                 }
             )
@@ -633,8 +737,6 @@ class OpenNEMFetcher(BaseFetcher):
             records.append(PriceForecast(**f))
         return records
 
-    # Natural-key conflict targets per model (must match the UNIQUE constraints
-    # in migration eb3b9c51c3f5).
     _CONFLICT_KEYS = {
         "EnergyPrice": ["region", "interval_start", "interval_type"],
         "EnergyDemand": ["region", "interval_start", "demand_type"],
@@ -665,7 +767,6 @@ class OpenNEMFetcher(BaseFetcher):
             conflict = self._CONFLICT_KEYS.get(model.__name__)
             rows = [instance_to_dict(i) for i in instances]
             if conflict is None:
-                # Fallback (shouldn't happen): naive add.
                 from citylab.extensions import db
 
                 for inst in instances:

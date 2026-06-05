@@ -66,11 +66,11 @@ def test_seed_weather_locations_idempotent(db_session):
     from citylab.services.ingestion.seed import seed_weather_locations
 
     first = seed_weather_locations()
-    assert len(first) == 10
+    assert len(first) == 14
     count_after_first = db_session.query(WeatherLocation).count()
 
     second = seed_weather_locations()
-    assert len(second) == 10
+    assert len(second) == 14
     count_after_second = db_session.query(WeatherLocation).count()
 
     # Idempotent: re-seeding does not duplicate rows.

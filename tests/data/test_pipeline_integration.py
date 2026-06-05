@@ -95,8 +95,8 @@ def test_bom_pipeline_lands_data_with_fk_resolution(db_session):
     }
     assert all(f.location_id in location_ids for f in forecasts)
     assert all(o.location_id in location_ids for o in observations)
-    # One observation per seeded location (10).
-    assert len({o.location_id for o in observations}) == 10
+    # One observation per seeded location (14 — VIC, TAS, SA, NSW, QLD).
+    assert len({o.location_id for o in observations}) == 14
 
     assert ds.last_fetch_status == "success"
 

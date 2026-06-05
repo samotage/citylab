@@ -28,6 +28,7 @@ DEFAULT_REGION = "VIC1"
 # SC9).
 FUEL_BUCKETS = [
     ("brown_coal", "Brown Coal", "#6366f1"),
+    ("black_coal", "Black Coal", "#4338ca"),
     ("gas", "Gas", "#a855f7"),
     ("hydro", "Hydro", "#14b8a6"),
     ("wind", "Wind", "#0ea5e9"),
@@ -49,7 +50,7 @@ def bucket_for(fuel_type: str) -> str:
         return "gas"
     if fuel_type in _SOLAR_TYPES:
         return "solar"
-    if fuel_type in ("brown_coal", "wind", "hydro", "biomass", "distillate"):
+    if fuel_type in ("brown_coal", "black_coal", "wind", "hydro", "biomass", "distillate"):
         return fuel_type
     if fuel_type in ("battery_charging", "battery_discharging"):
         return fuel_type

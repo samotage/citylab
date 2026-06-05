@@ -23,10 +23,10 @@ api:
   token: dev-token-changeme
 
 headspace:
-  url: http://127.0.0.1:5001
+  url: https://smac.griffin-blenny.ts.net:5055
   api_token: ""
   # Headspace project identifier the remote agents are created under.
-  project_name: citylab
+  project_name: city-lab
   timeout_seconds: 30
   # Available remote agent personas. Ray (NEM market analyst) is seeded as the
   # default agent via `flask seed-agents`.
@@ -44,11 +44,43 @@ session:
 # are added here and seeded via `cli-citylab data seed`.
 data_sources:
   opennem:
-    name: "OpenNEM Victorian NEM"
-    # OpenNEM moved to the OpenElectricity v4 API (old api.opennem.org.au 301s /
-    # 404s). These public market/data endpoints do not require a key.
+    name: "OpenNEM VIC1"
     base_url: https://api.openelectricity.org.au/v4
     api_key: ${OPENNEM_API_KEY}
+    region: VIC1
+    allow_synthetic_fallback: true
+    cron_expression: "*/5 * * * *"
+    timeout_seconds: 8
+  opennem_nsw1:
+    name: "OpenNEM NSW1"
+    base_url: https://api.openelectricity.org.au/v4
+    api_key: ${OPENNEM_API_KEY}
+    region: NSW1
+    allow_synthetic_fallback: true
+    cron_expression: "*/5 * * * *"
+    timeout_seconds: 8
+  opennem_qld1:
+    name: "OpenNEM QLD1"
+    base_url: https://api.openelectricity.org.au/v4
+    api_key: ${OPENNEM_API_KEY}
+    region: QLD1
+    allow_synthetic_fallback: true
+    cron_expression: "*/5 * * * *"
+    timeout_seconds: 8
+  opennem_sa1:
+    name: "OpenNEM SA1"
+    base_url: https://api.openelectricity.org.au/v4
+    api_key: ${OPENNEM_API_KEY}
+    region: SA1
+    allow_synthetic_fallback: true
+    cron_expression: "*/5 * * * *"
+    timeout_seconds: 8
+  opennem_tas1:
+    name: "OpenNEM TAS1"
+    base_url: https://api.openelectricity.org.au/v4
+    api_key: ${OPENNEM_API_KEY}
+    region: TAS1
+    allow_synthetic_fallback: true
     cron_expression: "*/5 * * * *"
     timeout_seconds: 8
   bom:

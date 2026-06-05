@@ -147,3 +147,15 @@ def summary():
             "data_as_of": eq.latest_fetch_timestamp(),
         }
     )
+
+
+@energy_api_bp.route("/energy/scenario", methods=["POST"])
+@require_api_token
+def scenario():
+    from citylab.services.scenario import ScenarioEngine
+
+    body = request.get_json(silent=True) or {}
+    engine = ScenarioEngine()
+    result = engine.run(body)
+    status = 200 if result.get("ok") else 400
+    return jsonify(result), status

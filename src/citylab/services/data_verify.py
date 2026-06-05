@@ -197,10 +197,14 @@ def _verify_opennem(session, region: str = "VIC1") -> SourceResult:
     # --- Consistency ---
     consistency = CategoryResult(name="consistency")
     corridors_present = {f.interconnector_id for f in flows}
-    all_corridors = corridors_present >= KNOWN_CORRIDORS
+    expected_corridors = {
+        ic["id"] for ic in INTERCONNECTORS
+        if ic["from"] == region or ic["to"] == region
+    }
+    all_corridors = corridors_present >= expected_corridors
     consistency.checks.append(
         CheckResult("all_corridors_present", all_corridors,
-                    f"{len(corridors_present)}/{len(KNOWN_CORRIDORS)} corridors",
+                    f"{len(corridors_present)}/{len(expected_corridors)} corridors for {region}",
                     len(corridors_present))
     )
 

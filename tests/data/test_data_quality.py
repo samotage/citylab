@@ -194,10 +194,16 @@ def test_consistency_generation_sums_to_total(populated):
 
 
 def test_consistency_all_five_corridors_present(populated):
+    """VIC1 fixture should produce all 5 VIC-touching corridors."""
     flows = populated.query(InterconnectorFlow).all()
     corridors = {f.interconnector_id for f in flows}
-    assert corridors >= data_verify.KNOWN_CORRIDORS
-    assert len(data_verify.KNOWN_CORRIDORS) == 5
+    vic_corridors = {
+        ic["id"]
+        for ic in data_verify.INTERCONNECTORS
+        if ic["from"] == "VIC1" or ic["to"] == "VIC1"
+    }
+    assert corridors >= vic_corridors
+    assert len(vic_corridors) == 5
 
 
 def test_consistency_price_forecasts_forward_looking(populated):
