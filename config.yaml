@@ -25,6 +25,15 @@ api:
 headspace:
   url: http://127.0.0.1:5001
   api_token: ""
+  # Headspace project identifier the remote agents are created under.
+  project_name: citylab
+  timeout_seconds: 30
+  # Available remote agent personas. Ray (NEM market analyst) is seeded as the
+  # default agent via `flask seed-agents`.
+  personas:
+    - slug: energy-market-analyst-ray-50
+      name: Ray
+      role: NEM energy market analyst
 
 session:
   lifetime_days: 30
