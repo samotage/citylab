@@ -38,6 +38,7 @@ def register_cli_commands(app):
         """Seed DataSource rows + weather/solar locations + battery assets from config.yaml."""
         from citylab.services.ingestion.seed import (
             seed_battery_assets,
+            seed_controllable_loads,
             seed_data_sources,
             seed_solar_locations,
             seed_weather_locations,
@@ -65,6 +66,11 @@ def register_cli_commands(app):
         for b in batteries:
             click.echo(f"  {b['name']} [{b['region']}] {b['capacity_mwh']}MWh SoC={b['current_soc_pct']}%")
         click.echo(f"Seeded/updated {len(batteries)} battery asset(s).")
+
+        loads = seed_controllable_loads()
+        for ld in loads:
+            click.echo(f"  {ld['name']} [{ld['region']}] {ld['capacity_mw']}MW @${ld['curtailment_cost']}/MWh")
+        click.echo(f"Seeded/updated {len(loads)} controllable load(s).")
 
     @app.cli.command("seed-agents")
     def seed_agents_cmd():

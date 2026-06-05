@@ -309,6 +309,55 @@ def seed_battery_assets(config: dict | None = None) -> list[dict]:
     return results
 
 
+def seed_controllable_loads(config: dict | None = None) -> list[dict]:
+    """Create/update ControllableLoad rows from config. Idempotent (matched by name)."""
+    from citylab.config import load_config
+    from citylab.extensions import db
+    from citylab.models.demand_response import ControllableLoad
+
+    if config is None:
+        config = load_config()
+
+    specs = config.get("controllable_loads", []) or []
+    results = []
+
+    for spec in specs:
+        if not isinstance(spec, dict):
+            continue
+        name = spec.get("name")
+        if not name:
+            continue
+
+        existing = db.session.query(ControllableLoad).filter_by(name=name).first()
+        if existing:
+            existing.region = spec.get("region", existing.region)
+            existing.load_type = spec.get("load_type", existing.load_type)
+            existing.capacity_mw = spec.get("capacity_mw", existing.capacity_mw)
+            existing.curtailment_cost = spec.get("curtailment_cost", existing.curtailment_cost)
+            existing.min_duration_min = spec.get("min_duration_min", existing.min_duration_min)
+            existing.max_duration_min = spec.get("max_duration_min", existing.max_duration_min)
+            db.session.commit()
+            logger.info("Updated controllable load: %s", name)
+            results.append(existing.to_dict())
+        else:
+            load = ControllableLoad(
+                name=name,
+                region=spec.get("region", "VIC1"),
+                load_type=spec["load_type"],
+                capacity_mw=spec["capacity_mw"],
+                curtailment_cost=spec["curtailment_cost"],
+                min_duration_min=spec.get("min_duration_min", 15),
+                max_duration_min=spec.get("max_duration_min", 120),
+                status="available",
+            )
+            db.session.add(load)
+            db.session.commit()
+            logger.info("Seeded controllable load: %s", name)
+            results.append(load.to_dict())
+
+    return results
+
+
 def seed_data_sources(config: dict | None = None) -> list[dict]:
     """Create/update DataSource rows from config. Returns list of to_dict()."""
     from citylab.config import load_config

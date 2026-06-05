@@ -59,6 +59,41 @@ battery_assets:
     reserve_soc_pct: 20
     initial_soc_pct: 60
 
+controllable_loads:
+  - name: "Hot Water Systems (Residential)"
+    region: VIC1
+    load_type: hot_water
+    capacity_mw: 45
+    curtailment_cost: 15
+    min_duration_min: 30
+    max_duration_min: 240
+  - name: "EV Charging Network"
+    region: VIC1
+    load_type: ev_charging
+    capacity_mw: 25
+    curtailment_cost: 35
+    min_duration_min: 15
+    max_duration_min: 120
+  - name: "Commercial HVAC"
+    region: VIC1
+    load_type: hvac_commercial
+    capacity_mw: 60
+    curtailment_cost: 80
+    min_duration_min: 15
+    max_duration_min: 60
+  - name: "Industrial Process (Aluminium)"
+    region: VIC1
+    load_type: industrial_process
+    capacity_mw: 150
+    curtailment_cost: 200
+    min_duration_min: 60
+    max_duration_min: 480
+
+demand_response:
+  price_threshold_aud_mwh: 300
+  recovery_period_min: 15
+  max_simultaneous_curtailments: 4
+
 dispatch:
   discharge_threshold_aud_mwh: 150
   charge_threshold_aud_mwh: 40

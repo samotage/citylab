@@ -34,6 +34,7 @@ def init_scheduler(app, config):
         try:
             from citylab.services.ingestion.seed import (
                 seed_battery_assets,
+                seed_controllable_loads,
                 seed_data_sources,
                 seed_solar_locations,
                 seed_weather_locations,
@@ -43,6 +44,7 @@ def init_scheduler(app, config):
             seed_weather_locations()
             seed_solar_locations()
             seed_battery_assets()
+            seed_controllable_loads()
         except Exception as e:
             logger.warning(f"Initial seed failed: {e}")
         try:
@@ -218,7 +220,7 @@ def _run_ingestion_job(source_id: int):
 
 
 def _post_ingestion_dispatch(source):
-    """Run dispatch evaluation for all batteries in the ingested region."""
+    """Run dispatch evaluation for all batteries, then demand response."""
     region = (source.config or {}).get("region")
     if not region:
         return
@@ -235,6 +237,19 @@ def _post_ingestion_dispatch(source):
             )
     except Exception as e:
         logger.error("Post-ingestion dispatch failed for %s: %s", region, e)
+
+    try:
+        from citylab.services.demand_response import evaluate_region as dr_evaluate
+
+        dr_results = dr_evaluate(region)
+        if dr_results:
+            logger.info(
+                "Post-dispatch DR for %s: %d load decision(s)",
+                region,
+                len(dr_results),
+            )
+    except Exception as e:
+        logger.error("Post-dispatch DR failed for %s: %s", region, e)
 
 
 def _trigger_agent_job(persona: str, action: str, task_id: int):

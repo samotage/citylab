@@ -30,3 +30,7 @@ from citylab.models.battery import (  # noqa: F401
     BatteryAsset,
     DispatchEvent,
 )
+from citylab.models.demand_response import (  # noqa: F401
+    ControllableLoad,
+    DemandResponseEvent,
+)
