@@ -126,10 +126,8 @@ def test_synthetic_transform_fuels_all_known(db_session):
         assert g.fuel_type in KNOWN_FUELS
 
 
-def test_live_path_raises_on_unexpected_payload_then_falls_back(db_session, monkeypatch):
-    """An unexpected live payload makes _fetch_live raise; fetch() must fall back
-    to a synthetic snapshot without crashing."""
-    fetcher = _fetcher(db_session)
+def _patch_bad_payload(monkeypatch):
+    """Make requests.get return an unparseable v4 payload for every call."""
     bad_payload = load_fixture_raw("opennem", "unexpected_payload_edge")
 
     class _Resp:
@@ -146,14 +144,40 @@ def test_live_path_raises_on_unexpected_payload_then_falls_back(db_session, monk
     def _fake_get(url, timeout=None, headers=None, params=None):
         return _Resp()
 
-    # _fetch_live does `import requests` locally, so patch requests.get itself.
+    # _get_v4 does `import requests` locally, so patch requests.get itself.
     monkeypatch.setattr(requests, "get", _fake_get)
 
-    # _fetch_live raises ValueError("Unexpected OpenNEM payload shape") on this.
+
+def test_live_path_raises_on_unexpected_payload(db_session, monkeypatch):
+    """An unexpected live payload makes _fetch_live raise (no parseable data)."""
+    fetcher = _fetcher(db_session)
+    _patch_bad_payload(monkeypatch)
     with pytest.raises(ValueError):
         fetcher._fetch_live(backfill=False)
 
-    # The public fetch() swallows the error and returns a synthetic snapshot.
+
+def test_fetch_fails_loud_by_default_no_synthetic(db_session, monkeypatch):
+    """Synthetic data is a failure mode: by default fetch() must raise on a live
+    failure rather than silently fabricating prices."""
+    fetcher = _fetcher(db_session)  # config has no allow_synthetic_fallback
+    _patch_bad_payload(monkeypatch)
+    with pytest.raises(Exception):
+        fetcher.fetch()
+
+
+def test_fetch_falls_back_to_synthetic_only_when_opted_in(db_session, monkeypatch):
+    """With allow_synthetic_fallback enabled, fetch() returns a synthetic snapshot
+    instead of raising — the explicit demo-safety escape hatch."""
+    ds = DataSource(
+        name="OpenNEM L1 fallback",
+        source_type="opennem",
+        base_url="http://127.0.0.1:1",
+        cron_expression="*/5 * * * *",
+        config={"timeout_seconds": 1, "allow_synthetic_fallback": True},
+    )
+    fetcher = OpenNEMFetcher(ds)
+    _patch_bad_payload(monkeypatch)
+
     snap = fetcher.fetch()
     assert snap["source"] == "synthetic"
     assert snap["prices"]

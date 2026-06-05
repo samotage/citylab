@@ -210,7 +210,9 @@ def test_opennem_fetcher_synthetic_run_lands_data(db_session):
             source_type="opennem",
             base_url="http://127.0.0.1:1",  # unreachable -> forces synthetic fallback
             cron_expression="*/5 * * * *",
-            config={"timeout_seconds": 1},
+            # Opt into the synthetic fallback: production fails loud, but this
+            # offline test exercises the demo-safety path explicitly.
+            config={"timeout_seconds": 1, "allow_synthetic_fallback": True},
         )
         db_session.add(ds)
         db_session.flush()

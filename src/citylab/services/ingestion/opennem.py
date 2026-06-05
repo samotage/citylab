@@ -23,6 +23,12 @@ logger = logging.getLogger(__name__)
 
 REGION = "VIC1"
 
+# OpenNEM moved to the OpenElectricity v4 API. The legacy host 301-redirects and
+# the old /stats path 404s, so we default to v4 and auto-heal stored base_urls
+# that still point at the dead legacy host.
+DEFAULT_API_BASE = "https://api.openelectricity.org.au/v4"
+_LEGACY_HOSTS = ("api.opennem.org.au",)
+
 
 def _parse_iso(s):
     """Parse an ISO-8601 timestamp (tolerant of trailing Z / offsets)."""
@@ -96,6 +102,24 @@ OPENNEM_FUEL_MAP = {
     "distillate": "distillate",
 }
 
+# OpenElectricity v4 `fueltech_group` labels -> our canonical fuel_type set.
+# VIC coal is brown; v4 only exposes aggregate `gas`/`solar` groups (lower
+# granularity than the synthetic mix, but real). The aggregate `battery` group
+# is deliberately omitted — it nets charging/discharging and would double-count
+# the explicit battery_charging / battery_discharging groups.
+V4_FUELTECH_MAP = {
+    "coal": "brown_coal",
+    "gas": "gas_ccgt",
+    "solar": "solar_utility",
+    "wind": "wind",
+    "hydro": "hydro",
+    "battery_charging": "battery_charging",
+    "battery_discharging": "battery_discharging",
+    "bioenergy": "biomass",
+    "biomass": "biomass",
+    "distillate": "distillate",
+}
+
 
 class OpenNEMFetcher(BaseFetcher):
     """Fetch Victorian market data from OpenNEM (+ AEMO for forecasts/bids)."""
@@ -105,22 +129,37 @@ class OpenNEMFetcher(BaseFetcher):
     normal_interval_seconds = 600
 
     def fetch(self):
-        """Attempt live OpenNEM fetch; fall back to synthetic data on failure.
+        """Fetch the live OpenElectricity v4 snapshot.
+
+        Synthetic data is a failure mode: a market monitor that fabricates
+        prices when the API is down is worse than one that shows a gap. By
+        default any live-fetch failure is raised so ``run()`` records
+        ``last_fetch_status = "error"`` and writes nothing — the dashboard
+        reflects reality. Synthetic fallback is only used when explicitly
+        enabled via ``config.allow_synthetic_fallback`` (off by default).
 
         Returns a dict with keys: prices, demand, generation, interconnectors,
         submissions, forecasts, source ("live"|"synthetic"), as_of.
         """
         backfill = self.data_source.last_fetch_at is None
+        if not self.config.get("allow_synthetic_fallback", False):
+            # Honest path: fail loud, never fabricate.
+            return self._fetch_live(backfill=backfill)
         try:
             return self._fetch_live(backfill=backfill)
         except Exception as exc:  # noqa: BLE001
             logger.warning(
-                "OpenNEM live fetch unavailable (%s); using synthetic snapshot", exc
+                "OpenElectricity live fetch unavailable (%s); synthetic "
+                "fallback ENABLED via config — data will be FABRICATED", exc
             )
             return self._synthetic(backfill=backfill)
 
     def _api_base(self) -> str:
-        return (self.data_source.base_url or "https://api.opennem.org.au").rstrip("/")
+        """Resolve the API base, auto-healing dead legacy OpenNEM URLs to v4."""
+        base = (self.data_source.base_url or "").rstrip("/")
+        if not base or any(host in base for host in _LEGACY_HOSTS):
+            return DEFAULT_API_BASE
+        return base
 
     def _api_headers(self) -> dict:
         headers = {"Accept": "application/json"}
@@ -130,112 +169,133 @@ class OpenNEMFetcher(BaseFetcher):
         return headers
 
     def _fetch_live(self, backfill: bool):
-        """Live OpenNEM API call + real parsing. Raises on failure -> fallback.
+        """Live OpenElectricity v4 fetch + parse. Raises on any failure.
 
-        Hits the region power/price stats endpoint and parses the time-series
-        ``data`` array into our snapshot shape. Any HTTP or parse failure raises
-        so fetch() falls back to the synthetic snapshot (D7).
+        Two endpoints make the snapshot:
+          - market/network/NEM  -> price + demand (metrics repeated as params)
+          - data/network/NEM    -> power, grouped by fueltech_group
+
+        Any HTTP or parse failure propagates so ``run()`` records an honest
+        ``error`` status rather than silently storing fabricated data.
+        """
+        market = self._get_v4(
+            "market/network/NEM",
+            {
+                "metrics": ["price", "demand"],
+                "interval": "5m",
+                "network_region": REGION,
+                "primary_grouping": "network_region",
+            },
+        )
+        power = self._get_v4(
+            "data/network/NEM",
+            {
+                "metrics": "power",
+                "interval": "5m",
+                "network_region": REGION,
+                "secondary_grouping": "fueltech_group",
+            },
+        )
+        snap = self._parse_v4(market, power)
+        snap["source"] = "live"
+        logger.info(
+            "OpenElectricity v4 parse OK: %s prices, %s demand, %s gen rows",
+            len(snap["prices"]), len(snap["demand"]), len(snap["generation"]),
+        )
+        return snap
+
+    def _get_v4(self, path: str, params: dict) -> dict:
+        """GET an OpenElectricity v4 endpoint and return the parsed JSON.
+
+        Raises on HTTP error or on an ``success: false`` envelope.
         """
         import requests
 
-        url = f"{self._api_base()}/stats/power/network/NEM/{REGION}"
+        url = f"{self._api_base()}/{path}"
         timeout = self.config.get("timeout_seconds", 8)
-        resp = requests.get(url, headers=self._api_headers(), timeout=timeout)
+        resp = requests.get(
+            url, headers=self._api_headers(), params=params, timeout=timeout
+        )
         resp.raise_for_status()
         payload = resp.json()
-        snap = self._parse_payload(payload)
-        snap["source"] = "live"
-        logger.info("OpenNEM live parse OK: %s prices, %s gen rows",
-                    len(snap["prices"]), len(snap["generation"]))
-        return snap
+        if not isinstance(payload, dict):
+            raise ValueError("Unexpected v4 payload shape (not an object)")
+        if payload.get("success") is False:
+            raise ValueError(f"v4 API error for {path}: {payload.get('error')}")
+        return payload
 
     # ------------------------------------------------------------------
-    # Real OpenNEM response parsing
+    # OpenElectricity v4 response parsing
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _history_points(history: dict) -> list[tuple]:
-        """Expand an OpenNEM history block into [(timestamp, value), ...].
+    def _v4_points(result: dict) -> list[tuple]:
+        """Expand a v4 result block's ``data`` into [(timestamp, value), ...].
 
-        history = {start, last, interval, data: [v0, v1, ...]} where each value
-        is spaced ``interval`` apart starting at ``start``.
+        v4 carries inline timestamps: data = [[iso_ts, value], ...].
         """
-        if not isinstance(history, dict):
-            return []
-        start = _parse_iso(history.get("start"))
-        values = history.get("data") or []
-        if start is None or not values:
-            return []
-        step = timedelta(seconds=_interval_seconds(history.get("interval")))
         out = []
-        for i, v in enumerate(values):
-            if v is None:
+        for row in result.get("data") or []:
+            if not isinstance(row, (list, tuple)) or len(row) < 2:
                 continue
-            out.append((start + step * i, v))
+            ts, v = _parse_iso(row[0]), row[1]
+            if ts is None or v is None:
+                continue
+            out.append((ts, v))
         return out
 
-    def _parse_payload(self, payload: dict) -> dict:
-        """Parse an OpenNEM stats payload into the snapshot shape.
+    def _parse_v4(self, market: dict, power: dict) -> dict:
+        """Parse v4 market (price/demand) + data (power) payloads.
 
-        Tolerant of the legacy OPDM stats schema: top-level ``data`` is a list
-        of series, each with a ``data_type`` / ``type`` (power|price|demand), an
-        optional ``fuel_tech``, a ``history`` block and optionally a
-        ``forecast`` block.
+        Each top-level ``data`` entry is one metric series with a ``results``
+        list; each result holds inline [timestamp, value] rows.
         """
-        if not isinstance(payload, dict):
-            raise ValueError("Unexpected OpenNEM payload shape (not an object)")
-        series = payload.get("data")
-        if not isinstance(series, list) or not series:
-            raise ValueError("OpenNEM payload missing data series")
-
         prices: list[dict] = []
         demand: list[dict] = []
         generation: list[dict] = []
-        forecasts: list[dict] = []
-
         latest_ts = None
-        parsed_any = False
 
-        for s in series:
-            if not isinstance(s, dict):
+        for series in market.get("data") or []:
+            if not isinstance(series, dict):
                 continue
-            dtype = (s.get("data_type") or s.get("type") or "").lower()
-            fuel_raw = s.get("fuel_tech") or s.get("fueltech") or s.get(
-                "fueltech_group"
-            )
-            history = s.get("history") or {}
-            points = self._history_points(history)
-            if points:
-                parsed_any = True
-                latest_ts = max(latest_ts or points[-1][0], points[-1][0])
+            metric = (series.get("metric") or "").lower()
+            for result in series.get("results") or []:
+                for ts, v in self._v4_points(result):
+                    latest_ts = max(latest_ts or ts, ts)
+                    if metric == "price":
+                        prices.append(
+                            {
+                                "region": REGION,
+                                "interval_start": ts,
+                                "interval_end": ts + timedelta(minutes=5),
+                                "interval_type": "5min",
+                                "price_aud_mwh": round(float(v), 2),
+                            }
+                        )
+                    elif metric == "demand":
+                        demand.append(
+                            {
+                                "region": REGION,
+                                "interval_start": ts,
+                                "demand_mw": round(float(v), 1),
+                                "demand_type": "actual",
+                            }
+                        )
 
-            if dtype == "price":
-                for ts, v in points:
-                    prices.append(
-                        {
-                            "region": REGION,
-                            "interval_start": ts,
-                            "interval_end": ts
-                            + timedelta(
-                                seconds=_interval_seconds(history.get("interval"))
-                            ),
-                            "interval_type": "5min",
-                            "price_aud_mwh": round(float(v), 2),
-                        }
-                    )
-            elif dtype == "demand":
-                for ts, v in points:
-                    demand.append(
-                        {
-                            "region": REGION,
-                            "interval_start": ts,
-                            "demand_mw": round(float(v), 1),
-                            "demand_type": "actual",
-                        }
-                    )
-            elif dtype == "power" and fuel_raw:
-                fuel = OPENNEM_FUEL_MAP.get(str(fuel_raw).lower(), str(fuel_raw).lower())
-                for ts, v in points:
+        for series in power.get("data") or []:
+            if not isinstance(series, dict):
+                continue
+            if (series.get("metric") or "").lower() != "power":
+                continue
+            for result in series.get("results") or []:
+                group = (result.get("columns") or {}).get("fueltech_group")
+                fuel = V4_FUELTECH_MAP.get(str(group).lower())
+                if fuel is None:
+                    # Unknown / aggregate group (e.g. net `battery`) — skip to
+                    # avoid double-counting or storing junk fuel labels.
+                    continue
+                for ts, v in self._v4_points(result):
+                    latest_ts = max(latest_ts or ts, ts)
                     generation.append(
                         {
                             "region": REGION,
@@ -246,23 +306,8 @@ class OpenNEMFetcher(BaseFetcher):
                         }
                     )
 
-            # Price forecast (pre-dispatch) if a forecast block is present.
-            forecast = s.get("forecast")
-            if dtype == "price" and isinstance(forecast, dict):
-                issued = latest_ts or datetime.now(timezone.utc)
-                for ts, v in self._history_points(forecast):
-                    forecasts.append(
-                        {
-                            "region": REGION,
-                            "forecast_issued_at": issued,
-                            "forecast_for": ts,
-                            "price_aud_mwh": round(float(v), 2),
-                            "forecast_type": "predispatch_30min",
-                        }
-                    )
-
-        if not parsed_any:
-            raise ValueError("OpenNEM payload had no parseable history")
+        if not prices and not demand and not generation:
+            raise ValueError("OpenElectricity v4 payload had no parseable data")
 
         return {
             "source": "live",
@@ -270,11 +315,12 @@ class OpenNEMFetcher(BaseFetcher):
             "prices": prices,
             "demand": demand,
             "generation": generation,
-            # Interconnector flows + bid submissions aren't in the power/price
-            # stats endpoint; leave empty (synthetic path covers them for demo).
+            # Interconnector flows, bid submissions and pre-dispatch forecasts
+            # are not exposed by these v4 endpoints; left empty rather than
+            # fabricated.
             "interconnectors": [],
             "submissions": [],
-            "forecasts": forecasts,
+            "forecasts": [],
         }
 
     # ------------------------------------------------------------------
@@ -292,32 +338,42 @@ class OpenNEMFetcher(BaseFetcher):
         start = _parse_iso(start)
         end = _parse_iso(end)
         if start is None or end is None or start >= end:
-            return self._synthetic_range(start, end)
+            if self.config.get("allow_synthetic_fallback", False):
+                return self._synthetic_range(start, end)
+            raise ValueError(f"Invalid range for fetch_range: {start}..{end}")
 
+        if not self.config.get("allow_synthetic_fallback", False):
+            # Honest path: real history or nothing — never fabricate backfill.
+            return self._fetch_range_live(start, end)
         try:
             return self._fetch_range_live(start, end)
         except Exception as exc:  # noqa: BLE001
             logger.warning(
-                "OpenNEM range fetch unavailable (%s); using synthetic range "
+                "OpenElectricity range fetch unavailable (%s); synthetic "
+                "fallback ENABLED via config — data will be FABRICATED "
                 "%s..%s", exc, start.date(), end.date(),
             )
             return self._synthetic_range(start, end)
 
     def _fetch_range_live(self, start, end):
-        """Live date-range query against OpenNEM, parsed via _parse_payload."""
-        import requests
-
-        url = f"{self._api_base()}/stats/power/network/NEM/{REGION}"
-        timeout = self.config.get("timeout_seconds", 12)
-        params = {
-            "date_start": start.date().isoformat(),
-            "date_end": end.date().isoformat(),
+        """Live v4 date-range query (market + data), parsed via _parse_v4."""
+        params_common = {
+            "interval": "5m",
+            "network_region": REGION,
+            "date_start": start.isoformat(),
+            "date_end": end.isoformat(),
         }
-        resp = requests.get(
-            url, headers=self._api_headers(), params=params, timeout=timeout
+        market = self._get_v4(
+            "market/network/NEM",
+            {**params_common, "metrics": ["price", "demand"],
+             "primary_grouping": "network_region"},
         )
-        resp.raise_for_status()
-        snap = self._parse_payload(resp.json())
+        power = self._get_v4(
+            "data/network/NEM",
+            {**params_common, "metrics": "power",
+             "secondary_grouping": "fueltech_group"},
+        )
+        snap = self._parse_v4(market, power)
         # Clip to the requested window.
         snap = self._clip_range(snap, start, end)
         snap["source"] = "live"

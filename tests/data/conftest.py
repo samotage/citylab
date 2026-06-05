@@ -99,11 +99,21 @@ def make_data_source(db_session, name, source_type, *, base_url=None, config=Non
     """
     from citylab.models.data_source import DataSource
 
+    # In production the OpenNEM fetcher fails loud rather than fabricating data.
+    # Tests deliberately point at an unreachable URL, so they opt into the
+    # synthetic fallback to stay offline-safe — unless a test overrides it.
+    def _with_fallback(cfg):
+        cfg = dict(cfg or {"timeout_seconds": 1})
+        cfg.setdefault("allow_synthetic_fallback", True)
+        return cfg
+
     existing = db_session.query(DataSource).filter_by(name=name).first()
     if existing:
         existing.source_type = source_type
         existing.base_url = base_url or existing.base_url
-        existing.config = config if config is not None else existing.config
+        existing.config = (
+            _with_fallback(config) if config is not None else existing.config
+        )
         existing.last_fetch_status = "pending"
         existing.last_error = None
         if not fresh:
@@ -116,7 +126,7 @@ def make_data_source(db_session, name, source_type, *, base_url=None, config=Non
         source_type=source_type,
         base_url=base_url or "http://127.0.0.1:1",  # unreachable -> synthetic
         cron_expression="*/5 * * * *",
-        config=config or {"timeout_seconds": 1},
+        config=_with_fallback(config),
     )
     db_session.add(ds)
     db_session.flush()
