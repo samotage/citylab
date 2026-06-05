@@ -1,3 +1,9 @@
+---
+validation:
+  status: valid
+  validated_at: '2026-06-05T12:54:21+10:00'
+---
+
 # Agentic Engineering — Ray Operational Layer
 
 ## Problem

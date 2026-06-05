@@ -1,3 +1,9 @@
+---
+validation:
+  status: valid
+  validated_at: '2026-06-05T12:54:20+10:00'
+---
+
 # CLI Completeness for Ray — Timeseries Commands + Market Intelligence Solar
 
 ## Problem
