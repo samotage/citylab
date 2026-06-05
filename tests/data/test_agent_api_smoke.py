@@ -140,6 +140,10 @@ def test_market_intelligence_cross_source(seeded, client):
     assert d["region"] == "VIC1"
     assert d["energy"]
     assert d["weather"] is not None
+    # Solar wired into the combined response (no longer hardcoded null).
+    assert d["solar"] is not None
+    assert "summary" in d["solar"]
+    assert "outlook" in d["solar"]
     # Per-source freshness so agents can judge each pipeline independently.
     assert d["sources"]
     for s in d["sources"]:
@@ -356,3 +360,36 @@ def test_cli_commands_parseable(seeded, client, monkeypatch, args):
     assert body["ok"] is True
     assert "data" in body
     assert "data_as_of" in body
+
+
+@pytest.mark.parametrize(
+    "subcommand,extra_args",
+    [
+        ("timeseries-price", []),
+        ("timeseries-demand", ["--range", "7d", "--interval", "1d"]),
+        ("timeseries-generation", ["--range", "24h"]),
+        ("timeseries-price", ["--region", "VIC1", "--range", "6h", "--interval", "5min"]),
+    ],
+)
+def test_cli_timeseries_commands_parseable(
+    seeded, client, monkeypatch, subcommand, extra_args
+):
+    """The 3 timeseries CLI commands accept options, exit 0, emit valid JSON."""
+    from click.testing import CliRunner
+
+    from citylab.cli_wrapper import main
+
+    _patched_api_client(client, monkeypatch)
+
+    runner = CliRunner()
+    result = runner.invoke(main, ["energy", subcommand, *extra_args])
+    assert result.exit_code == 0, (
+        f"energy {subcommand} {extra_args} exited "
+        f"{result.exit_code}: {result.output}"
+    )
+
+    body = json.loads(result.output)
+    assert body["ok"] is True
+    assert "series" in body
+    assert "range" in body
+    assert "interval" in body
