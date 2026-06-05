@@ -1,0 +1,82 @@
+<div class="flex items-center justify-between mb-4">
+    <div class="card-label !mb-0">Storage Dispatch</div>
+    <span class="text-[10px] text-zinc-400 tracking-normal font-normal">BESS operations</span>
+</div>
+
+{% if not batteries %}
+<div class="text-sm text-zinc-400">No battery assets configured.</div>
+{% else %}
+<div class="space-y-5">
+    {% for b in batteries %}
+    <div class="dispatch-battery{% if not loop.last %} pb-5 border-b border-zinc-100{% endif %}">
+        <!-- Header: name + capacity + action badge -->
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <span class="text-sm font-semibold text-zinc-900">{{ b.name }}</span>
+                <span class="text-[10px] text-zinc-400 font-mono">{{ b.capacity_mwh | int }} MWh / {{ b.max_power_mw | int }} MW</span>
+            </div>
+            <div class="flex items-center gap-2">
+                {% if b.last_trigger %}
+                <span class="dispatch-trigger-chip dispatch-trigger-{{ b.last_trigger }}">
+                    {{ b.last_trigger | replace("_", " ") | title }}
+                </span>
+                {% endif %}
+                <span class="dispatch-action-badge dispatch-action-{{ b.status }}">
+                    {{ b.status | upper }}
+                </span>
+            </div>
+        </div>
+
+        <!-- SoC bar -->
+        <div class="dispatch-soc-wrap mb-2.5">
+            <div class="dispatch-soc-bar">
+                <div class="dispatch-soc-fill dispatch-soc-{{ b.soc_zone }}"
+                     style="width: {{ b.soc_pct }}%"></div>
+                <!-- Reserve threshold marker -->
+                <div class="dispatch-soc-marker dispatch-soc-marker-reserve"
+                     style="left: {{ b.reserve_soc_pct }}%"
+                     title="Reserve {{ b.reserve_soc_pct | int }}%"></div>
+                <!-- Min threshold marker -->
+                <div class="dispatch-soc-marker dispatch-soc-marker-min"
+                     style="left: {{ b.min_soc_pct }}%"
+                     title="Min {{ b.min_soc_pct | int }}%"></div>
+            </div>
+            <div class="flex items-center justify-between mt-1">
+                <span class="text-[10px] text-zinc-400 font-mono">{{ b.min_soc_pct | int }}%</span>
+                <span class="text-xs font-semibold font-mono dispatch-soc-value-{{ b.soc_zone }}">{{ b.soc_pct | round(1) }}%</span>
+                <span class="text-[10px] text-zinc-400 font-mono">100%</span>
+            </div>
+        </div>
+
+        <!-- Decision reason -->
+        {% if b.last_reason %}
+        <div class="dispatch-reason mb-2.5">
+            <span class="text-[10px] text-zinc-400 mr-1.5">Decision:</span>
+            <span class="text-xs text-zinc-700">{{ b.last_reason }}</span>
+            {% if b.last_time %}
+            <span class="text-[10px] text-zinc-400 ml-1.5">{{ b.last_time }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Mini timeline -->
+        {% if b.timeline %}
+        <div class="dispatch-timeline">
+            <div class="flex items-center gap-0.5">
+                {% for ev in b.timeline %}
+                <div class="dispatch-tl-event dispatch-tl-{{ ev.action }}"
+                     title="{{ ev.time }} · {{ ev.action | title }} · {{ ev.trigger | replace('_', ' ') | title }}"></div>
+                {% endfor %}
+            </div>
+            <div class="flex items-center justify-between mt-0.5">
+                {% if b.timeline | length > 1 %}
+                <span class="text-[9px] text-zinc-300 font-mono">{{ b.timeline[0].time }}</span>
+                <span class="text-[9px] text-zinc-300 font-mono">{{ b.timeline[-1].time }}</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}

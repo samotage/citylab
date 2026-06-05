@@ -216,6 +216,106 @@
     filter: brightness(0.8);
   }
 
+  /* ---- Storage dispatch panel ---- */
+
+  .dispatch-action-badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide;
+  }
+  .dispatch-action-charging {
+    @apply bg-emerald-100 text-emerald-700;
+  }
+  .dispatch-action-discharging {
+    background: #fef3c7;
+    color: #b45309;
+  }
+  .dispatch-action-holding {
+    @apply bg-sky-100 text-sky-700;
+  }
+  .dispatch-action-idle {
+    @apply bg-zinc-100 text-zinc-500;
+  }
+
+  .dispatch-trigger-chip {
+    @apply inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold tracking-wide bg-zinc-100 text-zinc-500;
+  }
+  .dispatch-trigger-price_forecast {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  .dispatch-trigger-solar_pre_position {
+    background: #fffbeb;
+    color: #d97706;
+  }
+  .dispatch-trigger-wind_pre_position {
+    background: #f0fdfa;
+    color: #0d9488;
+  }
+  .dispatch-trigger-interconnector_stress {
+    background: #fef2f2;
+    color: #dc2626;
+  }
+  .dispatch-trigger-contingency_hold {
+    background: #eff6ff;
+    color: #2563eb;
+  }
+
+  /* SoC bar */
+  .dispatch-soc-bar {
+    @apply relative w-full h-3 rounded-full bg-zinc-100 overflow-visible;
+  }
+  .dispatch-soc-fill {
+    @apply absolute inset-y-0 left-0 rounded-full transition-all duration-500;
+  }
+  .dispatch-soc-normal {
+    @apply bg-emerald-500;
+  }
+  .dispatch-soc-reserve {
+    @apply bg-amber-400;
+  }
+  .dispatch-soc-critical {
+    @apply bg-red-500;
+  }
+
+  .dispatch-soc-marker {
+    @apply absolute top-[-2px] w-px h-[calc(100%+4px)];
+  }
+  .dispatch-soc-marker-reserve {
+    @apply bg-amber-400;
+    opacity: 0.6;
+  }
+  .dispatch-soc-marker-min {
+    @apply bg-red-400;
+    opacity: 0.6;
+  }
+
+  .dispatch-soc-value-normal {
+    @apply text-emerald-600;
+  }
+  .dispatch-soc-value-reserve {
+    @apply text-amber-600;
+  }
+  .dispatch-soc-value-critical {
+    @apply text-red-600;
+  }
+
+  .dispatch-reason {
+    @apply flex items-baseline flex-wrap text-xs leading-relaxed;
+  }
+
+  /* Mini timeline */
+  .dispatch-tl-event {
+    @apply flex-1 h-2 rounded-sm min-w-[6px] max-w-[24px] cursor-default transition-colors;
+  }
+  .dispatch-tl-charge {
+    @apply bg-emerald-400;
+  }
+  .dispatch-tl-discharge {
+    background: #fbbf24;
+  }
+  .dispatch-tl-hold {
+    @apply bg-zinc-200;
+  }
+
   /* ---- Mission Control layout + agent chat panel ---- */
 
   /* Two-column shell: dashboard left (~67%), agent panel right (~33%).

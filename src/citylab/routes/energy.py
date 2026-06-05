@@ -10,6 +10,8 @@ from datetime import datetime, timedelta, timezone
 from flask import Blueprint, current_app, render_template, request
 from flask_login import login_required
 
+from citylab.extensions import db
+from citylab.models.battery import BatteryAsset, DispatchEvent
 from citylab.services import energy_query as eq
 from citylab.services import solar_query as sq
 from citylab.services import weather_query as wq
@@ -546,6 +548,72 @@ def partial_scenario():
 @login_required
 def partial_sources():
     return render_template("energy/partials/sources.html", vm=_sources_view_model())
+
+
+@energy_bp.route("/partials/dispatch")
+@login_required
+def partial_dispatch():
+    batteries = db.session.query(BatteryAsset).order_by(BatteryAsset.name).all()
+    result = []
+    for b in batteries:
+        if b.current_soc_pct <= b.min_soc_pct + 2:
+            soc_zone = "critical"
+        elif b.current_soc_pct <= b.reserve_soc_pct:
+            soc_zone = "reserve"
+        else:
+            soc_zone = "normal"
+
+        last = (
+            db.session.query(DispatchEvent)
+            .filter(DispatchEvent.battery_id == b.id)
+            .order_by(DispatchEvent.timestamp.desc(), DispatchEvent.id.desc())
+            .first()
+        )
+
+        events = (
+            db.session.query(DispatchEvent)
+            .filter(DispatchEvent.battery_id == b.id)
+            .order_by(DispatchEvent.timestamp.desc(), DispatchEvent.id.desc())
+            .limit(12)
+            .all()
+        )
+        events.reverse()
+
+        timeline = []
+        for e in events:
+            local_time = e.timestamp.astimezone(timezone(timedelta(hours=10)))
+            timeline.append({
+                "action": e.action,
+                "trigger": e.trigger,
+                "time": local_time.strftime("%H:%M"),
+                "reason": e.reason,
+                "soc_after": e.soc_after_pct,
+            })
+
+        last_time = None
+        if last and last.timestamp:
+            last_time = last.timestamp.astimezone(
+                timezone(timedelta(hours=10))
+            ).strftime("%H:%M AEST")
+
+        result.append({
+            "name": b.name,
+            "capacity_mwh": b.capacity_mwh,
+            "max_power_mw": b.max_power_mw,
+            "soc_pct": b.current_soc_pct,
+            "min_soc_pct": b.min_soc_pct,
+            "reserve_soc_pct": b.reserve_soc_pct,
+            "soc_zone": soc_zone,
+            "status": b.status,
+            "last_reason": last.reason if last else None,
+            "last_trigger": last.trigger if last else None,
+            "last_time": last_time,
+            "timeline": timeline,
+        })
+
+    return render_template(
+        "energy/partials/dispatch.html", batteries=result
+    )
 
 
 @energy_bp.route("/partials/charts")
