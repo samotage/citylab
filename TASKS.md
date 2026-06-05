@@ -7,11 +7,11 @@ Branch: feature/hack-remote-agent-interface-prd
 
 - [x] 1. **Config: headspace section** — Update `config.yaml` headspace section with `url`, `api_token`, `project_name`, and a `personas` list (each with `slug`, `name`, `role`); seed Ray (energy-market-analyst-ray-50) as default. Add the corresponding DEFAULTS / ENV_MAPPINGS entries in `src/citylab/config.py` (FR25, FR26). (Config change — show diff before applying.)
 
-- [ ] 2. **Models: agent config + session** — Add `AgentConfig` model (name, persona_slug unique, description, is_active, is_default) and `AgentSession` model (FK to config, headspace_agent_id, embed_url, session_token, status, timestamps) under `src/citylab/models/agent.py`; register in `models/__init__.py`. Provide for one default config and at-most-one active session per config (FR1, FR2, FR5, FR9).
+- [x] 2. **Models: agent config + session** — Add `AgentConfig` model (name, persona_slug unique, description, is_active, is_default) and `AgentSession` model (FK to config, headspace_agent_id, embed_url, session_token, status, timestamps) under `src/citylab/models/agent.py`; register in `models/__init__.py`. Provide for one default config and at-most-one active session per config (FR1, FR2, FR5, FR9).
 
-- [ ] 3. **Migration: agent tables** — Generate Alembic migration for `agent_config` and `agent_session` tables with the unique constraint on persona_slug. Run `flask db upgrade` against the `citylab` dev DB (confirm target DB first).
+- [x] 3. **Migration: agent tables** — Generate Alembic migration for `agent_config` and `agent_session` tables with the unique constraint on persona_slug. Run `flask db upgrade` against the `citylab` dev DB (confirm target DB first).
 
-- [ ] 4. **HeadspaceClient lifecycle** — Replace `trigger_agent()` in `src/citylab/services/headspace_client.py` with a client supporting `create_agent` (persona slug + optional initial prompt, retry once on 408/502/503), `check_alive` (session token auth), `shutdown_agent`, and `send_message`. Wrap connection/timeout errors in a domain exception carrying technical + user-friendly messages (FR10, FR11, FR12, NFR2).
+- [x] 4. **HeadspaceClient lifecycle** — Replace `trigger_agent()` in `src/citylab/services/headspace_client.py` with a client supporting `create_agent` (persona slug + optional initial prompt, retry once on 408/502/503), `check_alive` (session token auth), `shutdown_agent`, and `send_message`. Wrap connection/timeout errors in a domain exception carrying technical + user-friendly messages (FR10, FR11, FR12, NFR2).
 
 - [ ] 5. **Agent service layer** — Add `src/citylab/services/agent_service.py` encapsulating resume-or-create (check alive, reuse if alive else mark dead + create new), health check, graceful shutdown, send message, and config seeding from `config.yaml`. Session token handled server-side only (NFR1). (FR3, FR6, FR7, FR8)
 
