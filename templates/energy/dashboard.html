@@ -78,6 +78,15 @@
             <div class="text-zinc-400 text-sm">Loading storage dispatch&hellip;</div>
         </div>
 
+        <!-- Demand response panel -->
+        <div id="panel-demand-response"
+             class="card mb-4"
+             hx-get="{{ url_for('energy.partial_demand_response') }}"
+             hx-trigger="load, every 60s"
+             hx-swap="innerHTML">
+            <div class="text-zinc-400 text-sm">Loading demand response&hellip;</div>
+        </div>
+
         <!-- Price forecast strip -->
         <div id="panel-forecast"
              class="card mb-4"

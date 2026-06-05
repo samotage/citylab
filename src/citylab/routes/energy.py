@@ -12,6 +12,7 @@ from flask_login import login_required
 
 from citylab.extensions import db
 from citylab.models.battery import BatteryAsset, DispatchEvent
+from citylab.models.demand_response import ControllableLoad, DemandResponseEvent
 from citylab.services import energy_query as eq
 from citylab.services import solar_query as sq
 from citylab.services import weather_query as wq
@@ -613,6 +614,53 @@ def partial_dispatch():
 
     return render_template(
         "energy/partials/dispatch.html", batteries=result
+    )
+
+
+@energy_bp.route("/partials/demand-response")
+@login_required
+def partial_demand_response():
+    loads = (
+        db.session.query(ControllableLoad)
+        .filter(ControllableLoad.region == _get_region())
+        .order_by(ControllableLoad.curtailment_cost.asc())
+        .all()
+    )
+
+    total_capacity = sum(ld.capacity_mw for ld in loads)
+    curtailed_mw = sum(ld.capacity_mw for ld in loads if ld.status == "curtailed")
+
+    last_event = (
+        db.session.query(DemandResponseEvent)
+        .order_by(DemandResponseEvent.timestamp.desc(), DemandResponseEvent.id.desc())
+        .first()
+    )
+
+    load_data = []
+    for ld in loads:
+        pct = round(100 * ld.capacity_mw / total_capacity, 1) if total_capacity else 0
+        load_data.append({
+            "name": ld.name,
+            "capacity_mw": ld.capacity_mw,
+            "curtailment_cost": ld.curtailment_cost,
+            "status": ld.status,
+            "bar_pct": pct,
+        })
+
+    last_reason = last_event.reason if last_event else None
+    last_time = None
+    if last_event and last_event.timestamp:
+        last_time = last_event.timestamp.astimezone(
+            timezone(timedelta(hours=10))
+        ).strftime("%H:%M AEST")
+
+    return render_template(
+        "energy/partials/demand_response.html",
+        loads=load_data,
+        total_capacity_mw=total_capacity,
+        curtailed_mw=curtailed_mw,
+        last_reason=last_reason,
+        last_time=last_time,
     )
 
 

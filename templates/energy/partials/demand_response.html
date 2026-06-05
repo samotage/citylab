@@ -1,0 +1,68 @@
+<div class="flex items-center justify-between mb-4">
+    <div class="card-label !mb-0">Demand Response</div>
+    <div class="flex items-center gap-3">
+        <span class="text-[10px] text-zinc-400 tracking-normal font-normal">controllable loads</span>
+        {% if curtailed_mw > 0 %}
+        <span class="dr-curtailed-counter">{{ curtailed_mw | int }} MW curtailed</span>
+        {% endif %}
+    </div>
+</div>
+
+{% if not loads %}
+<div class="text-sm text-zinc-400">No controllable loads configured.</div>
+{% else %}
+
+<!-- Curtailment waterfall -->
+<div class="mb-4">
+    <div class="flex items-center gap-1 text-[9px] text-zinc-400 mb-1.5">
+        <span>Cheapest</span>
+        <span class="flex-1 border-t border-zinc-100 mx-1"></span>
+        <span>Most expensive</span>
+    </div>
+    <div class="dr-waterfall">
+        {% for ld in loads %}
+        <div class="dr-wf-segment dr-wf-{{ ld.status }}"
+             style="width: {{ ld.bar_pct }}%"
+             title="{{ ld.name }}: {{ ld.capacity_mw | int }} MW @ ${{ ld.curtailment_cost | int }}/MWh — {{ ld.status }}">
+            {% if ld.bar_pct > 12 %}
+            <span class="dr-wf-label">{{ ld.capacity_mw | int }}</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    <div class="flex items-center justify-between mt-1">
+        <span class="text-[9px] text-zinc-400 font-mono">${{ loads[0].curtailment_cost | int }}</span>
+        <span class="text-[10px] font-semibold text-zinc-500 font-mono">{{ total_capacity_mw | int }} MW total</span>
+        <span class="text-[9px] text-zinc-400 font-mono">${{ loads[-1].curtailment_cost | int }}</span>
+    </div>
+</div>
+
+<!-- Load list -->
+<div class="space-y-2.5">
+    {% for ld in loads %}
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <span class="dr-rank text-[10px] font-mono text-zinc-300">#{{ loop.index }}</span>
+            <span class="text-sm font-semibold text-zinc-900">{{ ld.name }}</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="text-[10px] text-zinc-400 font-mono">{{ ld.capacity_mw | int }} MW</span>
+            <span class="text-[10px] text-zinc-400 font-mono">${{ ld.curtailment_cost | int }}/MWh</span>
+            <span class="dr-status-badge dr-status-{{ ld.status }}">{{ ld.status | upper }}</span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Last activation reason -->
+{% if last_reason %}
+<div class="dispatch-reason mt-3 pt-3 border-t border-zinc-100">
+    <span class="text-[10px] text-zinc-400 mr-1.5">Last event:</span>
+    <span class="text-xs text-zinc-700">{{ last_reason }}</span>
+    {% if last_time %}
+    <span class="text-[10px] text-zinc-400 ml-1.5">{{ last_time }}</span>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endif %}
