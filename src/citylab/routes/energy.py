@@ -7,7 +7,7 @@ round-trip. Each panel is an HTMX partial that the dashboard page polls.
 
 from datetime import datetime, timedelta, timezone
 
-from flask import Blueprint, current_app, render_template
+from flask import Blueprint, current_app, render_template, request
 from flask_login import login_required
 
 from citylab.services import energy_query as eq
@@ -16,7 +16,29 @@ from citylab.services import weather_query as wq
 
 energy_bp = Blueprint("energy", __name__, url_prefix="/energy")
 
-REGION = "VIC1"
+NEM_REGIONS = ["NSW1", "QLD1", "SA1", "TAS1", "VIC1"]
+
+_REGION_LABELS = {
+    "NSW1": "New South Wales",
+    "QLD1": "Queensland",
+    "SA1": "South Australia",
+    "TAS1": "Tasmania",
+    "VIC1": "Victoria",
+}
+
+_REGION_SHORT = {
+    "NSW1": "NSW",
+    "QLD1": "Qld",
+    "SA1": "SA",
+    "TAS1": "Tas",
+    "VIC1": "Vic",
+}
+
+
+def _get_region() -> str:
+    region = request.args.get("region", "VIC1")
+    return region if region in NEM_REGIONS else "VIC1"
+
 
 # Minutes after a dispatch interval first appears during which the source may
 # still revise it — the hero price is flagged "preliminary" within this window.
@@ -61,9 +83,7 @@ def _aggregate_generation(generation_mix: list[dict]) -> dict:
     )
     total_capacity = round(sum(cap_sums.values()), 1) if cap_sums else None
     utilisation = (
-        round(100 * total_output / total_capacity, 1)
-        if total_capacity
-        else None
+        round(100 * total_output / total_capacity, 1) if total_capacity else None
     )
 
     return {
@@ -78,6 +98,7 @@ def _aggregate_generation(generation_mix: list[dict]) -> dict:
 
 # --- Price view-model ------------------------------------------------------
 
+
 def _price_colour_state(price: float | None) -> str:
     if price is None:
         return "unknown"
@@ -90,8 +111,8 @@ def _price_colour_state(price: float | None) -> str:
     return "low"
 
 
-def _price_view_model() -> dict:
-    snap = eq.current_snapshot(REGION)
+def _price_view_model(region: str) -> dict:
+    snap = eq.current_snapshot(region)
     latest = snap.get("latest_price")
     demand = snap.get("latest_demand")
     nearest = snap.get("nearest_forecast")
@@ -104,7 +125,7 @@ def _price_view_model() -> dict:
     if latest and latest.get("interval_start"):
         now_iv = eq._parse_dt(latest["interval_start"])
         target = now_iv - timedelta(minutes=60)
-        recent = eq.query_prices(REGION, limit=60)
+        recent = eq.query_prices(region, limit=60)
         # recent is desc; find row with interval_start closest to target.
         best = None
         best_delta = None
@@ -135,7 +156,7 @@ def _price_view_model() -> dict:
     range_low = None
     range_high = None
     recent_24h = eq.query_prices(
-        REGION, dt_from=datetime.now(timezone.utc) - timedelta(hours=24), limit=500
+        region, dt_from=datetime.now(timezone.utc) - timedelta(hours=24), limit=500
     )
     prices_24h = [
         r["price_aud_mwh"] for r in recent_24h if r.get("price_aud_mwh") is not None
@@ -178,30 +199,41 @@ def _price_view_model() -> dict:
 
 # --- Interconnector view-model --------------------------------------------
 
-# Maps raw interconnector_id -> friendly corridor name + the region/state it
-# trades with, so we can describe flow direction relative to Victoria.
-_CORRIDORS = {
-    "T-V-MNSP1": {"name": "Basslink", "partner": "Tas"},
-    "V-SA": {"name": "Heywood", "partner": "SA"},
-    "V-S-MNSP1": {"name": "Murraylink", "partner": "SA"},
-    "VIC1-NSW1": {"name": "VNI", "partner": "NSW"},
-    "VNI-WEST": {"name": "VNI West", "partner": "NSW"},
+# All NEM interconnector corridors with from/to regions.
+_ALL_CORRIDORS = {
+    "T-V-MNSP1": {"name": "Basslink", "from": "TAS1", "to": "VIC1"},
+    "V-SA": {"name": "Heywood", "from": "VIC1", "to": "SA1"},
+    "V-S-MNSP1": {"name": "Murraylink", "from": "VIC1", "to": "SA1"},
+    "VIC1-NSW1": {"name": "VNI", "from": "NSW1", "to": "VIC1"},
+    "VNI-WEST": {"name": "VNI West", "from": "NSW1", "to": "VIC1"},
+    "N-Q-MNSP1": {"name": "Directlink", "from": "NSW1", "to": "QLD1"},
+    "QNI": {"name": "QNI", "from": "QLD1", "to": "NSW1"},
 }
 
 
-def _interconnector_view_model() -> dict:
-    snap = eq.current_snapshot(REGION)
+def _interconnector_view_model(region: str) -> dict:
+    snap = eq.current_snapshot(region)
     rows = snap.get("interconnectors", [])
-    corridors = []
-    vic_net = 0.0  # positive = net import into VIC
 
-    for ic_id, meta in _CORRIDORS.items():
+    region_corridors = {
+        ic_id: meta
+        for ic_id, meta in _ALL_CORRIDORS.items()
+        if region in (meta["from"], meta["to"])
+    }
+
+    corridors = []
+    net = 0.0
+
+    for ic_id, meta in region_corridors.items():
+        partner = meta["to"] if meta["from"] == region else meta["from"]
+        partner_short = _REGION_SHORT.get(partner, partner)
+
         row = next((r for r in rows if r["interconnector_id"] == ic_id), None)
         if not row:
             corridors.append(
                 {
                     "name": meta["name"],
-                    "partner": meta["partner"],
+                    "partner": partner_short,
                     "available": False,
                 }
             )
@@ -209,21 +241,17 @@ def _interconnector_view_model() -> dict:
 
         flow = row.get("flow_mw") or 0.0
         cap = row.get("capacity_mw") or row.get("limit_mw")
-        from_region = row.get("from_region")
-        # Flow is defined from_region -> to_region (positive). Determine sign
-        # relative to Victoria.
-        if row.get("to_region") == "VIC1":
-            vic_signed = flow  # importing into VIC when flow positive
-        elif from_region == "VIC1":
-            vic_signed = -flow  # exporting out of VIC when flow positive
-        else:
-            vic_signed = 0.0
-        vic_net += vic_signed
 
-        importing = vic_signed >= 0
-        util = (
-            round(100 * abs(flow) / cap, 1) if cap else None
-        )
+        if row.get("to_region") == region:
+            signed = flow
+        elif row.get("from_region") == region:
+            signed = -flow
+        else:
+            signed = 0.0
+        net += signed
+
+        importing = signed >= 0
+        util = round(100 * abs(flow) / cap, 1) if cap else None
         if util is None:
             state = "normal"
         elif util >= 95:
@@ -236,9 +264,9 @@ def _interconnector_view_model() -> dict:
         corridors.append(
             {
                 "name": meta["name"],
-                "partner": meta["partner"],
+                "partner": partner_short,
                 "available": True,
-                "flow_mw": round(abs(vic_signed), 1),
+                "flow_mw": round(abs(signed), 1),
                 "raw_flow_mw": round(flow, 1),
                 "direction": "import" if importing else "export",
                 "capacity_mw": round(cap, 1) if cap else None,
@@ -249,12 +277,14 @@ def _interconnector_view_model() -> dict:
 
     return {
         "corridors": corridors,
-        "net_mw": round(abs(vic_net), 1),
-        "net_direction": "import" if vic_net >= 0 else "export",
+        "net_mw": round(abs(net), 1),
+        "net_direction": "import" if net >= 0 else "export",
+        "region_short": _REGION_SHORT.get(region, region),
     }
 
 
 # --- Weather view-model ----------------------------------------------------
+
 
 def _wind_band(kmh: float | None) -> str:
     if kmh is None:
@@ -343,13 +373,14 @@ def _weather_view_model() -> dict:
 
 # --- Forecast view-model ---------------------------------------------------
 
+
 def _hhmm(dt: datetime) -> str:
     """Format a UTC datetime as local-ish HH:MM (AEST, UTC+10) for axis labels."""
     local = dt.astimezone(timezone(timedelta(hours=10)))
     return local.strftime("%H:%M")
 
 
-def _forecast_view_model() -> dict:
+def _forecast_view_model(region: str) -> dict:
     """Build a category-axis series: a sorted union of timestamps over the
     next 24h (forecast) plus the last 12h (actuals), with each series aligned
     to that shared label axis so a plain category line chart can overlay them.
@@ -357,7 +388,7 @@ def _forecast_view_model() -> dict:
     now = datetime.now(timezone.utc)
     horizon = now + timedelta(hours=24)
 
-    forecasts = eq.query_forecasts(REGION)
+    forecasts = eq.query_forecasts(region)
     fc = {}
     for f in forecasts:
         ff = eq._parse_dt(f.get("forecast_for"))
@@ -365,9 +396,7 @@ def _forecast_view_model() -> dict:
             continue
         fc[ff] = f.get("price_aud_mwh")
 
-    actuals_raw = eq.query_prices(
-        REGION, dt_from=now - timedelta(hours=12), limit=200
-    )
+    actuals_raw = eq.query_prices(region, dt_from=now - timedelta(hours=12), limit=200)
     ac = {}
     for r in actuals_raw:
         riv = eq._parse_dt(r["interval_start"])
@@ -423,9 +452,9 @@ def _sources_view_model() -> dict:
             stale = age_min > 2 * expected
         last_fetch_local = None
         if last is not None:
-            last_fetch_local = last.astimezone(
-                timezone(timedelta(hours=10))
-            ).strftime("%H:%M AEST")
+            last_fetch_local = last.astimezone(timezone(timedelta(hours=10))).strftime(
+                "%H:%M AEST"
+            )
         sources.append(
             {
                 "label": _SOURCE_LABELS.get(stype, r.name),
@@ -442,36 +471,41 @@ def _sources_view_model() -> dict:
 
 # --- Routes ----------------------------------------------------------------
 
+
 @energy_bp.route("/")
 @login_required
 def dashboard():
-    # The chat panel calls the Bearer-authed /api/v1/agent/* endpoints
-    # client-side, so hand the logged-in browser the configured API token
-    # (same pattern as the charts partial). Also resolve the default agent's
-    # display name for the panel header.
     cfg = current_app.config.get("CITYLAB_CONFIG", {})
     api_token = cfg.get("api", {}).get("token", "")
     default_agent = "Ray"
     personas = cfg.get("headspace", {}).get("personas", []) or []
     if personas:
         default_agent = personas[0].get("name", "Ray")
+    region = _get_region()
     return render_template(
         "energy/dashboard.html",
         api_token=api_token,
         default_agent=default_agent,
+        region=region,
+        regions=NEM_REGIONS,
+        region_label=_REGION_LABELS.get(region, region),
+        region_labels=_REGION_LABELS,
     )
 
 
 @energy_bp.route("/partials/price")
 @login_required
 def partial_price():
-    return render_template("energy/partials/price.html", vm=_price_view_model())
+    return render_template(
+        "energy/partials/price.html", vm=_price_view_model(_get_region())
+    )
 
 
 @energy_bp.route("/partials/generation")
 @login_required
 def partial_generation():
-    snap = eq.current_snapshot(REGION)
+    region = _get_region()
+    snap = eq.current_snapshot(region)
     vm = _aggregate_generation(snap.get("generation_mix", []))
     return render_template("energy/partials/generation.html", vm=vm)
 
@@ -480,42 +514,37 @@ def partial_generation():
 @login_required
 def partial_interconnectors():
     return render_template(
-        "energy/partials/interconnectors.html", vm=_interconnector_view_model()
+        "energy/partials/interconnectors.html",
+        vm=_interconnector_view_model(_get_region()),
     )
 
 
 @energy_bp.route("/partials/weather")
 @login_required
 def partial_weather():
-    return render_template(
-        "energy/partials/weather.html", vm=_weather_view_model()
-    )
+    return render_template("energy/partials/weather.html", vm=_weather_view_model())
 
 
 @energy_bp.route("/partials/forecast")
 @login_required
 def partial_forecast():
     return render_template(
-        "energy/partials/forecast.html", vm=_forecast_view_model()
+        "energy/partials/forecast.html", vm=_forecast_view_model(_get_region())
     )
 
 
 @energy_bp.route("/partials/sources")
 @login_required
 def partial_sources():
-    return render_template(
-        "energy/partials/sources.html", vm=_sources_view_model()
-    )
+    return render_template("energy/partials/sources.html", vm=_sources_view_model())
 
 
 @energy_bp.route("/partials/charts")
 @login_required
 def partial_charts():
-    # The charts call the Bearer-authed timeseries API client-side, so hand the
-    # logged-in browser the configured API token to use for those fetches.
     api_token = (
-        current_app.config.get("CITYLAB_CONFIG", {})
-        .get("api", {})
-        .get("token", "")
+        current_app.config.get("CITYLAB_CONFIG", {}).get("api", {}).get("token", "")
     )
-    return render_template("energy/partials/charts.html", api_token=api_token)
+    return render_template(
+        "energy/partials/charts.html", api_token=api_token, region=_get_region()
+    )

@@ -34,6 +34,7 @@
 (function () {
     const API_BASE = "/api/v1/energy/timeseries";
     const TOKEN = {{ api_token | tojson }};
+    const REGION = {{ region | tojson }};
 
     // Valid intervals per range + default (mirrors energy_query.RANGE_INTERVALS).
     const RANGE_INTERVALS = {
@@ -54,7 +55,7 @@
     }
 
     async function fetchSeries(metric) {
-        const url = `${API_BASE}/${metric}?range=${state.range}&interval=${state.interval}`;
+        const url = `${API_BASE}/${metric}?range=${state.range}&interval=${state.interval}&region=${REGION}`;
         const resp = await fetch(url, { headers: authHeaders() });
         if (!resp.ok) return { series: [] };
         return resp.json();

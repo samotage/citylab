@@ -8,11 +8,18 @@
 {% block content %}
 <div class="mission-control">
     <!-- ===== Left: energy dashboard (~67%) ===== -->
-    <div class="energy-dashboard mc-dashboard">
+    <div class="energy-dashboard mc-dashboard"
+         hx-vals='js:{"region": document.getElementById("region-selector").value}'>
         <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-bold text-zinc-900">Victorian Energy Market</h2>
+            <h2 id="dashboard-heading" class="text-xl font-bold text-zinc-900">{{ region_label }} Energy Market</h2>
             <div class="flex items-center gap-3">
-                <div class="region-pill">&#9889; VIC1</div>
+                <select id="region-selector"
+                        class="region-select"
+                        onchange="switchRegion(this.value)">
+                    {% for r in regions %}
+                    <option value="{{ r }}" {% if r == region %}selected{% endif %}>&#9889; {{ r }}</option>
+                    {% endfor %}
+                </select>
             </div>
         </div>
 
@@ -21,7 +28,7 @@
              class="card mb-4 !border-2 !border-volt-300"
              style="background: linear-gradient(180deg, rgba(124,58,237,0.06) 0%, white 100%);"
              hx-get="{{ url_for('energy.partial_price') }}"
-             hx-trigger="load, every 30s"
+             hx-trigger="load, every 30s, regionChanged from:body"
              hx-swap="innerHTML">
             <div class="text-zinc-400 text-sm">Loading market snapshot&hellip;</div>
         </div>
@@ -31,7 +38,7 @@
             <div id="panel-generation"
                  class="card"
                  hx-get="{{ url_for('energy.partial_generation') }}"
-                 hx-trigger="load, every 60s"
+                 hx-trigger="load, every 60s, regionChanged from:body"
                  hx-swap="innerHTML">
                 <div class="text-zinc-400 text-sm">Loading generation mix&hellip;</div>
             </div>
@@ -39,7 +46,7 @@
             <div id="panel-interconnectors"
                  class="card"
                  hx-get="{{ url_for('energy.partial_interconnectors') }}"
-                 hx-trigger="load, every 60s"
+                 hx-trigger="load, every 60s, regionChanged from:body"
                  hx-swap="innerHTML">
                 <div class="text-zinc-400 text-sm">Loading interconnectors&hellip;</div>
             </div>
@@ -47,7 +54,7 @@
             <div id="panel-weather"
                  class="card lg:col-span-2"
                  hx-get="{{ url_for('energy.partial_weather') }}"
-                 hx-trigger="load, every 120s"
+                 hx-trigger="load, every 120s, regionChanged from:body"
                  hx-swap="innerHTML">
                 <div class="text-zinc-400 text-sm">Loading weather &amp; renewable outlook&hellip;</div>
             </div>
@@ -57,7 +64,7 @@
         <div id="panel-forecast"
              class="card mb-4"
              hx-get="{{ url_for('energy.partial_forecast') }}"
-             hx-trigger="load, every 60s"
+             hx-trigger="load, every 60s, regionChanged from:body"
              hx-swap="innerHTML">
             <div class="text-zinc-400 text-sm">Loading price forecast&hellip;</div>
         </div>
@@ -65,7 +72,7 @@
         <!-- Interactive market trend charts -->
         <div id="panel-charts"
              hx-get="{{ url_for('energy.partial_charts') }}"
-             hx-trigger="load"
+             hx-trigger="load, regionChanged from:body"
              hx-swap="innerHTML">
             <div class="card mb-4">
                 <div class="text-zinc-400 text-sm">Loading market trend charts&hellip;</div>
@@ -76,7 +83,7 @@
         <div id="panel-sources"
              class="card"
              hx-get="{{ url_for('energy.partial_sources') }}"
-             hx-trigger="load, every 60s"
+             hx-trigger="load, every 60s, regionChanged from:body"
              hx-swap="innerHTML">
             <div class="text-zinc-400 text-sm">Loading data source health&hellip;</div>
         </div>
@@ -129,6 +136,14 @@
         <div class="agent-panel-error" id="agent-error" style="display:none;"></div>
     </aside>
 </div>
+
+<script>
+var REGION_LABELS = {{ region_labels | tojson }};
+function switchRegion(region) {
+    document.getElementById('dashboard-heading').textContent = (REGION_LABELS[region] || region) + ' Energy Market';
+    document.body.dispatchEvent(new Event('regionChanged'));
+}
+</script>
 
 <script>
 (function () {

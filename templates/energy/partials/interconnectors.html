@@ -1,7 +1,7 @@
 <div class="card-label">Interconnectors</div>
 
 <div class="flex items-center justify-between px-3 py-2 rounded-lg mb-3 text-xs font-medium" style="background: rgba(124,58,237,0.06);">
-    <span class="text-zinc-600">VIC net {{ vm.net_direction }}</span>
+    <span class="text-zinc-600">{{ vm.region_short }} net {{ vm.net_direction }}</span>
     <span class="font-mono font-semibold text-volt-600">{{ '{:,.0f}'.format(vm.net_mw) }} MW</span>
 </div>
 
@@ -18,7 +18,7 @@
         {% if c.available %}
         <div class="flex items-center gap-2">
             <span class="text-[10px] text-zinc-400">
-                {% if c.direction == 'import' %}&rarr; VIC{% else %}VIC &rarr;{% endif %}
+                {% if c.direction == 'import' %}&rarr; {{ vm.region_short }}{% else %}{{ vm.region_short }} &rarr;{% endif %}
             </span>
             <span class="font-mono text-xs font-medium text-zinc-900">{{ '{:,.0f}'.format(c.flow_mw) }} MW</span>
         </div>
