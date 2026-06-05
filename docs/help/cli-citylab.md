@@ -95,9 +95,9 @@ cli-citylab energy forecasts --region VIC1
 
 Returns: list of `{forecast_time, price_aud_mwh, forecast_type}`
 
-### Timeseries (chart-ready data)
+### Timeseries (chart-ready trend data)
 
-Windowed, interval-bucketed data designed for charts and trend analysis. Use these when you need to reason about trends over time ("prices rising for 3 hours", "demand peaked at 6pm").
+Windowed, interval-bucketed data designed for trend analysis. Use these when you need to reason about trends over time ("prices rising for 3 hours", "demand peaked at 6pm"). Prefer timeseries over raw `prices`/`generation` when the question is about patterns or movement, not a specific moment.
 
 **Ranges:** `1h`, `6h`, `24h` (default), `7d`, `30d`
 **Intervals:** auto-selected per range, or override: `5min`, `1h`, `1d`
@@ -110,13 +110,36 @@ Windowed, interval-bucketed data designed for charts and trend analysis. Use the
 | 7d | 1h | 1h, 1d |
 | 30d | 1d | 1h, 1d |
 
-**Note:** These endpoints exist in the API (`/api/v1/energy/timeseries/{price,demand,generation}`) but do not yet have CLI commands. Call via the API directly or use the dashboard at `/energy` for visual charts.
+### `cli-citylab energy timeseries-price`
 
-API examples:
+Price trend over a windowed period.
+
 ```
-GET /api/v1/energy/timeseries/price?range=24h&region=VIC1
-GET /api/v1/energy/timeseries/demand?range=7d&interval=1h
-GET /api/v1/energy/timeseries/generation?range=6h&interval=5min
+cli-citylab energy timeseries-price
+cli-citylab energy timeseries-price --range 24h --region VIC1
+cli-citylab energy timeseries-price --range 7d --interval 1h
+```
+
+Returns: `{ok, region, range, interval, series: [{timestamp, value}], data_as_of}`
+
+### `cli-citylab energy timeseries-demand`
+
+Demand trend over a windowed period.
+
+```
+cli-citylab energy timeseries-demand
+cli-citylab energy timeseries-demand --range 7d --interval 1h
+```
+
+Returns: `{ok, region, range, interval, series: [{timestamp, value}], data_as_of}`
+
+### `cli-citylab energy timeseries-generation`
+
+Generation mix trend over a windowed period.
+
+```
+cli-citylab energy timeseries-generation
+cli-citylab energy timeseries-generation --range 6h --interval 5min
 ```
 
 Returns: `{ok, region, range, interval, series: [{timestamp, value}], data_as_of}`
@@ -254,7 +277,7 @@ cli-citylab data market-intelligence
 cli-citylab data market-intelligence --region VIC1
 ```
 
-Returns: `{region, sources: [{name, source_type, status, data_as_of}], energy: {snapshot}, weather: {summary, rain_outlook, wind_outlook}, solar: null}`. Note: solar field is a placeholder — not yet wired.
+Returns: `{region, sources: [{name, source_type, status, data_as_of}], energy: {snapshot}, weather: {summary, rain_outlook, wind_outlook}, solar: {summary, outlook}}`.
 
 ### `cli-citylab data backfill`
 
