@@ -36,8 +36,9 @@ session:
 data_sources:
   opennem:
     name: "OpenNEM Victorian NEM"
-    base_url: https://api.opennem.org.au
-    # OpenNEM public endpoints do not require a key; left here for future use.
+    # OpenNEM moved to the OpenElectricity v4 API (old api.opennem.org.au 301s /
+    # 404s). These public market/data endpoints do not require a key.
+    base_url: https://api.openelectricity.org.au/v4
     api_key: ${OPENNEM_API_KEY}
     cron_expression: "*/5 * * * *"
     timeout_seconds: 8
