@@ -270,7 +270,7 @@ Returns: `{ok, fetched_rows, source, duration_ms}`
 
 ### `cli-citylab data market-intelligence`
 
-**Cross-source summary — the "give me everything" call.** Combines energy snapshot + weather conditions + source health in one response.
+**Cross-source summary — the "give me everything" call.** Combines energy snapshot + weather conditions + solar outlook + source health in one response.
 
 ```
 cli-citylab data market-intelligence
