@@ -1,0 +1,691 @@
+/*! @theme citether */
+
+/* ============================================================
+   citEther Theme — MARP Presentations
+   Version 1.0  |  06 Jun 2026
+   Adapted from otageLabs house theme v1.3
+
+   Brand source: docs/brand/citether-brand-guidelines.md
+   Primary accent: Amber #E8A838 (replaces otageLabs copper)
+   Secondary accent: Deep Teal #0D7377
+   Dark base: Charcoal #2D2926
+
+   Slide layouts (same as otageLabs house theme):
+     section             — default content slide (white)
+     section.lead        — title / opening slide (dark bg)
+     section.divider     — section break slide
+     section.dark        — dark variant content slide
+     section.quote       — testimonial / callout (centred)
+     section.closer      — closing / next steps slide
+
+   Column utilities:
+     .columns            — two equal columns
+     .columns-33-67      — narrow left, wide right
+     .columns-67-33      — wide left, narrow right
+
+   Data utilities:
+     .caption            — table source / footnote line
+     .label              — spaced-uppercase amber section label
+
+   Status helpers:
+     .status-green / .status-amber / .status-red
+
+   Accent numbers:
+     .stat-hero (96px) / .stat-big (60px) / .stat-label
+
+   citEther-specific:
+     .wordmark           — styled "citEther" text (cit amber, Ether teal)
+     .teal-accent        — deep teal coloured text
+   ============================================================ */
+
+
+/* ── Brand tokens ───────────────────────────────────── */
+section {
+  --amber:      #E8A838;
+  --amber-lt:   #F5D08A;
+  --amber-mid:  #F0C06A;
+  --teal:       #0D7377;
+  --teal-lt:    #4DA8AB;
+  --teal-dk:    #094F52;
+  --charcoal:   #2D2926;
+  --charcoal-lt:#4A4542;
+  --warm-grey:  #8A8480;
+  --body-text:  #3D3835;
+  --light-bg:   #FAFAFA;
+  --white:      #FFFFFF;
+  --signal-red:  #D94F4F;
+  --signal-green:#4CAF50;
+}
+
+
+/* ── Base slide ─────────────────────────────────────── */
+section {
+  font-family: 'Inter', Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-size: 22px;
+  line-height: 1.5;
+  color: #3D3835;
+  background: #FFFFFF;
+  padding: 58px 72px 64px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+
+/* ── Amber top stripe ──────────────────────────────── */
+section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: #E8A838;
+}
+
+
+/* ── Page number ───────────────────────────────────── */
+section::after {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 14px;
+  color: #8A8480;
+  letter-spacing: 0.06em;
+  position: absolute;
+  bottom: 22px;
+  right: 72px;
+}
+
+
+/* ── Persistent header logo ────────────────────────── */
+header {
+  position: absolute;
+  top: 16px;
+  right: 72px;
+  left: auto;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  z-index: 10;
+}
+
+header p {
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+header img {
+  display: block;
+}
+
+section.lead header { display: none; }
+
+
+/* ── Typography: headings ───────────────────────────── */
+
+h1 {
+  font-family: 'Inter', Arial, sans-serif;
+  font-size: 46px;
+  font-weight: 700;
+  color: #2D2926;
+  line-height: 1.1;
+  margin: 0 0 24px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #E8A838;
+  letter-spacing: -0.03em;
+}
+
+h2 {
+  font-family: 'Inter', Arial, sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  color: #0D7377;
+  line-height: 1.2;
+  margin: 24px 0 8px 0;
+}
+
+h3 {
+  font-family: 'Inter', Arial, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #3D3835;
+  line-height: 1.25;
+  margin: 20px 0 6px 0;
+}
+
+h4 {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0D7377;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 18px 0 6px 0;
+}
+
+h5 {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #8A8480;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 14px 0 4px 0;
+}
+
+
+/* ── Typography: body ───────────────────────────────── */
+p {
+  font-size: 22px;
+  color: #3D3835;
+  line-height: 1.6;
+  margin: 0 0 14px 0;
+}
+
+strong { color: #2D2926; }
+
+em {
+  color: #8A8480;
+  font-style: italic;
+}
+
+a {
+  color: #0D7377;
+  text-decoration: none;
+}
+
+
+/* ── Lists ──────────────────────────────────────────── */
+ul, ol {
+  margin: 4px 0 14px 0;
+  padding-left: 0;
+}
+
+li {
+  font-size: 22px;
+  color: #3D3835;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+ul { list-style: none; }
+ul > li {
+  padding-left: 22px;
+  position: relative;
+}
+ul > li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: #E8A838;
+  font-weight: bold;
+}
+
+ol { list-style: decimal; padding-left: 28px; }
+ol > li::marker {
+  color: #E8A838;
+  font-weight: bold;
+}
+
+ul ul, ol ol, ul ol, ol ul {
+  margin: 4px 0 4px 0;
+}
+ul ul > li,
+ol ul > li,
+ul ol > li,
+ol ol > li {
+  font-size: 19px;
+  color: #8A8480;
+}
+ul ul > li::before { color: #F5D08A; }
+
+
+/* ── Tables ─────────────────────────────────────────── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 19px;
+  margin: 12px 0 18px 0;
+}
+
+thead tr { background: #0D7377; }
+thead th {
+  color: #FFFFFF;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: none;
+}
+
+tbody tr:nth-child(even) td { background: #FAFAFA; }
+tbody tr:nth-child(odd)  td { background: #FFFFFF; }
+
+tbody td {
+  padding: 10px 16px;
+  color: #3D3835;
+  border-bottom: 1px solid #F5D08A;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  vertical-align: middle;
+  line-height: 1.4;
+}
+
+tbody td:first-child {
+  font-weight: bold;
+  color: #3D3835;
+}
+
+
+/* ── Blockquote ────────────────────────────────────── */
+blockquote {
+  margin: 20px 0;
+  padding: 18px 28px;
+  border-left: 5px solid #E8A838;
+  background: #FAFAFA;
+  border-radius: 0 4px 4px 0;
+}
+
+blockquote p {
+  font-size: 24px;
+  color: #3D3835;
+  font-weight: bold;
+  line-height: 1.4;
+  margin: 0 0 6px 0;
+}
+
+blockquote p:last-child { margin-bottom: 0; }
+
+
+/* ── Horizontal rule ────────────────────────────────── */
+hr {
+  border: none;
+  border-top: 2px solid #E8A838;
+  margin: 20px 0;
+}
+
+
+/* ── Code ───────────────────────────────────────────── */
+code {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 0.82em;
+  background: rgba(13,115,119,0.08);
+  color: #2D2926;
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+
+pre {
+  background: #FAFAFA;
+  border: 1px solid #F5D08A;
+  border-left: 4px solid #E8A838;
+  border-radius: 0 4px 4px 0;
+  padding: 16px 20px;
+  overflow: auto;
+  font-size: 16px;
+  margin: 14px 0;
+  line-height: 1.5;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+  color: #2D2926;
+}
+
+
+/* ── Images ─────────────────────────────────────────── */
+img {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+}
+
+
+/* ── Utilities ──────────────────────────────────────── */
+
+.label {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #0D7377;
+  margin-bottom: 14px;
+}
+
+.caption {
+  display: block;
+  font-family: 'Inter', Arial, sans-serif;
+  font-size: 14px;
+  color: #8A8480;
+  font-style: italic;
+  margin-top: -10px;
+  margin-bottom: 14px;
+}
+
+.status-green { color: #4CAF50; font-weight: bold; }
+.status-amber { color: #E8A838; font-weight: bold; }
+.status-red   { color: #D94F4F; font-weight: bold; }
+
+.stat-hero {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 96px;
+  font-weight: 700;
+  color: #E8A838;
+  line-height: 0.9;
+}
+
+.stat-big {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 60px;
+  font-weight: 700;
+  color: #E8A838;
+  line-height: 1;
+}
+
+.stat-label {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: #8A8480;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-top: 6px;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.columns-33-67 {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.columns-67-33 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.teal-accent { color: #0D7377; }
+
+.wordmark .cit { color: #E8A838; }
+.wordmark .ether { color: #0D7377; }
+
+
+/* ── TITLE SLIDE — section.lead ────────────────────── */
+section.lead {
+  background: #2D2926;
+  color: #FFFFFF;
+  padding: 56px 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+section.lead::before {
+  background: #E8A838;
+  height: 4px;
+}
+
+section.lead::after {
+  display: none;
+}
+
+section.lead > p:first-child img,
+section.lead > img:first-child {
+  position: absolute;
+  top: 36px;
+  left: 72px;
+  height: 50px;
+  width: auto !important;
+  object-fit: contain;
+  display: block;
+}
+
+section.lead h1 {
+  font-size: 72px;
+  color: #FFFFFF;
+  border-bottom: none;
+  padding-bottom: 0;
+  margin: 0 0 10px 0;
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+}
+
+section.lead h2 {
+  font-size: 28px;
+  color: #E8A838;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+section.lead h3 {
+  font-size: 17px;
+  color: #8A8480;
+  font-weight: normal;
+  margin: 0;
+}
+
+section.lead p { color: #8A8480; font-size: 20px; }
+section.lead strong { color: #E8A838; }
+section.lead em { color: #4DA8AB; }
+
+
+/* ── SECTION DIVIDER — section.divider ──────────────── */
+section.divider {
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 88px;
+  padding-right: 88px;
+}
+
+section.divider::before { background: #E8A838; }
+
+section.divider h4 {
+  font-size: 13px;
+  color: #0D7377;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin: 0 0 18px 0;
+  padding: 0;
+}
+
+section.divider h1 {
+  font-size: 60px;
+  color: #2D2926;
+  border-bottom: none;
+  padding-bottom: 0;
+  margin: 0 0 12px 0;
+  line-height: 1.0;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  border-left: 6px solid #E8A838;
+  padding-left: 24px;
+}
+
+section.divider h2 {
+  font-size: 24px;
+  color: #8A8480;
+  font-weight: normal;
+  margin: 0;
+}
+
+section.divider p {
+  font-size: 22px;
+  color: #8A8480;
+  margin: 10px 0 0 0;
+}
+
+
+/* ── DARK CONTENT SLIDE — section.dark ──────────────── */
+section.dark {
+  background: #2D2926;
+  color: #FFFFFF;
+}
+
+section.dark::before { background: #E8A838; }
+
+section.dark h1 {
+  color: #FFFFFF;
+  border-bottom-color: #E8A838;
+}
+
+section.dark h2 { color: #E8A838; }
+section.dark h3 { color: #FFFFFF; }
+section.dark h4 { color: #0D7377; }
+section.dark h5 { color: #8A8480; }
+
+section.dark p { color: #D4D0CC; }
+section.dark strong { color: #E8A838; }
+section.dark em { color: #4DA8AB; }
+
+section.dark li { color: #D4D0CC; }
+section.dark ul > li::before { color: #E8A838; }
+section.dark ol > li::marker { color: #E8A838; }
+section.dark ul ul > li,
+section.dark ol ul > li { color: #8A8480; }
+
+section.dark table thead tr { background: #0D7377; }
+section.dark table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.05); }
+section.dark table tbody tr:nth-child(odd)  td { background: transparent; }
+section.dark table tbody td {
+  color: #D4D0CC;
+  border-bottom-color: rgba(232,168,56,0.3);
+}
+section.dark table tbody td:first-child { color: #FFFFFF; }
+
+section.dark blockquote {
+  background: rgba(255,255,255,0.06);
+  border-left-color: #E8A838;
+}
+section.dark blockquote p { color: #FFFFFF; }
+
+section.dark code {
+  background: rgba(255,255,255,0.08);
+  color: #D4D0CC;
+}
+section.dark pre {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(232,168,56,0.4);
+  border-left-color: #E8A838;
+}
+section.dark pre code { color: #D4D0CC; }
+
+section.dark hr { border-top-color: rgba(232,168,56,0.5); }
+section.dark a { color: #4DA8AB; }
+
+section.dark .label { color: #0D7377; }
+section.dark .caption { color: #8A8480; }
+section.dark .stat-hero,
+section.dark .stat-big { color: #E8A838; }
+section.dark .stat-label { color: #8A8480; }
+
+
+/* ── QUOTE / CALLOUT SLIDE — section.quote ──────────── */
+section.quote {
+  background: #FAFAFA;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  padding: 56px 120px;
+}
+
+section.quote::before { background: #E8A838; }
+
+section.quote h1 {
+  border-bottom: none;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #0D7377;
+  margin-bottom: 32px;
+  padding-bottom: 0;
+}
+
+section.quote blockquote {
+  border-left: none;
+  background: transparent;
+  padding: 0;
+  text-align: center;
+}
+
+section.quote blockquote::before {
+  content: '\201C';
+  display: block;
+  font-size: 88px;
+  color: #E8A838;
+  line-height: 0.7;
+  margin-bottom: 18px;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+section.quote blockquote p {
+  font-size: 34px;
+  color: #2D2926;
+  font-weight: bold;
+  line-height: 1.35;
+  margin-bottom: 20px;
+}
+
+section.quote blockquote p:last-child:not(:first-child) {
+  font-size: 18px;
+  color: #8A8480;
+  font-weight: normal;
+}
+
+
+/* ── CLOSER SLIDE — section.closer ──────────────────── */
+section.closer {
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+section.closer::before { background: #E8A838; }
+
+section.closer h1 {
+  font-size: 52px;
+  margin-bottom: 28px;
+}
+
+section.closer p {
+  color: #8A8480;
+  font-size: 20px;
+}
+
+section.closer strong { color: #2D2926; }
+
+section.closer > p:last-child {
+  position: absolute;
+  bottom: 28px;
+  left: 72px;
+  right: 72px;
+  font-size: 14px;
+  color: #E8A838;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0;
+}

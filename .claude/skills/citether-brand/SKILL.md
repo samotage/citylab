@@ -112,9 +112,30 @@ All at `/Users/samotage/dev/otagelabs/hackathon/citylab/docs/brand/logo/`:
 
 ## MARP Presentations — citEther Theming
 
-The otageLabs house MARP theme (`theme: otagelabs`) uses copper (`#C78C5C`) as its accent. citEther presentations use the same structural theme but override the accent colour to Amber (`#E8A838`) via inline `<style>` in the frontmatter. This avoids maintaining a separate CSS file while producing on-brand output.
+citEther has its own MARP theme at `/Users/samotage/dev/otagelabs/hackathon/citylab/docs/brand/marp/citether.css`. It is a standalone theme adapted from the otageLabs house theme with the full dual-accent palette: Amber for primary accents (stripes, bullets, stats, blockquote borders, strong text) and Deep Teal for secondary accents (h2, h4/eyebrow labels, table headers, links, code tints).
 
-### Frontmatter Template (copy-paste)
+### Option A: Standalone theme (preferred)
+
+Register the citEther theme by passing it to marp-cli:
+
+```bash
+marp deck.md --config-file ~/.marprc.yml --theme-set /Users/samotage/dev/otagelabs/hackathon/citylab/docs/brand/marp/citether.css
+```
+
+Frontmatter:
+
+```markdown
+---
+marp: true
+theme: citether
+paginate: true
+header: '![w:100](/Users/samotage/dev/otagelabs/hackathon/citylab/docs/brand/logo/citether-mark-128.png)'
+---
+```
+
+### Option B: Inline override (fallback)
+
+If the standalone CSS is not available, use the otageLabs theme with inline `<style>` overrides. This maps copper → amber and adds teal as the secondary accent:
 
 ```markdown
 ---
@@ -123,60 +144,69 @@ theme: otagelabs
 paginate: true
 header: '![w:100](/Users/samotage/dev/otagelabs/hackathon/citylab/docs/brand/logo/citether-mark-128.png)'
 style: |
-  :root {
-    --copper: #E8A838;
-    --copper-mid: #F5D08A;
-    --copper-lt: #FFF8ED;
-  }
+  section { font-family: 'Inter', Arial, sans-serif; }
   section::before { background: #E8A838; }
-  h1 { border-bottom-color: #E8A838; }
-  h2 { color: #E8A838; }
-  h4 { color: #E8A838; }
+  h1 { border-bottom-color: #E8A838; letter-spacing: -0.03em; }
+  h2 { color: #0D7377; }
+  h4 { font-family: 'JetBrains Mono', monospace; color: #0D7377; letter-spacing: 0.12em; }
+  h5 { font-family: 'JetBrains Mono', monospace; letter-spacing: 0.12em; }
   ul > li::before { color: #E8A838; }
   ol > li::marker { color: #E8A838; }
-  thead tr { background: #E8A838; }
+  thead tr { background: #0D7377; }
+  thead th { font-family: 'JetBrains Mono', monospace; }
   tbody td { border-bottom-color: #F5D08A; }
   blockquote { border-left-color: #E8A838; }
   hr { border-top-color: #E8A838; }
-  a { color: #E8A838; }
-  code { background: #FFF8ED; }
+  a { color: #0D7377; }
+  code { font-family: 'JetBrains Mono', monospace; background: rgba(13,115,119,0.08); }
   pre { border-color: #F5D08A; border-left-color: #E8A838; }
-  .label { color: #E8A838; }
-  .stat-hero, .stat-big { color: #E8A838; }
+  .label { font-family: 'JetBrains Mono', monospace; color: #0D7377; }
+  .stat-hero, .stat-big { font-family: 'JetBrains Mono', monospace; color: #E8A838; }
+  .stat-label { font-family: 'JetBrains Mono', monospace; }
+  section::after { font-family: 'JetBrains Mono', monospace; }
   section.lead::before { background: #E8A838; }
   section.lead h2 { color: #E8A838; }
   section.lead strong { color: #E8A838; }
+  section.lead em { color: #4DA8AB; }
   section.divider::before { background: #E8A838; }
-  section.divider h4 { color: #E8A838; }
+  section.divider h4 { color: #0D7377; }
   section.divider h1 { border-left-color: #E8A838; }
+  section.dark h1 { border-bottom-color: #E8A838; }
   section.dark h2 { color: #E8A838; }
-  section.dark h4 { color: #E8A838; }
+  section.dark h4 { color: #0D7377; }
   section.dark strong { color: #E8A838; }
+  section.dark em { color: #4DA8AB; }
+  section.dark p { color: #D4D0CC; }
+  section.dark li { color: #D4D0CC; }
   section.dark ul > li::before { color: #E8A838; }
   section.dark ol > li::marker { color: #E8A838; }
   section.dark blockquote { border-left-color: #E8A838; }
-  section.dark a { color: #E8A838; }
-  section.dark .label { color: #E8A838; }
+  section.dark a { color: #4DA8AB; }
+  section.dark .label { color: #0D7377; }
   section.dark .stat-hero, section.dark .stat-big { color: #E8A838; }
-  section.dark thead tr { background: #E8A838; }
-  section.dark h1 { border-bottom-color: #E8A838; }
+  section.dark thead tr { background: #0D7377; }
   section.dark pre { border-color: rgba(232,168,56,0.4); border-left-color: #E8A838; }
   section.dark hr { border-top-color: rgba(232,168,56,0.5); }
   section.dark table tbody td { border-bottom-color: rgba(232,168,56,0.3); }
+  section.dark code { background: rgba(255,255,255,0.08); color: #D4D0CC; }
   ul ul > li::before { color: #F5D08A; }
-  tbody td { border-bottom-color: #F5D08A; }
-  section.dark p { color: #F5D08A; }
-  section.dark li { color: #F5D08A; }
-  section.dark code { background: rgba(255,255,255,0.08); color: #F5D08A; }
   section.quote::before { background: #E8A838; }
-  section.quote h1 { color: #E8A838; }
+  section.quote h1 { color: #0D7377; }
   section.quote blockquote::before { color: #E8A838; }
   section.closer::before { background: #E8A838; }
   section.closer > p:last-child { color: #E8A838; }
 ---
 ```
 
-This overrides every copper (`#C78C5C`) reference in the otageLabs theme to Amber (`#E8A838`), plus adjusts the mid/light tones for citEther's warmer amber. The structural layout (lead, divider, dark, quote, closer, columns, stats) is unchanged.
+### Colour mapping summary (otageLabs → citEther)
+
+| Role | otageLabs | citEther |
+|------|-----------|----------|
+| Top stripe, bullets, stats, strong, blockquote border | Copper `#C78C5C` | Amber `#E8A838` |
+| h2, h4/eyebrows, table headers, labels, links | Copper `#C78C5C` | Deep Teal `#0D7377` |
+| Dark slide body text | Copper Mid `#E8D5C4` | Neutral `#D4D0CC` |
+| Dark slide links, emphasis | Copper `#C78C5C` | Teal Light `#4DA8AB` |
+| Light tones (row borders, nested bullets) | Copper Lt `#F5EDE5` | Amber Lt `#F5D08A` |
 
 ### Title Slide
 
@@ -278,8 +308,14 @@ Variants: `columns-33-67`, `columns-67-33`.
 
 ## CLI
 
-Always pass `--config-file ~/.marprc.yml` to load the otageLabs theme:
+citEther theme (standalone):
+```bash
+marp deck.md --config-file ~/.marprc.yml --theme-set /Users/samotage/dev/otagelabs/hackathon/citylab/docs/brand/marp/citether.css          # HTML
+marp deck.md --config-file ~/.marprc.yml --theme-set /Users/samotage/dev/otagelabs/hackathon/citylab/docs/brand/marp/citether.css --pdf     # PDF
+marp deck.md --config-file ~/.marprc.yml --theme-set /Users/samotage/dev/otagelabs/hackathon/citylab/docs/brand/marp/citether.css --pptx    # PPTX
+```
 
+otageLabs theme with inline overrides (fallback):
 ```bash
 marp deck.md --config-file ~/.marprc.yml                  # HTML
 marp deck.md --config-file ~/.marprc.yml --pdf             # PDF
@@ -291,6 +327,7 @@ marp deck.md --config-file ~/.marprc.yml --pptx            # PPTX
 Full brand guidelines: `/Users/samotage/dev/otagelabs/hackathon/citylab/docs/brand/citether-brand-guidelines.md`
 Shared content layer: `/Users/samotage/dev/otagelabs/hackathon/citylab/docs/brand/shared-content-layer.md`
 Base44 corrective prompt: `/Users/samotage/dev/otagelabs/hackathon/citylab/docs/brand/base44-corrective-prompt.md`
+MARP theme CSS: `/Users/samotage/dev/otagelabs/hackathon/citylab/docs/brand/marp/citether.css`
 Logo assets: `/Users/samotage/dev/otagelabs/hackathon/citylab/docs/brand/logo/`
 
 ## Do / Don't
