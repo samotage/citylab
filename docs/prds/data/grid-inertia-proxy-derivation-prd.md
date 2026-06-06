@@ -43,15 +43,25 @@ When an interconnector trips (scenario 2 in the brief), VIC's external inertia b
 
 Offering both in the UI is the strongest demo move: "biggest generator" vs "biggest interconnector" tells different risk stories. This converts the abstract inertia number into "if we lost the biggest unit right now, frequency would fall at X Hz/s" — the judge-facing sentence.
 
-**Threshold bands** (NEM-typical VIC, configurable):
+**State classification — sync fraction is the primary driver:**
 
-| State | Sync fraction | Ref-contingency RoCoF | Meaning |
-|-------|--------------|----------------------|---------|
-| Comfortable | ≥ 50% | < 0.25 Hz/s | Sufficient spinning mass |
-| Watch | 30–50% | 0.25–0.5 Hz/s | Inertia thinning |
-| Brittle | < 30% | > 0.5 Hz/s | 1 Hz/s is cascade danger zone |
+| State | Sync fraction (primary) | Meaning |
+|-------|------------------------|---------|
+| Comfortable | ≥ 50% | Sufficient spinning mass for VIC's share |
+| Watch | 30–50% | Inertia thinning — renewables displacing thermal |
+| Brittle | < 30% | VIC's synchronous contribution critically low |
 
-Sync fraction bands are a within-VIC relative indicator of VIC's exposure within the mainland pool — not a claim that VIC is about to island. RoCoF bands are meaningful only with the external inertia term included (see E_total above).
+Sync fraction is the state driver because it has real dynamic range (swings 30–80% across a typical day) and is the honest "VIC exposure within the mainland pool" metric.
+
+**RoCoF is displayed as the illustrative physical consequence, not the state driver.** With `EXTERNAL_INERTIA_MWS = 35,000`, VIC-only E_proxy (~7k–21k MWs) is small relative to the mainland baseline, so RoCoF's achievable range is narrow (~0.29–0.46 Hz/s for Heywood). This is physically correct — VIC is buffered by the mainland — but it means RoCoF barely moves across the day and is useless as a state discriminator. Show it, narrate it, but don't classify by it.
+
+**RoCoF display bands** (calibrated to the achievable window, informational only):
+
+| RoCoF range | Label |
+|------------|-------|
+| < 0.33 Hz/s | Low |
+| 0.33–0.40 Hz/s | Moderate |
+| > 0.40 Hz/s | Elevated |
 
 ### Central caveat — MVA vs MW
 
@@ -65,7 +75,7 @@ Pure derivation module — no new database tables. Computes inertia metrics from
 
 Functions:
 - `SYNC_H_MAP: dict[str, float]` — fuel_type → H constant mapping (H=0 omitted, unknown defaults to 0)
-- `compute_inertia(generation_rows, contingency_preset="heywood") -> dict` — takes a list of `{fuel_type, output_mw}` dicts (same shape as `current_snapshot()` returns in `generation_mix`), returns `{sync_mw, total_mw, sync_fraction, e_proxy_mws, e_total_mws, rocof_hz_s, inertia_state, contingency_label, contingency_mw}`
+- `compute_inertia(generation_rows, contingency_preset="heywood") -> dict` — takes a list of `{fuel_type, output_mw}` dicts (same shape as `current_snapshot()` returns in `generation_mix`), returns `{sync_mw, total_mw, sync_fraction, e_proxy_mws, e_total_mws, rocof_hz_s, rocof_label, inertia_state, contingency_label, contingency_mw}`. State is classified by sync_fraction only; rocof_label is informational ("Low"/"Moderate"/"Elevated")
 - `inertia_timeseries(region, dt_from, dt_to, interval) -> list[dict]` — queries `GenerationOutput`, groups by interval, calls `compute_inertia` per interval, returns `[{timestamp, sync_mw, total_mw, sync_fraction, e_proxy_mws, rocof_hz_s, inertia_state}]`
 - `current_inertia(region) -> dict` — convenience wrapper: latest interval snapshot
 
@@ -148,9 +158,9 @@ This is a stretch goal — the core derivation and backfill are the must-haves.
 ## Demo Script
 
 1. Open the energy dashboard at `https://smac.griffin-blenny.ts.net:5099/energy`
-2. See the new **Grid Inertia** panel showing current state — e.g. "Watch — 42% synchronous, RoCoF 0.38 Hz/s if Heywood trips" (with mainland inertia buffering the number into a realistic band)
+2. See the new **Grid Inertia** panel showing current state — e.g. "Comfortable — 77% synchronous, RoCoF 0.29 Hz/s (Low) if Heywood trips" (state driven by sync fraction, RoCoF as illustrative consequence)
 3. Toggle the contingency preset dropdown: Heywood (650 MW) vs Loy Yang A (560 MW) — RoCoF shifts, showing different risk profiles for interconnector vs generator loss
 4. Click the inertia trend to see the 24h chart — notice inertia dips during midday solar peaks (high renewable, low sync fraction) and recovers in evening peaks (gas peakers online)
 5. Overlay weather data — wind speed and solar irradiance track inversely with sync fraction
-6. Point out the brittle window: "At 2pm yesterday, sync fraction hit 28% — if Heywood had tripped, RoCoF would have been 0.52 Hz/s, past the 0.5 watch threshold"
+6. Point out the brittle window: "At 2pm yesterday, sync fraction hit 28% — Brittle state. If Heywood had tripped, RoCoF would have been 0.43 Hz/s (Elevated)"
 7. The key insight: **we derived grid fragility from data we already had — no new sensors, no new data sources, just physics applied to the generation mix**

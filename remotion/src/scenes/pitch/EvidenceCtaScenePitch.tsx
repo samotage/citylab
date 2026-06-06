@@ -1,21 +1,27 @@
 import React from 'react';
 import {AbsoluteFill, Img, interpolate, useCurrentFrame, useVideoConfig, staticFile} from 'remotion';
 import {BRAND} from '../../brand';
-import {Wordmark} from '../../components/Wordmark';
 import {GridPattern} from '../../components/GridPattern';
 
 const techStack = [
-  {label: 'Live NEM Data', desc: 'Real-time price signals', color: BRAND.amber},
-  {label: 'Arbitrage Engine', desc: 'Auto-Arb optimisation', color: BRAND.teal},
-  {label: 'Settlement Layer', desc: 'Follow Me Power backbone', color: BRAND.amber},
-  {label: 'Grid Inertia', desc: 'Demand response tracking', color: BRAND.teal},
+  {label: 'Live NEM Data', desc: '5-min price + demand ingestion', color: BRAND.amber},
+  {label: 'Arbitrage Engine', desc: 'Battery charge/discharge optimiser', color: BRAND.teal},
+  {label: 'Settlement Layer', desc: 'Location-independent credits', color: BRAND.amber},
+  {label: 'Grid Inertia', desc: 'RoCoF + frequency tracking', color: BRAND.teal},
+];
+
+const builtItems = [
+  'Real-time price signals across VIC1',
+  'Grid inertia + demand response engine',
+  'Auto-Arb orchestration layer',
+  'Follow Me Power settlement infrastructure',
 ];
 
 export const EvidenceCtaScenePitch: React.FC = () => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
 
-  // Phase 1: Evidence (0-8s)
+  // Phase 1: Evidence (0-7s)
   const evidenceEyebrow = interpolate(frame, [0, 0.4 * fps], [0, 1], {
     extrapolateRight: 'clamp',
   });
@@ -23,35 +29,46 @@ export const EvidenceCtaScenePitch: React.FC = () => {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
-  const whitespaceCall = interpolate(frame, [5 * fps, 5.5 * fps], [0, 1], {
+  const whitespaceCall = interpolate(frame, [4.5 * fps, 5 * fps], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const evidenceFade = interpolate(frame, [6.5 * fps, 7.5 * fps], [1, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
 
-  // Phase 2: CTA (8-16s)
-  const ctaOpacity = interpolate(frame, [8 * fps, 9 * fps], [0, 1], {
+  // Phase 2: CTA (7-14s)
+  const ctaOpacity = interpolate(frame, [7 * fps, 8 * fps], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
-  const ctaLine1 = interpolate(frame, [9 * fps, 9.5 * fps], [0, 1], {
+  const ctaPilot = interpolate(frame, [8 * fps, 8.4 * fps], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
-  const ctaLine2 = interpolate(frame, [10 * fps, 10.5 * fps], [0, 1], {
+  const ctaSuburb = interpolate(frame, [8.8 * fps, 9.2 * fps], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
-  const ctaLine3 = interpolate(frame, [11 * fps, 11.5 * fps], [0, 1], {
+  const ctaHouseholds = interpolate(frame, [9.6 * fps, 10 * fps], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
-  const ctaButton = interpolate(frame, [13 * fps, 14 * fps], [0, 1], {
+  const ctaMonths = interpolate(frame, [10.4 * fps, 10.8 * fps], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const ctaSupportLine = interpolate(frame, [11.2 * fps, 12 * fps], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const ctaAsk = interpolate(frame, [12.5 * fps, 13 * fps], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
 
-  // Small app screenshots in a row (evidence)
-  const appsOpacity = interpolate(frame, [3 * fps, 4 * fps], [0, 1], {
+  const appsOpacity = interpolate(frame, [3 * fps, 3.8 * fps], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
@@ -64,14 +81,11 @@ export const EvidenceCtaScenePitch: React.FC = () => {
       <div
         style={{
           position: 'absolute',
-          top: 80,
-          left: 120,
-          width: 800,
+          top: 60,
+          left: 100,
+          width: 850,
           zIndex: 1,
-          opacity: interpolate(frame, [7 * fps, 8.5 * fps], [1, 0], {
-            extrapolateLeft: 'clamp',
-            extrapolateRight: 'clamp',
-          }),
+          opacity: evidenceFade,
         }}
       >
         <div style={{opacity: evidenceEyebrow}}>
@@ -83,7 +97,7 @@ export const EvidenceCtaScenePitch: React.FC = () => {
               letterSpacing: '0.12em',
               textTransform: 'uppercase' as const,
               color: BRAND.amber,
-              marginBottom: 20,
+              marginBottom: 16,
             }}
           >
             BUILT AT THIS HACKATHON
@@ -94,24 +108,24 @@ export const EvidenceCtaScenePitch: React.FC = () => {
             opacity: evidenceHeadline,
             fontFamily: 'Inter, sans-serif',
             fontWeight: 700,
-            fontSize: 48,
+            fontSize: 44,
             color: BRAND.white,
             letterSpacing: '-0.02em',
             lineHeight: 1.2,
-            marginBottom: 40,
+            marginBottom: 28,
           }}
         >
           The intelligence layer is{' '}
           <span style={{color: BRAND.amber}}>working.</span>
         </div>
 
-        {/* Tech stack cards */}
-        <div style={{display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 40}}>
+        {/* Tech stack cards — 2x2 */}
+        <div style={{display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 24}}>
           {techStack.map((item, i) => {
-            const delay = 1.5 + i * 0.5;
+            const delay = 1.2 + i * 0.4;
             const cardOpacity = interpolate(
               frame,
-              [delay * fps, (delay + 0.4) * fps],
+              [delay * fps, (delay + 0.35) * fps],
               [0, 1],
               {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'},
             );
@@ -120,19 +134,22 @@ export const EvidenceCtaScenePitch: React.FC = () => {
                 key={i}
                 style={{
                   opacity: cardOpacity,
-                  border: `1px solid ${item.color}40`,
-                  borderRadius: 8,
-                  padding: '16px 24px',
-                  flex: '1 1 200px',
+                  border: `1px solid ${item.color}50`,
+                  borderLeft: `3px solid ${item.color}`,
+                  borderRadius: 6,
+                  padding: '14px 20px',
+                  flex: '1 1 180px',
+                  maxWidth: '48%',
+                  backgroundColor: `${BRAND.charcoalLight}40`,
                 }}
               >
                 <div
                   style={{
                     fontFamily: 'JetBrains Mono, monospace',
-                    fontSize: 14,
+                    fontSize: 13,
                     color: item.color,
                     letterSpacing: '0.08em',
-                    marginBottom: 6,
+                    marginBottom: 4,
                   }}
                 >
                   {item.label}
@@ -140,7 +157,7 @@ export const EvidenceCtaScenePitch: React.FC = () => {
                 <div
                   style={{
                     fontFamily: 'Inter, sans-serif',
-                    fontSize: 16,
+                    fontSize: 15,
                     color: BRAND.warmGrey,
                   }}
                 >
@@ -151,11 +168,64 @@ export const EvidenceCtaScenePitch: React.FC = () => {
           })}
         </div>
 
+        {/* Built items checklist */}
+        <div style={{marginBottom: 24}}>
+          {builtItems.map((item, i) => {
+            const delay = 2.8 + i * 0.3;
+            const itemOpacity = interpolate(
+              frame,
+              [delay * fps, (delay + 0.3) * fps],
+              [0, 1],
+              {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'},
+            );
+            return (
+              <div
+                key={i}
+                style={{
+                  opacity: itemOpacity,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  marginBottom: 8,
+                }}
+              >
+                <div
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: 4,
+                    backgroundColor: BRAND.teal,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 13,
+                    color: BRAND.white,
+                    fontWeight: 700,
+                    flexShrink: 0,
+                  }}
+                >
+                  ✓
+                </div>
+                <span
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 16,
+                    color: BRAND.white,
+                    fontWeight: 400,
+                  }}
+                >
+                  {item}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
         <div
           style={{
             opacity: whitespaceCall,
             fontFamily: 'Inter, sans-serif',
-            fontSize: 24,
+            fontSize: 22,
             color: BRAND.white,
             fontWeight: 600,
             lineHeight: 1.5,
@@ -173,15 +243,12 @@ export const EvidenceCtaScenePitch: React.FC = () => {
       <div
         style={{
           position: 'absolute',
-          right: 80,
+          right: 60,
           top: '50%',
           transform: 'translateY(-50%)',
-          opacity: appsOpacity * interpolate(frame, [7 * fps, 8.5 * fps], [1, 0], {
-            extrapolateLeft: 'clamp',
-            extrapolateRight: 'clamp',
-          }),
+          opacity: appsOpacity * evidenceFade,
           display: 'flex',
-          gap: 16,
+          gap: 14,
           zIndex: 1,
         }}
       >
@@ -189,14 +256,14 @@ export const EvidenceCtaScenePitch: React.FC = () => {
           <div
             key={i}
             style={{
-              width: 160,
-              height: 340,
+              width: 150,
+              height: 320,
               borderRadius: 20,
               border: `2px solid ${BRAND.charcoalLight}`,
               overflow: 'hidden',
               opacity: interpolate(
                 frame,
-                [(3.5 + i * 0.5) * fps, (4 + i * 0.5) * fps],
+                [(3.2 + i * 0.4) * fps, (3.6 + i * 0.4) * fps],
                 [0, 1],
                 {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'},
               ),
@@ -226,59 +293,69 @@ export const EvidenceCtaScenePitch: React.FC = () => {
           zIndex: 2,
         }}
       >
+        {/* Pilot ask — staggered reveal */}
         <div
           style={{
             fontFamily: 'Inter, sans-serif',
             fontWeight: 700,
-            fontSize: 56,
+            fontSize: 60,
             color: BRAND.white,
             textAlign: 'center',
             letterSpacing: '-0.02em',
-            lineHeight: 1.4,
-            marginBottom: 60,
+            lineHeight: 1.3,
+            marginBottom: 40,
           }}
         >
-          <span style={{opacity: ctaLine1}}>One suburb.</span>
+          <span style={{opacity: ctaPilot}}>One pilot.</span>
           {'  '}
-          <span style={{opacity: ctaLine2, color: BRAND.amber}}>
+          <span style={{opacity: ctaSuburb}}>One suburb.</span>
+          <br />
+          <span style={{opacity: ctaHouseholds, color: BRAND.amber}}>
             100 households.
           </span>
           {'  '}
-          <span style={{opacity: ctaLine3}}>Three months.</span>
+          <span style={{opacity: ctaMonths}}>Three months.</span>
         </div>
 
+        {/* Supporting evidence line */}
         <div
           style={{
-            opacity: ctaButton,
-            transform: `translateY(${interpolate(ctaButton, [0, 1], [15, 0])}px)`,
+            opacity: ctaSupportLine,
+            fontFamily: 'Inter, sans-serif',
+            fontSize: 24,
+            color: BRAND.warmGrey,
+            textAlign: 'center',
+            lineHeight: 1.6,
+            maxWidth: 900,
+            marginBottom: 40,
+          }}
+        >
+          We prove the model works — behind the meter, across the network,
+          <br />
+          with real people earning real value in real places.
+        </div>
+
+        {/* The ask — amber bar */}
+        <div
+          style={{
+            opacity: ctaAsk,
+            transform: `translateY(${interpolate(ctaAsk, [0, 1], [12, 0])}px)`,
             backgroundColor: BRAND.amber,
-            padding: '20px 50px',
+            padding: '18px 48px',
             borderRadius: 6,
-            marginBottom: 16,
+            marginBottom: 12,
           }}
         >
           <span
             style={{
               fontFamily: 'Inter, sans-serif',
               fontWeight: 600,
-              fontSize: 24,
+              fontSize: 22,
               color: BRAND.charcoal,
             }}
           >
-            Follow Me Power — proven in the real world.
+            That's the ask.
           </span>
-        </div>
-
-        <div
-          style={{
-            opacity: ctaButton,
-            fontFamily: 'JetBrains Mono, monospace',
-            fontSize: 16,
-            color: BRAND.warmGrey,
-            marginTop: 12,
-          }}
-        >
-          That's the ask.
         </div>
       </div>
     </AbsoluteFill>
