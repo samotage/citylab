@@ -118,7 +118,7 @@ export const AppDemoWalkthroughPitch: React.FC = () => {
         <div
           style={{
             fontFamily: 'JetBrains Mono, monospace',
-            fontSize: 16,
+            fontSize: 20,
             fontWeight: 500,
             letterSpacing: '0.12em',
             textTransform: 'uppercase' as const,
@@ -132,7 +132,7 @@ export const AppDemoWalkthroughPitch: React.FC = () => {
           style={{
             fontFamily: 'Inter, sans-serif',
             fontWeight: 700,
-            fontSize: 44,
+            fontSize: 52,
             color: BRAND.white,
             letterSpacing: '-0.02em',
             lineHeight: 1.2,
@@ -186,7 +186,7 @@ export const AppDemoWalkthroughPitch: React.FC = () => {
                   <div
                     style={{
                       fontFamily: 'Inter, sans-serif',
-                      fontSize: 22,
+                      fontSize: 28,
                       fontWeight: 600,
                       color: BRAND.white,
                       lineHeight: 1.3,
@@ -198,7 +198,7 @@ export const AppDemoWalkthroughPitch: React.FC = () => {
                   <div
                     style={{
                       fontFamily: 'Inter, sans-serif',
-                      fontSize: 16,
+                      fontSize: 20,
                       color: BRAND.warmGrey,
                       lineHeight: 1.4,
                     }}
@@ -302,7 +302,7 @@ export const AppDemoWalkthroughPitch: React.FC = () => {
                   <div
                     style={{
                       fontFamily: 'Inter, sans-serif',
-                      fontSize: 11,
+                      fontSize: 14,
                       fontWeight: 600,
                       color: BRAND.white,
                     }}
@@ -312,7 +312,7 @@ export const AppDemoWalkthroughPitch: React.FC = () => {
                   <div
                     style={{
                       fontFamily: 'Inter, sans-serif',
-                      fontSize: 10,
+                      fontSize: 13,
                       color: BRAND.warmGrey,
                     }}
                   >

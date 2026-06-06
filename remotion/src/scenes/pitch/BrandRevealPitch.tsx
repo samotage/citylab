@@ -53,11 +53,11 @@ export const BrandRevealPitch: React.FC = () => {
         >
           <Img
             src={staticFile('citether-mark.png')}
-            style={{width: 120, height: 120}}
+            style={{width: 140, height: 140}}
           />
         </div>
         <div style={{opacity: wordmarkOpacity, marginBottom: 40}}>
-          <Wordmark size={64} onDark />
+          <Wordmark size={72} onDark />
         </div>
         <div
           style={{
@@ -65,7 +65,7 @@ export const BrandRevealPitch: React.FC = () => {
             transform: `translateY(${taglineY}px)`,
             fontFamily: 'Inter, sans-serif',
             fontWeight: 300,
-            fontSize: 32,
+            fontSize: 38,
             color: BRAND.warmGrey,
             letterSpacing: '0.02em',
           }}

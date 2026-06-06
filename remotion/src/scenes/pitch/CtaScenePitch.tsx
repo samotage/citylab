@@ -95,7 +95,7 @@ export const CtaScenePitch: React.FC = () => {
           style={{
             fontFamily: 'Inter, sans-serif',
             fontWeight: 700,
-            fontSize: 64,
+            fontSize: 76,
             color: BRAND.white,
             textAlign: 'center',
             letterSpacing: '-0.02em',
@@ -119,7 +119,7 @@ export const CtaScenePitch: React.FC = () => {
           style={{
             opacity: supportLine,
             fontFamily: 'Inter, sans-serif',
-            fontSize: 24,
+            fontSize: 28,
             color: BRAND.warmGrey,
             textAlign: 'center',
             lineHeight: 1.6,
@@ -146,7 +146,7 @@ export const CtaScenePitch: React.FC = () => {
             style={{
               fontFamily: 'Inter, sans-serif',
               fontWeight: 600,
-              fontSize: 22,
+              fontSize: 26,
               color: BRAND.charcoal,
             }}
           >
@@ -184,7 +184,7 @@ export const CtaScenePitch: React.FC = () => {
           />
         </div>
         <div style={{opacity: wordmarkOpacity, marginBottom: 30}}>
-          <Wordmark size={56} onDark />
+          <Wordmark size={64} onDark />
         </div>
         <div
           style={{
@@ -192,7 +192,7 @@ export const CtaScenePitch: React.FC = () => {
             transform: `translateY(${taglineY}px)`,
             fontFamily: 'Inter, sans-serif',
             fontWeight: 300,
-            fontSize: 28,
+            fontSize: 34,
             color: BRAND.warmGrey,
           }}
         >
@@ -204,7 +204,7 @@ export const CtaScenePitch: React.FC = () => {
             bottom: 60,
             opacity: hackathon,
             fontFamily: 'JetBrains Mono, monospace',
-            fontSize: 16,
+            fontSize: 20,
             color: BRAND.charcoalLight,
             letterSpacing: '0.08em',
           }}

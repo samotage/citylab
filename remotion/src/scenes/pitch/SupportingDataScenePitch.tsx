@@ -88,7 +88,7 @@ export const SupportingDataScenePitch: React.FC = () => {
           style={{
             opacity: eyebrow,
             fontFamily: 'JetBrains Mono, monospace',
-            fontSize: 18,
+            fontSize: 22,
             fontWeight: 500,
             letterSpacing: '0.12em',
             textTransform: 'uppercase' as const,
@@ -103,7 +103,7 @@ export const SupportingDataScenePitch: React.FC = () => {
             opacity: headline,
             fontFamily: 'Inter, sans-serif',
             fontWeight: 700,
-            fontSize: 44,
+            fontSize: 52,
             color: BRAND.white,
             letterSpacing: '-0.02em',
             lineHeight: 1.2,
@@ -155,7 +155,7 @@ export const SupportingDataScenePitch: React.FC = () => {
                   style={{
                     fontFamily: 'Inter, sans-serif',
                     fontWeight: 700,
-                    fontSize: 42,
+                    fontSize: 52,
                     color: card.color,
                     letterSpacing: '-0.02em',
                     marginBottom: 4,
@@ -166,7 +166,7 @@ export const SupportingDataScenePitch: React.FC = () => {
                 <div
                   style={{
                     fontFamily: 'JetBrains Mono, monospace',
-                    fontSize: 12,
+                    fontSize: 16,
                     fontWeight: 500,
                     letterSpacing: '0.1em',
                     color: BRAND.warmGrey,
@@ -178,7 +178,7 @@ export const SupportingDataScenePitch: React.FC = () => {
                 <div
                   style={{
                     fontFamily: 'Inter, sans-serif',
-                    fontSize: 16,
+                    fontSize: 20,
                     color: BRAND.white,
                     lineHeight: 1.4,
                   }}
@@ -195,7 +195,7 @@ export const SupportingDataScenePitch: React.FC = () => {
           style={{
             opacity: sankeyEyebrow,
             fontFamily: 'JetBrains Mono, monospace',
-            fontSize: 14,
+            fontSize: 18,
             fontWeight: 500,
             letterSpacing: '0.1em',
             color: BRAND.teal,
@@ -228,7 +228,7 @@ export const SupportingDataScenePitch: React.FC = () => {
             <div
               style={{
                 fontFamily: 'JetBrains Mono, monospace',
-                fontSize: 11,
+                fontSize: 14,
                 color: BRAND.charcoal,
                 letterSpacing: '0.1em',
                 marginBottom: 4,
@@ -239,7 +239,7 @@ export const SupportingDataScenePitch: React.FC = () => {
             <div
               style={{
                 fontFamily: 'Inter, sans-serif',
-                fontSize: 18,
+                fontSize: 22,
                 fontWeight: 600,
                 color: BRAND.charcoal,
               }}
@@ -267,7 +267,7 @@ export const SupportingDataScenePitch: React.FC = () => {
             <div
               style={{
                 fontFamily: 'JetBrains Mono, monospace',
-                fontSize: 11,
+                fontSize: 14,
                 color: BRAND.amber,
                 letterSpacing: '0.1em',
                 marginBottom: 4,
@@ -278,7 +278,7 @@ export const SupportingDataScenePitch: React.FC = () => {
             <div
               style={{
                 fontFamily: 'Inter, sans-serif',
-                fontSize: 18,
+                fontSize: 22,
                 fontWeight: 600,
                 color: BRAND.white,
               }}
@@ -301,7 +301,7 @@ export const SupportingDataScenePitch: React.FC = () => {
               <span
                 style={{
                   fontFamily: 'JetBrains Mono, monospace',
-                  fontSize: 10,
+                  fontSize: 14,
                   color: BRAND.white,
                   letterSpacing: '0.08em',
                 }}
@@ -329,7 +329,7 @@ export const SupportingDataScenePitch: React.FC = () => {
             <div
               style={{
                 fontFamily: 'JetBrains Mono, monospace',
-                fontSize: 11,
+                fontSize: 14,
                 color: BRAND.white,
                 letterSpacing: '0.1em',
                 opacity: 0.8,
@@ -341,7 +341,7 @@ export const SupportingDataScenePitch: React.FC = () => {
             <div
               style={{
                 fontFamily: 'Inter, sans-serif',
-                fontSize: 18,
+                fontSize: 22,
                 fontWeight: 600,
                 color: BRAND.white,
               }}
@@ -358,7 +358,7 @@ export const SupportingDataScenePitch: React.FC = () => {
             opacity: punchline,
             fontFamily: 'Inter, sans-serif',
             fontWeight: 700,
-            fontSize: 28,
+            fontSize: 36,
             color: BRAND.white,
             textAlign: 'center',
             marginBottom: 30,
@@ -400,7 +400,7 @@ export const SupportingDataScenePitch: React.FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: 11,
+                    fontSize: 14,
                     color: BRAND.white,
                     fontWeight: 700,
                     flexShrink: 0,
@@ -411,7 +411,7 @@ export const SupportingDataScenePitch: React.FC = () => {
                 <span
                   style={{
                     fontFamily: 'Inter, sans-serif',
-                    fontSize: 14,
+                    fontSize: 18,
                     color: BRAND.white,
                   }}
                 >

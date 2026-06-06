@@ -57,7 +57,7 @@ const CostCard: React.FC<{
         <div
           style={{
             fontFamily: 'JetBrains Mono, monospace',
-            fontSize: 14,
+            fontSize: 18,
             color: BRAND.warmGrey,
             letterSpacing: '0.1em',
             textTransform: 'uppercase' as const,
@@ -70,7 +70,7 @@ const CostCard: React.FC<{
           style={{
             fontFamily: 'Inter, sans-serif',
             fontWeight: 700,
-            fontSize: 32,
+            fontSize: 40,
             color: leftColor,
           }}
         >
@@ -100,7 +100,7 @@ const CostCard: React.FC<{
         <div
           style={{
             fontFamily: 'JetBrains Mono, monospace',
-            fontSize: 14,
+            fontSize: 18,
             color: BRAND.warmGrey,
             letterSpacing: '0.1em',
             textTransform: 'uppercase' as const,
@@ -113,7 +113,7 @@ const CostCard: React.FC<{
           style={{
             fontFamily: 'Inter, sans-serif',
             fontWeight: 700,
-            fontSize: 32,
+            fontSize: 40,
             color: rightColor,
           }}
         >
@@ -125,10 +125,10 @@ const CostCard: React.FC<{
       <div
         style={{
           position: 'absolute',
-          bottom: -24,
+          bottom: -28,
           right: 0,
           fontFamily: 'Inter, sans-serif',
-          fontSize: 18,
+          fontSize: 22,
           color: BRAND.warmGrey,
           fontStyle: 'italic',
           opacity: interpolate(
@@ -176,7 +176,7 @@ export const AgitateScenePitch: React.FC = () => {
           style={{
             opacity: eyebrowOpacity,
             fontFamily: 'JetBrains Mono, monospace',
-            fontSize: 18,
+            fontSize: 22,
             fontWeight: 500,
             letterSpacing: '0.12em',
             textTransform: 'uppercase' as const,
@@ -226,7 +226,7 @@ export const AgitateScenePitch: React.FC = () => {
             opacity: punchlineOpacity,
             fontFamily: 'Inter, sans-serif',
             fontWeight: 600,
-            fontSize: 36,
+            fontSize: 44,
             color: BRAND.white,
             textAlign: 'center',
           }}

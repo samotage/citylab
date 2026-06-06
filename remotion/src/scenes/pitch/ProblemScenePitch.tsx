@@ -83,7 +83,7 @@ export const ProblemScenePitch: React.FC = () => {
             marginTop: 40,
             fontFamily: 'Inter, sans-serif',
             fontWeight: 700,
-            fontSize: 72,
+            fontSize: 80,
             color: BRAND.white,
             letterSpacing: '-0.03em',
             lineHeight: 1.15,
@@ -113,7 +113,7 @@ export const ProblemScenePitch: React.FC = () => {
               style={{
                 fontFamily: 'Inter, sans-serif',
                 fontWeight: 700,
-                fontSize: 48,
+                fontSize: 56,
                 color: BRAND.amber,
               }}
             >
@@ -122,7 +122,7 @@ export const ProblemScenePitch: React.FC = () => {
             <span
               style={{
                 fontFamily: 'Inter, sans-serif',
-                fontSize: 24,
+                fontSize: 28,
                 color: BRAND.warmGrey,
               }}
             >
@@ -143,7 +143,7 @@ export const ProblemScenePitch: React.FC = () => {
               style={{
                 fontFamily: 'Inter, sans-serif',
                 fontWeight: 700,
-                fontSize: 48,
+                fontSize: 56,
                 color: BRAND.teal,
               }}
             >
@@ -152,7 +152,7 @@ export const ProblemScenePitch: React.FC = () => {
             <span
               style={{
                 fontFamily: 'Inter, sans-serif',
-                fontSize: 24,
+                fontSize: 28,
                 color: BRAND.warmGrey,
               }}
             >
@@ -165,7 +165,7 @@ export const ProblemScenePitch: React.FC = () => {
               transform: `translateY(${stat3Y}px)`,
               fontFamily: 'Inter, sans-serif',
               fontWeight: 600,
-              fontSize: 28,
+              fontSize: 34,
               color: BRAND.white,
               lineHeight: 1.5,
             }}
@@ -235,7 +235,7 @@ export const ProblemScenePitch: React.FC = () => {
             textAnchor="middle"
             fill={BRAND.warmGrey}
             fontFamily="JetBrains Mono, monospace"
-            fontSize={14}
+            fontSize={18}
             letterSpacing="0.1em"
           >
             YOUR METER

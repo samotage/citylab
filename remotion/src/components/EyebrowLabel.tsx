@@ -9,7 +9,7 @@ export const EyebrowLabel: React.FC<{
     <div
       style={{
         fontFamily: 'JetBrains Mono, monospace',
-        fontSize: 22,
+        fontSize: 26,
         fontWeight: 500,
         letterSpacing: '0.12em',
         textTransform: 'uppercase' as const,
