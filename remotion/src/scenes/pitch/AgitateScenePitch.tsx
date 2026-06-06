@@ -155,7 +155,7 @@ export const AgitateScenePitch: React.FC = () => {
 
   const punchlineOpacity = interpolate(
     frame,
-    [15 * fps, 16 * fps],
+    [28 * fps, 29 * fps],
     [0, 1],
     {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'},
   );
@@ -196,7 +196,7 @@ export const AgitateScenePitch: React.FC = () => {
             rightValue="Diesel: $0.50/kWh"
             rightColor={BRAND.amber}
             caption="The tradie's dilemma"
-            delay={1}
+            delay={2}
           />
           <CostCard
             leftLabel="HOME PANELS"
@@ -206,7 +206,7 @@ export const AgitateScenePitch: React.FC = () => {
             rightValue="Paying 80c/kWh"
             rightColor={BRAND.amber}
             caption="The family road trip"
-            delay={6}
+            delay={12}
           />
           <CostCard
             leftLabel="YOUR ROOF"
@@ -216,7 +216,7 @@ export const AgitateScenePitch: React.FC = () => {
             rightValue="Struggling with bills"
             rightColor={BRAND.amber}
             caption="Across town, no connection"
-            delay={11}
+            delay={22}
           />
         </div>
 
