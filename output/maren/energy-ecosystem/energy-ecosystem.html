@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  width: 1920px;
+  height: 1080px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #060a12;
+  color: #c0d0e0;
+  overflow: hidden;
+}
+
+.canvas {
+  width: 1920px;
+  height: 1080px;
+  position: relative;
+  background:
+    radial-gradient(ellipse 900px 700px at 30% 55%, rgba(0,180,140,0.05) 0%, transparent 100%),
+    radial-gradient(ellipse 700px 500px at 75% 50%, rgba(0,100,220,0.04) 0%, transparent 100%),
+    radial-gradient(ellipse 400px 300px at 50% 80%, rgba(240,160,50,0.02) 0%, transparent 100%),
+    #060a12;
+}
+
+.canvas::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(0,180,140,0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 1400px 900px at 50% 50%, rgba(0,0,0,0.6) 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 1400px 900px at 50% 50%, rgba(0,0,0,0.6) 0%, transparent 70%);
+}
+
+/* ===== TITLE ===== */
+.title-block {
+  position: absolute;
+  top: 44px;
+  left: 100px;
+}
+
+.title {
+  font-size: 44px;
+  font-weight: 800;
+  color: #f0f6fc;
+  letter-spacing: -1px;
+  line-height: 1.15;
+}
+
+.title .accent {
+  background: linear-gradient(135deg, #00d4aa 0%, #00a0e8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  font-size: 17px;
+  color: #5d7a8e;
+  margin-top: 8px;
+  font-weight: 400;
+  letter-spacing: 0.2px;
+}
+
+/* ===== FLOW CHAIN ===== */
+.flow-chain {
+  position: absolute;
+  top: 148px;
+  left: 100px;
+  right: 100px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.flow-card {
+  flex: 1;
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1px solid;
+  position: relative;
+}
+
+.flow-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  letter-spacing: 0.3px;
+}
+
+.flow-card p {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.flow-card.markets {
+  background: rgba(100,120,140,0.06);
+  border-color: rgba(100,120,140,0.18);
+}
+.flow-card.markets h3 { color: #8a9ab0; }
+.flow-card.markets p { color: #4a5a6a; }
+
+.flow-card.lg-renew {
+  background: rgba(0,180,140,0.06);
+  border-color: rgba(0,180,140,0.18);
+}
+.flow-card.lg-renew h3 { color: #00d4aa; }
+.flow-card.lg-renew p { color: #2a6a5a; }
+
+.flow-card.transmission {
+  background: rgba(0,180,140,0.08);
+  border-color: rgba(0,180,140,0.22);
+}
+.flow-card.transmission h3 { color: #00d4aa; }
+.flow-card.transmission p { color: #2a6a5a; }
+
+.flow-card.distribution {
+  background: rgba(0,120,220,0.06);
+  border-color: rgba(0,120,220,0.18);
+}
+.flow-card.distribution h3 { color: #40b0ff; }
+.flow-card.distribution p { color: #2a5a7a; }
+
+.flow-card.cers {
+  background: rgba(240,160,50,0.06);
+  border-color: rgba(240,160,50,0.18);
+}
+.flow-card.cers h3 { color: #f0a030; }
+.flow-card.cers p { color: #7a5a2a; }
+
+.flow-connector {
+  width: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flow-connector svg {
+  width: 20px;
+  height: 20px;
+  opacity: 0.35;
+}
+
+/* ===== NETWORK AREA ===== */
+.network {
+  position: absolute;
+  top: 270px;
+  left: 100px;
+  right: 100px;
+  bottom: 95px;
+}
+
+/* Zone labels */
+.zone-label {
+  position: absolute;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+.zone-trans-label {
+  top: 288px;
+  left: 30px;
+  color: rgba(0,180,140,0.3);
+}
+
+.zone-dist-label {
+  top: 288px;
+  left: 760px;
+  color: rgba(0,120,220,0.3);
+}
+
+/* Zone divider */
+.zone-divider {
+  position: absolute;
+  left: 700px;
+  top: 40px;
+  bottom: 40px;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(0,180,140,0.12) 20%, rgba(0,120,220,0.12) 80%, transparent);
+}
+
+/* Transmission zone tint */
+.zone-tint-trans {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 700px;
+  bottom: 0;
+  background: radial-gradient(ellipse 600px 500px at 50% 50%, rgba(0,180,140,0.015) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Distribution zone tint */
+.zone-tint-dist {
+  position: absolute;
+  left: 700px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse 700px 500px at 50% 50%, rgba(0,100,220,0.015) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* SVG connections layer */
+.connections {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ===== NODES ===== */
+.node {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  transform: translateX(-50%);
+  z-index: 3;
+}
+
+.node-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.node-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Node color themes */
+.node-icon.teal {
+  background: rgba(0,180,140,0.1);
+  border: 1.5px solid rgba(0,180,140,0.35);
+  box-shadow: 0 0 32px rgba(0,180,140,0.12), 0 0 8px rgba(0,180,140,0.06), inset 0 0 12px rgba(0,180,140,0.04);
+  color: #00d4aa;
+}
+
+.node-icon.blue {
+  background: rgba(0,120,220,0.1);
+  border: 1.5px solid rgba(0,120,220,0.35);
+  box-shadow: 0 0 32px rgba(0,120,220,0.12), 0 0 8px rgba(0,120,220,0.06), inset 0 0 12px rgba(0,120,220,0.04);
+  color: #40b0ff;
+}
+
+.node-icon.amber {
+  background: rgba(240,160,50,0.1);
+  border: 1.5px solid rgba(240,160,50,0.3);
+  box-shadow: 0 0 32px rgba(240,160,50,0.12), 0 0 8px rgba(240,160,50,0.06), inset 0 0 12px rgba(240,160,50,0.04);
+  color: #f0a030;
+}
+
+.node-icon.legacy {
+  background: rgba(180,70,50,0.08);
+  border: 1.5px solid rgba(180,70,50,0.25);
+  box-shadow: 0 0 24px rgba(180,70,50,0.1), 0 0 6px rgba(180,70,50,0.05);
+  color: #d07060;
+}
+
+.node-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6a8898;
+  text-align: center;
+  line-height: 1.3;
+  max-width: 110px;
+  white-space: nowrap;
+}
+
+/* Badges */
+.node-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  z-index: 4;
+}
+
+.badge-q {
+  background: rgba(180,70,50,0.25);
+  color: #e07060;
+  border: 1px solid rgba(180,70,50,0.35);
+}
+
+.badge-plus {
+  background: rgba(0,180,140,0.15);
+  color: #00c89a;
+  border: 1px solid rgba(0,180,140,0.25);
+}
+
+.badge-pp {
+  background: rgba(0,120,220,0.18);
+  color: #50b8ff;
+  border: 1px solid rgba(0,120,220,0.3);
+}
+
+/* ===== JUNCTION DOTS ===== */
+.junction {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  z-index: 4;
+}
+
+.junction.j-teal {
+  background: #00d4aa;
+  box-shadow: 0 0 18px rgba(0,180,140,0.6), 0 0 5px rgba(0,180,140,0.9);
+}
+
+.junction.j-blue {
+  background: #3090dd;
+  box-shadow: 0 0 18px rgba(0,120,220,0.5), 0 0 5px rgba(0,120,220,0.8);
+}
+
+.junction.j-legacy {
+  background: #b05040;
+  box-shadow: 0 0 12px rgba(180,70,50,0.5);
+}
+
+.junction.j-amber {
+  background: #d09030;
+  box-shadow: 0 0 14px rgba(240,160,50,0.5);
+}
+
+/* ===== TAGLINE ===== */
+.tagline {
+  position: absolute;
+  bottom: 38px;
+  left: 100px;
+  right: 100px;
+  text-align: center;
+  font-size: 23px;
+  font-weight: 600;
+  color: #d0dce8;
+  letter-spacing: -0.2px;
+}
+
+.tagline em {
+  font-style: normal;
+  color: #00d4aa;
+  font-weight: 700;
+}
+
+.source {
+  position: absolute;
+  bottom: 14px;
+  right: 100px;
+  font-size: 10px;
+  color: #2a3a4a;
+  letter-spacing: 0.5px;
+}
+</style>
+</head>
+<body>
+<div class="canvas">
+
+  <!-- TITLE -->
+  <div class="title-block">
+    <div class="title">Net zero needs a <span class="accent">connected energy ecosystem</span></div>
+    <div class="subtitle">Renewables, CER, networks and electricity markets must operate together.</div>
+  </div>
+
+  <!-- FLOW CHAIN -->
+  <div class="flow-chain">
+    <div class="flow-card markets">
+      <h3>Markets</h3>
+      <p>Spot, FCAS, tariffs</p>
+    </div>
+    <div class="flow-connector">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h10M11 6l4 4-4 4" stroke="#8a9ab0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="flow-card lg-renew">
+      <h3>Large Renewables</h3>
+      <p>Wind, solar, hydro, storage</p>
+    </div>
+    <div class="flow-connector">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h10M11 6l4 4-4 4" stroke="#00d4aa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="flow-card transmission">
+      <h3>Transmission</h3>
+      <p>Moves clean energy across regions</p>
+    </div>
+    <div class="flow-connector">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h10M11 6l4 4-4 4" stroke="#20a0c8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="flow-card distribution">
+      <h3>Distribution</h3>
+      <p>Connects millions of devices</p>
+    </div>
+    <div class="flow-connector">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h10M11 6l4 4-4 4" stroke="#f0a030" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="flow-card cers">
+      <h3>CERs</h3>
+      <p>PV, batteries, EVs, buildings</p>
+    </div>
+  </div>
+
+  <!-- NETWORK DIAGRAM -->
+  <div class="network">
+    <!-- Zone tints -->
+    <div class="zone-tint-trans"></div>
+    <div class="zone-tint-dist"></div>
+    <div class="zone-divider"></div>
+
+    <!-- Zone labels -->
+    <div class="zone-label zone-trans-label">Transmission Grid</div>
+    <div class="zone-label zone-dist-label">Distribution Grid</div>
+
+    <!-- SVG CONNECTIONS -->
+    <svg class="connections" viewBox="0 0 1720 715" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Bus gradient: teal -> blue -->
+        <linearGradient id="bus-grad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#00d4aa" stop-opacity="0.5"/>
+          <stop offset="38%" stop-color="#00d4aa" stop-opacity="0.7"/>
+          <stop offset="50%" stop-color="#10a0b8" stop-opacity="0.6"/>
+          <stop offset="62%" stop-color="#2090dd" stop-opacity="0.65"/>
+          <stop offset="100%" stop-color="#2080cc" stop-opacity="0.4"/>
+        </linearGradient>
+        <linearGradient id="bus-glow-grad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#00d4aa" stop-opacity="0.2"/>
+          <stop offset="40%" stop-color="#00d4aa" stop-opacity="0.3"/>
+          <stop offset="60%" stop-color="#2090dd" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#2080cc" stop-opacity="0.1"/>
+        </linearGradient>
+        <!-- Glow filter -->
+        <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="4" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow-soft" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="6" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- ===== MAIN BUS BACKBONE ===== -->
+      <!-- Wide atmospheric glow -->
+      <line x1="50" y1="310" x2="1670" y2="310" stroke="url(#bus-glow-grad)" stroke-width="40" opacity="0.08" filter="url(#glow-soft)"/>
+      <!-- Glow layer -->
+      <line x1="50" y1="310" x2="1670" y2="310" stroke="url(#bus-glow-grad)" stroke-width="14" filter="url(#glow-soft)"/>
+      <!-- Core line -->
+      <line x1="50" y1="310" x2="1670" y2="310" stroke="url(#bus-grad)" stroke-width="3"/>
+
+      <!-- ===== VERTICAL CONNECTIONS ===== -->
+
+      <!-- Pair 1: Thermal (above) / Gas (below) — x=140, LEGACY dashed -->
+      <line x1="140" y1="150" x2="140" y2="310" stroke="rgba(180,70,50,0.22)" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <line x1="140" y1="310" x2="140" y2="470" stroke="rgba(180,70,50,0.22)" stroke-width="1.5" stroke-dasharray="5 4"/>
+
+      <!-- Pair 2: Wind farm (above) / Interconnections (below) — x=340 -->
+      <line x1="340" y1="150" x2="340" y2="470" stroke="rgba(0,180,140,0.25)" stroke-width="1.5"/>
+      <!-- Flow dots -->
+      <circle cx="340" cy="200" r="2" fill="#00d4aa" opacity="0.6"/>
+      <circle cx="340" cy="250" r="1.5" fill="#00d4aa" opacity="0.3"/>
+      <circle cx="340" cy="380" r="2" fill="#00d4aa" opacity="0.5"/>
+      <circle cx="340" cy="430" r="1.5" fill="#00d4aa" opacity="0.25"/>
+
+      <!-- Pair 3: Large industry (above) / Public transport (below) — x=540 -->
+      <line x1="540" y1="150" x2="540" y2="470" stroke="rgba(0,180,140,0.25)" stroke-width="1.5"/>
+      <circle cx="540" cy="220" r="2" fill="#00d4aa" opacity="0.5"/>
+      <circle cx="540" cy="410" r="1.5" fill="#00d4aa" opacity="0.35"/>
+
+      <!-- Pair 4: Commercial (above) / EVs (below) — x=860 -->
+      <line x1="860" y1="150" x2="860" y2="470" stroke="rgba(0,120,220,0.25)" stroke-width="1.5"/>
+      <circle cx="860" cy="200" r="2" fill="#3090dd" opacity="0.5"/>
+      <circle cx="860" cy="260" r="1.5" fill="#3090dd" opacity="0.3"/>
+      <circle cx="860" cy="380" r="2" fill="#3090dd" opacity="0.45"/>
+      <circle cx="860" cy="440" r="1.5" fill="#3090dd" opacity="0.25"/>
+
+      <!-- Pair 5: Renewables (above) / SMEs (below) — x=1100 -->
+      <line x1="1100" y1="150" x2="1100" y2="470" stroke="rgba(0,120,220,0.25)" stroke-width="1.5"/>
+      <circle cx="1100" cy="190" r="2" fill="#3090dd" opacity="0.6"/>
+      <circle cx="1100" cy="240" r="1.5" fill="#3090dd" opacity="0.3"/>
+      <circle cx="1100" cy="400" r="2" fill="#3090dd" opacity="0.4"/>
+
+      <!-- Pair 6: Power-to-gas (above) / Batteries (below) — x=1320 -->
+      <line x1="1320" y1="150" x2="1320" y2="470" stroke="rgba(0,120,220,0.22)" stroke-width="1.5"/>
+      <circle cx="1320" cy="210" r="2" fill="#3090dd" opacity="0.45"/>
+      <circle cx="1320" cy="400" r="2" fill="#f0a030" opacity="0.4"/>
+      <circle cx="1320" cy="440" r="1.5" fill="#f0a030" opacity="0.25"/>
+
+      <!-- Buildings (right side) — horizontal from bus + vertical up -->
+      <path d="M1460 310 L1540 310 L1540 210" stroke="rgba(0,120,220,0.22)" stroke-width="1.5" fill="none"/>
+      <circle cx="1540" cy="260" r="1.5" fill="#3090dd" opacity="0.35"/>
+
+      <!-- ===== PULSE RINGS on key junctions ===== -->
+      <!-- Central junction pulse (at zone boundary) -->
+      <circle cx="700" cy="310" r="16" stroke="#10a0b8" stroke-width="1" fill="none" opacity="0.15"/>
+      <circle cx="700" cy="310" r="28" stroke="#10a0b8" stroke-width="0.5" fill="none" opacity="0.06"/>
+      <!-- Transmission hub pulse -->
+      <circle cx="340" cy="310" r="16" stroke="#00d4aa" stroke-width="0.8" fill="none" opacity="0.1"/>
+      <!-- Distribution hub pulse -->
+      <circle cx="1100" cy="310" r="16" stroke="#3090dd" stroke-width="0.8" fill="none" opacity="0.1"/>
+
+      <!-- ===== FLOW DIRECTION ACCENTS ON BUS ===== -->
+      <!-- Small dots flowing along the bus backbone -->
+      <circle cx="180" cy="310" r="2" fill="#00d4aa" opacity="0.3"/>
+      <circle cx="260" cy="310" r="1.5" fill="#00d4aa" opacity="0.45"/>
+      <circle cx="440" cy="310" r="2" fill="#00d4aa" opacity="0.35"/>
+      <circle cx="620" cy="310" r="1.5" fill="#00c8b0" opacity="0.4"/>
+      <circle cx="760" cy="310" r="2" fill="#10a0b8" opacity="0.3"/>
+      <circle cx="980" cy="310" r="1.5" fill="#2090cc" opacity="0.4"/>
+      <circle cx="1200" cy="310" r="2" fill="#3090dd" opacity="0.35"/>
+      <circle cx="1400" cy="310" r="1.5" fill="#3090dd" opacity="0.3"/>
+      <circle cx="1580" cy="310" r="2" fill="#2080cc" opacity="0.25"/>
+    </svg>
+
+    <!-- ===== JUNCTION DOTS ===== -->
+    <div class="junction j-legacy" style="left:140px; top:310px;"></div>
+    <div class="junction j-teal" style="left:340px; top:310px;"></div>
+    <div class="junction j-teal" style="left:540px; top:310px;"></div>
+    <div class="junction j-blue" style="left:860px; top:310px;"></div>
+    <div class="junction j-blue" style="left:1100px; top:310px;"></div>
+    <div class="junction j-blue" style="left:1320px; top:310px;"></div>
+    <div class="junction j-blue" style="left:1460px; top:310px;"></div>
+
+    <!-- ===== NODES: ABOVE BUS ===== -->
+
+    <!-- Thermal generation (legacy) -->
+    <div class="node" style="left:140px; top:68px;">
+      <div class="node-icon legacy">
+        <span class="node-badge badge-q">?</span>
+        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 24V14C10 10 14 7 18 14V24"/>
+          <path d="M13 9C13 7 15 5 15 3" stroke-width="1" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="node-label">Thermal<br>generation</div>
+    </div>
+
+    <!-- Wind farm / Power plants -->
+    <div class="node" style="left:340px; top:68px;">
+      <div class="node-icon teal">
+        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <circle cx="14" cy="16" r="2.5" fill="currentColor" opacity="0.25" stroke="none"/>
+          <line x1="14" y1="13.5" x2="14" y2="4"/>
+          <line x1="14" y1="16" x2="7" y2="24"/>
+          <line x1="14" y1="16" x2="21" y2="24"/>
+        </svg>
+      </div>
+      <div class="node-label">Power plants</div>
+    </div>
+
+    <!-- Large-scale industry -->
+    <div class="node" style="left:540px; top:68px;">
+      <div class="node-icon teal">
+        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="12" width="18" height="12" rx="1"/>
+          <rect x="8" y="6" width="4" height="6"/>
+          <rect x="16" y="8" width="4" height="4"/>
+        </svg>
+      </div>
+      <div class="node-label">Large-scale<br>industry</div>
+    </div>
+
+    <!-- Commercial & industry -->
+    <div class="node" style="left:860px; top:68px;">
+      <div class="node-icon blue">
+        <span class="node-badge badge-plus">+</span>
+        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <rect x="7" y="4" width="14" height="20" rx="1"/>
+          <line x1="11" y1="8" x2="13" y2="8"/>
+          <line x1="15" y1="8" x2="17" y2="8"/>
+          <line x1="11" y1="12" x2="13" y2="12"/>
+          <line x1="15" y1="12" x2="17" y2="12"/>
+          <line x1="11" y1="16" x2="13" y2="16"/>
+          <line x1="15" y1="16" x2="17" y2="16"/>
+          <line x1="11" y1="20" x2="13" y2="20"/>
+          <line x1="15" y1="20" x2="17" y2="20"/>
+        </svg>
+      </div>
+      <div class="node-label">Commercial<br>& industry</div>
+    </div>
+
+    <!-- Distributed renewables -->
+    <div class="node" style="left:1100px; top:68px;">
+      <div class="node-icon blue">
+        <span class="node-badge badge-pp">++</span>
+        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <circle cx="14" cy="9" r="4" stroke-width="1.5"/>
+          <line x1="14" y1="3" x2="14" y2="1" stroke-width="1"/>
+          <line x1="14" y1="15" x2="14" y2="17" stroke-width="1"/>
+          <line x1="8" y1="9" x2="6" y2="9" stroke-width="1"/>
+          <line x1="20" y1="9" x2="22" y2="9" stroke-width="1"/>
+          <line x1="10" y1="5.2" x2="8.5" y2="3.7" stroke-width="1"/>
+          <line x1="18" y1="5.2" x2="19.5" y2="3.7" stroke-width="1"/>
+          <line x1="10" y1="12.8" x2="8.5" y2="14.3" stroke-width="1"/>
+          <line x1="18" y1="12.8" x2="19.5" y2="14.3" stroke-width="1"/>
+          <rect x="7" y="19" width="14" height="6" rx="1"/>
+          <line x1="7" y1="22" x2="21" y2="22" stroke-width="0.75"/>
+          <line x1="11" y1="19" x2="11" y2="25" stroke-width="0.75"/>
+          <line x1="17" y1="19" x2="17" y2="25" stroke-width="0.75"/>
+        </svg>
+      </div>
+      <div class="node-label">Renewables</div>
+    </div>
+
+    <!-- Power-to-gas -->
+    <div class="node" style="left:1320px; top:68px;">
+      <div class="node-icon blue">
+        <span class="node-badge badge-plus">+</span>
+        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-linecap="round">
+          <text x="14" y="19" font-family="-apple-system, sans-serif" font-size="14" font-weight="700" fill="currentColor" stroke="none" text-anchor="middle">H&#8322;</text>
+          <circle cx="14" cy="14" r="10" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="node-label">Power-to-gas</div>
+    </div>
+
+    <!-- Buildings (right side) -->
+    <div class="node" style="left:1540px; top:148px;">
+      <div class="node-icon blue">
+        <span class="node-badge badge-plus">+</span>
+        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="6" width="10" height="18" rx="1"/>
+          <rect x="14" y="10" width="10" height="14" rx="1"/>
+          <line x1="7" y1="10" x2="9" y2="10"/>
+          <line x1="7" y1="14" x2="9" y2="14"/>
+          <line x1="7" y1="18" x2="9" y2="18"/>
+          <line x1="17" y1="14" x2="19" y2="14"/>
+          <line x1="17" y1="18" x2="19" y2="18"/>
+        </svg>
+      </div>
+      <div class="node-label">Buildings</div>
+    </div>
+
+    <!-- ===== NODES: BELOW BUS ===== -->
+
+    <!-- Gas peakers (legacy) -->
+    <div class="node" style="left:140px; top:438px;">
+      <div class="node-icon legacy">
+        <span class="node-badge badge-q">?</span>
+        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 4C18 10 22 16 14 24C6 16 10 10 14 4Z"/>
+          <circle cx="14" cy="16" r="3" stroke-width="1" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="node-label">Gas peakers</div>
+    </div>
+
+    <!-- Interconnections -->
+    <div class="node" style="left:340px; top:438px;">
+      <div class="node-icon teal">
+        <span class="node-badge badge-plus">+</span>
+        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <circle cx="9" cy="14" r="5"/>
+          <circle cx="19" cy="14" r="5"/>
+          <line x1="14" y1="12" x2="14" y2="16"/>
+        </svg>
+      </div>
+      <div class="node-label">Interconnections</div>
+    </div>
+
+    <!-- Public transport -->
+    <div class="node" style="left:540px; top:438px;">
+      <div class="node-icon teal">
+        <span class="node-badge badge-plus">+</span>
+        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="8" width="20" height="12" rx="3"/>
+          <line x1="4" y1="15" x2="24" y2="15" stroke-width="0.75"/>
+          <rect x="7" y="10" width="5" height="5" rx="1" stroke-width="1"/>
+          <rect x="16" y="10" width="5" height="5" rx="1" stroke-width="1"/>
+          <circle cx="9" cy="23" r="2"/>
+          <circle cx="19" cy="23" r="2"/>
+        </svg>
+      </div>
+      <div class="node-label">Public transport</div>
+    </div>
+
+    <!-- Electric vehicles -->
+    <div class="node" style="left:860px; top:438px;">
+      <div class="node-icon blue">
+        <span class="node-badge badge-plus">+</span>
+        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 17L7 11L11 9L17 9L21 11L24 17"/>
+          <line x1="3" y1="17" x2="25" y2="17"/>
+          <circle cx="9" cy="20" r="2.5"/>
+          <circle cx="19" cy="20" r="2.5"/>
+          <line x1="12" y1="6" x2="14" y2="3" stroke-width="1.5"/>
+          <line x1="13" y1="3" x2="15" y2="3" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="node-label">Electric vehicles</div>
+    </div>
+
+    <!-- SMEs -->
+    <div class="node" style="left:1100px; top:438px;">
+      <div class="node-icon blue">
+        <span class="node-badge badge-plus">+</span>
+        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 14L14 5L24 14"/>
+          <rect x="7" y="14" width="14" height="10"/>
+          <rect x="11" y="18" width="6" height="6"/>
+        </svg>
+      </div>
+      <div class="node-label">SMEs</div>
+    </div>
+
+    <!-- Batteries -->
+    <div class="node" style="left:1320px; top:438px;">
+      <div class="node-icon amber">
+        <span class="node-badge badge-plus">+</span>
+        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="6" y="8" width="16" height="16" rx="2"/>
+          <line x1="10" y1="8" x2="10" y2="5"/>
+          <line x1="18" y1="8" x2="18" y2="5"/>
+          <line x1="10" y1="14" x2="18" y2="14" stroke-width="1"/>
+          <line x1="10" y1="18" x2="18" y2="18" stroke-width="1"/>
+          <line x1="6" y1="21" x2="22" y2="21" stroke-width="1" opacity="0.4"/>
+        </svg>
+      </div>
+      <div class="node-label">Batteries</div>
+    </div>
+  </div>
+
+  <!-- TAGLINE -->
+  <div class="tagline">The challenge is not only building assets — it is <em>coordinating them</em>.</div>
+
+  <!-- SOURCE -->
+  <div class="source">Source: AEMO Integrated System Plan &middot; National CER Roadmap</div>
+
+</div>
+</body>
+</html>
