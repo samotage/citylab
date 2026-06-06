@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "npx remotion studio",
     "build": "npx remotion render CitEtherFlyover ../docs/pitch/videos/citether-flyover.mp4",
-    "render": "npx remotion render CitEtherFlyover ../docs/pitch/videos/citether-flyover.mp4"
+    "render": "npx remotion render CitEtherFlyover ../docs/pitch/videos/citether-flyover.mp4",
+    "build:pitch": "npx remotion render CitEtherPitch ../docs/pitch/videos/citether-pitch.mp4",
+    "render:pitch": "npx remotion render CitEtherPitch ../docs/pitch/videos/citether-pitch.mp4"
   },
   "dependencies": {
     "@remotion/cli": "4.0.261",

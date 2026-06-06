@@ -13,7 +13,15 @@ export const BRAND = {
 } as const;
 
 export const FPS = 30;
+
+// 9:16 flyover
 export const WIDTH = 1080;
 export const HEIGHT = 1920;
 export const DURATION_SECONDS = 60;
 export const TOTAL_FRAMES = FPS * DURATION_SECONDS;
+
+// 16:9 pitch video
+export const PITCH_WIDTH = 1920;
+export const PITCH_HEIGHT = 1080;
+export const PITCH_DURATION_SECONDS = 180;
+export const PITCH_TOTAL_FRAMES = FPS * PITCH_DURATION_SECONDS;
